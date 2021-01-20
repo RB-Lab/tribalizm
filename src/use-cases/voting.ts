@@ -1,17 +1,17 @@
 import { Brainstorm, BrainstormStore, IdeasStore } from './entities/brainstorm'
-import { MemberStore } from './entities/member'
+import { MembersStore } from './entities/member'
 import { EntityNotFound } from './entities/not-found-error'
 
 export class Voting {
     private _ideasStore: IdeasStore
     private _brainstormStore: BrainstormStore
-    private _memberStore: MemberStore
+    private _memberStore: MembersStore
     private _brainstorm: Brainstorm | null = null
 
     constructor(
         ideasStore: IdeasStore,
         brainstormStore: BrainstormStore,
-        memberStroe: MemberStore
+        memberStroe: MembersStore
     ) {
         this._ideasStore = ideasStore
         this._memberStore = memberStroe

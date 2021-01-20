@@ -1,4 +1,3 @@
-import { AssertionError } from 'assert'
 import {
     Brainstorm,
     BrainstormStore,
@@ -8,7 +7,7 @@ import {
     UpdateFinishedBrainstormError,
     UpdateFinishedIdeaError,
 } from '../entities/brainstorm'
-import { Member, MemberStore } from '../entities/member'
+import { Member, MembersStore } from '../entities/member'
 import { EntityNotFound } from '../entities/not-found-error'
 import {
     ExternalMemberVoteError,
@@ -107,6 +106,7 @@ describe('Voting', () => {
                 world.voting.voteUp(world.idea.id, world.idea.meberId)
             ).toBeRejectedWithError(SelfVotingError)
         })
+        it('should NOT allow voting twice')
         it('should NOT allow voting for non-existing idea', async () => {
             const world = setUp()
             await world.voting.start(world.brainstorm.id)
@@ -169,7 +169,7 @@ function setUp() {
     })
     const member = new Member('m-42', 'u-42', 't-42')
 
-    const memberStore = jasmine.createSpyObj<MemberStore>('MemberStore', {
+    const memberStore = jasmine.createSpyObj<MembersStore>('MemberStore', {
         find: Promise.resolve([]),
         getById: Promise.resolve(member),
     })
@@ -199,9 +199,7 @@ function setUp() {
         getIdeaToSave: (call: number = 0) => {
             const idea = ideasStore.save.calls.argsFor(call)[0]
             if (Array.isArray(idea)) {
-                throw new AssertionError({
-                    message: 'expected single idea to be saved',
-                })
+                throw new Error('expected single idea to be saved')
             }
             return idea
         },

@@ -1,5 +1,8 @@
-export interface MemberStore {
-    find: (params: { tribeId: string }) => Promise<Member[]>
+export interface MembersStore {
+    find: (params: {
+        tribeId?: string | string[]
+        id?: string | string[]
+    }) => Promise<Member[]>
     getById: (id: string) => Promise<Member | null>
 }
 export class Member {

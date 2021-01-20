@@ -101,7 +101,7 @@ export class QuestIdea {
     finish = () => {
         this._state = 'finished'
     }
-    voteUp = (memberId: string) => {
+    private checkCanVote(memberId: string) {
         if (this._meberId === memberId) {
             throw new SelfVotingError(
                 `Voting for own ideas is not allowed. 
@@ -113,21 +113,19 @@ export class QuestIdea {
                 `Cannot vote for finished idea; idea id: ${this.id}`
             )
         }
+    }
+    voteUp = (memberId: string) => {
+        this.checkCanVote(memberId)
         this._votes.push({ vote: 'up', memberId })
     }
     voteDown = (memberId: string) => {
-        if (this._meberId === memberId) {
-            throw new SelfVotingError(
-                `Voting for own ideas is not allowed. 
-                Idea: ${this.id}, member: ${this._meberId}`
-            )
-        }
-        if (this._state === 'finished') {
-            throw new UpdateFinishedIdeaError(
-                `Cannot vote for finished idea; idea id: ${this.id}`
-            )
-        }
+        this.checkCanVote(memberId)
         this._votes.push({ vote: 'down', memberId })
+    }
+    getScore = () => {
+        const downVotes = this.votes.filter((v) => v.vote === 'down').length
+        const upVotes = this.votes.length - downVotes
+        return upVotes - downVotes
     }
 }
 
