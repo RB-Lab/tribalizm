@@ -1,5 +1,8 @@
 export interface QuestsStore {
     save: <T extends Quest | Quest[]>(quest: T) => Promise<T>
+    getActiveQuestsCount: (
+        memberIds: string[]
+    ) => Promise<{ [id: string]: number }>
 }
 
 export class Quest {

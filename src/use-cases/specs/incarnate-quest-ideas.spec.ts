@@ -97,11 +97,15 @@ describe('When brainstorm is over', () => {
             const { quest, idea } = await world.incarnateOneIdea()
             expect(quest.memberIds).toContain(idea.meberId)
         })
+        // TODO consinder this: we have 10 members tribe, three of them suggest
+        //      9 ideas (3 each) and upvote all 9. Thus we will have 5 quests
+        //      assigned between these 3 members (each have 3-4) while other
+        //      7 passive tribesmen won't have any. ¯\_(ツ)_/¯ maybe that's OK.
         it('should pick only upvoters', async () => {
             const world = setUp()
             const idea = makeIdea('i-1')
             idea.voteDown('mv-1')
-            idea.voteUp('mv-')
+            idea.voteUp('mv-2')
             idea.voteUp('mv-3')
             idea.voteUp('mv-4')
             idea.voteUp('mv-5')
@@ -112,15 +116,19 @@ describe('When brainstorm is over', () => {
             expect(quest.memberIds).not.toContain('mv-1')
             expect(quest.memberIds).not.toContain('mv-6')
         })
-        xit('should instantiate upvoters', async () => {
+        it('should instantiate all affected members', async () => {
             const world = setUp()
             const { idea } = await world.incarnateOneIdea()
             const upvoterIds = idea.votes.map((v) => v.memberId)
-            expect(world.memberStore.find).toHaveBeenCalledWith({
-                id: upvoterIds,
+            const idsToFind = world.memberStore.find.calls.mostRecent().args[0]
+                .id
+            expect(idsToFind?.length).toEqual(idea.votes.length + 1)
+            expect(idsToFind).toContain(idea.meberId)
+            upvoterIds.forEach((id) => {
+                expect(idsToFind).toContain(id)
             })
         })
-        xit('should pick shaman for cheif', async () => {
+        it('should pick shaman for cheif (starter)', async () => {
             const world = setUp()
             const starter = new Member('m-1', 'u-1', 't-42', 10, 6)
             const shaman = new Member('m-2', 'u-2', 't-42', 2, 4)
@@ -132,10 +140,94 @@ describe('When brainstorm is over', () => {
                 otherCheif,
                 betterShaman,
             ])
+
+            const { quest, idea } = await world.incarnateOneIdea()
+            expect(quest.memberIds).toContain(idea.meberId)
+            expect(quest.memberIds).toContain(betterShaman.id)
         })
-        it('should pick cheif for shaman')
-        it('should pick only those who has no active quests')
-        it('should pick two even if evryone has active quests')
+        it('should pick cheif for shaman', async () => {
+            const world = setUp()
+            const starter = new Member('m-1', 'u-1', 't-42', 6, 10)
+            const chief = new Member('m-2', 'u-2', 't-42', 6, 4)
+            const betterCheif = new Member('m-3', 'u-3', 't-42', 7, 2)
+            const shaman = new Member('m-4', 'u-4', 't-42', 6, 2)
+            world.memberStore.find.and.resolveTo([
+                starter,
+                shaman,
+                chief,
+                betterCheif,
+            ])
+
+            const { quest, idea } = await world.incarnateOneIdea()
+            expect(quest.memberIds).toContain(idea.meberId)
+            expect(quest.memberIds).toContain(betterCheif.id)
+        })
+        it('should pick only those who has no active quests', async () => {
+            const world = setUp()
+            const starter = new Member('m-1', 'u-1', 't-42', 10, 6)
+            const shaman = new Member('m-2', 'u-2', 't-42', 2, 4)
+            const otherCheif = new Member('m-3', 'u-3', 't-42', 5, 2)
+            const betterShaman = new Member('m-4', 'u-4', 't-42', 2, 6)
+            world.memberStore.find.and.resolveTo([
+                starter,
+                shaman,
+                otherCheif,
+                betterShaman,
+            ])
+            world.questStore.getActiveQuestsCount.and.resolveTo({
+                'm-1': 1,
+                'm-2': 0,
+                'm-3': 0,
+                'm-4': 2,
+            })
+
+            const { quest } = await world.incarnateOneIdea()
+            expect(quest.memberIds).toContain(otherCheif.id)
+            expect(quest.memberIds).toContain(shaman.id)
+        })
+        it("won't assign quest to the same person twice", async () => {
+            const world = setUp()
+            const starter = new Member('m-1', 'u-1', 't-42', 10, 6)
+            const superman = new Member('m-2', 'u-2', 't-42', 20, 20)
+            const otherCheif = new Member('m-3', 'u-3', 't-42', 5, 2)
+            world.memberStore.find.and.resolveTo([
+                starter,
+                superman,
+                otherCheif,
+            ])
+            world.questStore.getActiveQuestsCount.and.resolveTo({
+                'm-1': 1,
+                'm-2': 0,
+                'm-3': 0,
+            })
+            const { quest } = await world.incarnateOneIdea()
+            expect(quest.memberIds).toContain(otherCheif.id)
+            expect(quest.memberIds).toContain(superman.id)
+        })
+        it('should pick two even if evryone has active quests', async () => {
+            const world = setUp()
+            // TODO refactor tests...
+            const starter = new Member('m-1', 'u-1', 't-42', 3, 4)
+            const shaman = new Member('m-2', 'u-2', 't-42', 2, 4)
+            const otherCheif = new Member('m-3', 'u-3', 't-42', 5, 2)
+            const betterShaman = new Member('m-4', 'u-4', 't-42', 2, 6)
+            world.memberStore.find.and.resolveTo([
+                starter,
+                shaman,
+                otherCheif,
+                betterShaman,
+            ])
+            world.questStore.getActiveQuestsCount.and.resolveTo({
+                'm-1': 3,
+                'm-2': 3,
+                'm-3': 3,
+                'm-4': 3,
+            })
+
+            const { quest } = await world.incarnateOneIdea()
+            expect(quest.memberIds).toContain(starter.id)
+            expect(quest.memberIds).toContain(betterShaman.id)
+        })
     })
 
     it('finalises containing ideas', async () => {
@@ -174,6 +266,7 @@ function setUp() {
     })
     const questStore = jasmine.createSpyObj<QuestsStore>('QuestsStore', {
         save: Promise.resolve([]),
+        getActiveQuestsCount: Promise.resolve({}),
     })
     const brainstormStore = jasmine.createSpyObj<BrainstormStore>(
         'BrainstormStore',

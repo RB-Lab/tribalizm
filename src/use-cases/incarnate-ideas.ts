@@ -1,5 +1,5 @@
 import { BrainstormStore, IdeasStore, QuestIdea } from './entities/brainstorm'
-import { MembersStore } from './entities/member'
+import { Member, MembersStore } from './entities/member'
 import { EntityNotFound } from './entities/not-found-error'
 import { Quest, QuestsStore } from './entities/quest'
 
@@ -50,8 +50,9 @@ export class IdeasIncarnation {
         const upvoterIds = idea.votes
             .filter((v) => v.vote === 'up')
             .map((v) => v.memberId)
+        const memberIds = [...upvoterIds, idea.meberId]
         const members = await this.membersStore.find({
-            id: [...upvoterIds, idea.meberId],
+            id: memberIds,
         })
         const starter = members.find((m) => m.id === idea.meberId)
         const others = members.filter((m) => m.id !== idea.meberId)
@@ -61,12 +62,58 @@ export class IdeasIncarnation {
         if (!others.length) {
             throw new Error('Cannot find upvoters')
         }
-        const memberIds = [starter.id, others[0].id]
+        const activeQuests = await this.questsStore.getActiveQuestsCount(
+            memberIds
+        )
+        let assignies: string[]
+        if (activeQuests[starter.id] <= minQuests(activeQuests)) {
+            const second = getMaxFreeMember(
+                members,
+                'wisdom',
+                activeQuests,
+                starter
+            )
+            assignies = [starter.id, second.id]
+        } else {
+            const first = getMaxFreeMember(members, 'charisma', activeQuests)
+            const second = getMaxFreeMember(
+                members,
+                first.charisma > first.wisdom ? 'wisdom' : 'charisma',
+                activeQuests,
+                first
+            )
+            assignies = [first.id, second.id]
+        }
 
         return new Quest({
             description: idea.description,
             date: new Date(oneWeekAhead),
-            memberIds,
+            memberIds: assignies,
         })
     }
+}
+function minQuests(activeQuests: { [id: string]: number }) {
+    const counts = Object.values(activeQuests)
+    return counts.length ? Math.min(...counts) || 0 : 0
+}
+
+function getMaxFreeMember(
+    members: Member[],
+    trait: 'charisma' | 'wisdom',
+    activeQuests: Record<string, number>,
+    exclude?: Member
+) {
+    const freeMembersSorted = members
+        .slice()
+        .sort((a, b) => b[trait] - a[trait])
+        .filter((m) => {
+            if (exclude && exclude.id === m.id) return false
+            return (activeQuests[m.id] || 0) <= minQuests(activeQuests)
+        })
+    if (!freeMembersSorted.length) {
+        throw new Error(
+            `Cannot assign quest: not enoug members (${members.length})`
+        )
+    }
+    return freeMembersSorted[0]
 }
