@@ -128,72 +128,67 @@ describe('When brainstorm is over', () => {
                 expect(idsToFind).toContain(id)
             })
         })
-        it('should pick shaman for cheif (starter)', async () => {
+        it('should pick shaman for chief (starter)', async () => {
             const world = setUp()
-            const starter = new Member('m-1', 'u-1', 't-42', 10, 6)
-            const shaman = new Member('m-2', 'u-2', 't-42', 2, 4)
-            const otherCheif = new Member('m-3', 'u-3', 't-42', 5, 2)
-            const betterShaman = new Member('m-4', 'u-4', 't-42', 2, 6)
-            world.memberStore.find.and.resolveTo([
-                starter,
-                shaman,
-                otherCheif,
-                betterShaman,
+            const { members } = world.makeSimpleTribe([
+                { charisma: 10, wisdom: 6 }, // chief: 10 > 6
+                { charisma: 12, wisdom: 7 }, // also chief: 12 > 6
+                { charisma: 2, wisdom: 6 }, //  better shaman!
+                { charisma: 2, wisdom: 5 }, //  shaman
             ])
 
             const { quest, idea } = await world.incarnateOneIdea()
             expect(quest.memberIds).toContain(idea.meberId)
-            expect(quest.memberIds).toContain(betterShaman.id)
+            expect(quest.memberIds).toContain(members[2].id)
         })
-        it('should pick cheif for shaman', async () => {
+        it('should pick chief for shaman', async () => {
             const world = setUp()
-            const starter = new Member('m-1', 'u-1', 't-42', 6, 10)
-            const chief = new Member('m-2', 'u-2', 't-42', 6, 4)
-            const betterCheif = new Member('m-3', 'u-3', 't-42', 7, 2)
-            const shaman = new Member('m-4', 'u-4', 't-42', 6, 2)
-            world.memberStore.find.and.resolveTo([
-                starter,
-                shaman,
-                chief,
-                betterCheif,
+            const { members } = world.makeSimpleTribe([
+                { charisma: 2, wisdom: 5 }, // starter is shaman: 2 < 5
+                { charisma: 6, wisdom: 4 }, // chief
+                { charisma: 7, wisdom: 2 }, // better chief
+                { charisma: 8, wisdom: 12 }, // awesome, but also shaman
             ])
 
             const { quest, idea } = await world.incarnateOneIdea()
             expect(quest.memberIds).toContain(idea.meberId)
-            expect(quest.memberIds).toContain(betterCheif.id)
+            expect(quest.memberIds).toContain(members[2].id)
+        })
+        it('should pick wisest cheif if no shamans in tribe', async () => {
+            const world = setUp()
+            const { members } = world.makeSimpleTribe([
+                { charisma: 5, wisdom: 2 },
+                { charisma: 6, wisdom: 4 },
+                { charisma: 7, wisdom: 2 },
+                { charisma: 8, wisdom: 7 },
+            ])
+
+            const { quest, idea } = await world.incarnateOneIdea()
+            expect(quest.memberIds).toContain(idea.meberId)
+            expect(quest.memberIds).toContain(members[3].id)
         })
         it('should pick only those who has no active quests', async () => {
             const world = setUp()
-            const starter = new Member('m-1', 'u-1', 't-42', 10, 6)
-            const shaman = new Member('m-2', 'u-2', 't-42', 2, 4)
-            const otherCheif = new Member('m-3', 'u-3', 't-42', 5, 2)
-            const betterShaman = new Member('m-4', 'u-4', 't-42', 2, 6)
-            world.memberStore.find.and.resolveTo([
-                starter,
-                shaman,
-                otherCheif,
-                betterShaman,
+            const { members } = world.makeSimpleTribe([
+                { charisma: 10, wisdom: 6, quests: 1 },
+                { charisma: 2, wisdom: 4 },
+                { charisma: 5, wisdom: 2 },
+                { charisma: 2, wisdom: 6, quests: 2 },
             ])
-            world.questStore.getActiveQuestsCount.and.resolveTo({
-                'm-1': 1,
-                'm-2': 0,
-                'm-3': 0,
-                'm-4': 2,
-            })
 
             const { quest } = await world.incarnateOneIdea()
-            expect(quest.memberIds).toContain(otherCheif.id)
-            expect(quest.memberIds).toContain(shaman.id)
+            expect(quest.memberIds).toContain(members[1].id)
+            expect(quest.memberIds).toContain(members[2].id)
         })
         it("won't assign quest to the same person twice", async () => {
             const world = setUp()
             const starter = new Member('m-1', 'u-1', 't-42', 10, 6)
             const superman = new Member('m-2', 'u-2', 't-42', 20, 20)
-            const otherCheif = new Member('m-3', 'u-3', 't-42', 5, 2)
+            const otherChief = new Member('m-3', 'u-3', 't-42', 5, 2)
             world.memberStore.find.and.resolveTo([
                 starter,
                 superman,
-                otherCheif,
+                otherChief,
             ])
             world.questStore.getActiveQuestsCount.and.resolveTo({
                 'm-1': 1,
@@ -201,32 +196,20 @@ describe('When brainstorm is over', () => {
                 'm-3': 0,
             })
             const { quest } = await world.incarnateOneIdea()
-            expect(quest.memberIds).toContain(otherCheif.id)
+            expect(quest.memberIds).toContain(otherChief.id)
             expect(quest.memberIds).toContain(superman.id)
         })
         it('should pick two even if evryone has active quests', async () => {
             const world = setUp()
-            // TODO refactor tests...
-            const starter = new Member('m-1', 'u-1', 't-42', 3, 4)
-            const shaman = new Member('m-2', 'u-2', 't-42', 2, 4)
-            const otherCheif = new Member('m-3', 'u-3', 't-42', 5, 2)
-            const betterShaman = new Member('m-4', 'u-4', 't-42', 2, 6)
-            world.memberStore.find.and.resolveTo([
-                starter,
-                shaman,
-                otherCheif,
-                betterShaman,
+            const { members } = world.makeSimpleTribe([
+                { charisma: 3, wisdom: 4, quests: 3 },
+                { charisma: 2, wisdom: 4, quests: 3 },
+                { charisma: 5, wisdom: 2, quests: 3 },
+                { charisma: 2, wisdom: 6, quests: 3 },
             ])
-            world.questStore.getActiveQuestsCount.and.resolveTo({
-                'm-1': 3,
-                'm-2': 3,
-                'm-3': 3,
-                'm-4': 3,
-            })
-
             const { quest } = await world.incarnateOneIdea()
-            expect(quest.memberIds).toContain(starter.id)
-            expect(quest.memberIds).toContain(betterShaman.id)
+            expect(quest.memberIds).toContain(members[0].id)
+            expect(quest.memberIds).toContain(members[2].id)
         })
     })
 
@@ -254,9 +237,9 @@ describe('When brainstorm is over', () => {
 function setUp() {
     const brainstorm = new Brainstorm('foo', 't-42')
 
-    const members = ['m-1', 'm-2', 'm-3', 'm-4', 'm-5'].map(
-        makeMember(brainstorm.tribeId)
-    )
+    const members = [0, 1, 2, 3, 4]
+        .map(memId)
+        .map(makeMember(brainstorm.tribeId))
     const memberStore = jasmine.createSpyObj<MembersStore>('MembersStore', {
         find: Promise.resolve(members),
     })
@@ -305,21 +288,48 @@ function setUp() {
             await incarnation.incarnateIdeas(brainstorm.id)
             return { quest: getQuestsToSave()[0], idea }
         },
+        makeSimpleTribe(ms: MemberFake[]) {
+            const members = ms.map(
+                (m, i) =>
+                    new Member(
+                        memId(i),
+                        `u-${i + 1}`,
+                        brainstorm.tribeId,
+                        m.charisma,
+                        m.wisdom
+                    )
+            )
+            const quests = members.reduce(
+                (qs, m, i) => ({ ...qs, [m.id]: ms[i].quests || 0 }),
+                {}
+            )
+            memberStore.find.and.resolveTo(members)
+            questStore.getActiveQuestsCount.and.resolveTo(quests)
+            return { members, quests }
+        },
     }
+}
+interface MemberFake {
+    charisma: number
+    wisdom: number
+    quests?: number
 }
 function makeIdea(id: string | number) {
     return new QuestIdea({
         id: `${id}`,
-        meberId: 'm-1',
+        meberId: memId(),
         brainstormId: 'foo',
         description: `desc ${id}`,
     })
 }
+function memId(n = 0) {
+    return `m-${n + 1}`
+}
 
 function vote(up = 0, down = 0) {
     return (idea: QuestIdea) => {
-        range(up).forEach((m) => idea.voteUp(`mx-${m}`))
-        range(down).forEach((m) => idea.voteDown(`mx-${m}`))
+        range(up).forEach((m) => idea.voteUp(memId(10 + m)))
+        range(down).forEach((m) => idea.voteDown(memId(10 + m)))
     }
 }
 

@@ -116,10 +116,22 @@ export class QuestIdea {
     }
     voteUp = (memberId: string) => {
         this.checkCanVote(memberId)
+        const thisVote = this.votes.find(
+            (v) => v.memberId === memberId && v.vote === 'up'
+        )
+        if (thisVote) {
+            throw new DoubelVotingError('Cannot vote twice')
+        }
         this._votes.push({ vote: 'up', memberId })
     }
     voteDown = (memberId: string) => {
         this.checkCanVote(memberId)
+        const thisVote = this.votes.find(
+            (v) => v.memberId === memberId && v.vote === 'down'
+        )
+        if (thisVote) {
+            throw new DoubelVotingError('Cannot vote twice')
+        }
         this._votes.push({ vote: 'down', memberId })
     }
     getScore = () => {
@@ -134,6 +146,13 @@ export class SelfVotingError extends Error {
         super(msg)
     }
 }
+
+export class DoubelVotingError extends Error {
+    constructor(msg: string) {
+        super(msg)
+    }
+}
+
 export class UpdateFinishedIdeaError extends Error {
     constructor(msg: string) {
         super(msg)

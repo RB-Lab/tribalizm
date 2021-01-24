@@ -69,7 +69,7 @@ export class IdeasIncarnation {
         if (activeQuests[starter.id] <= minQuests(activeQuests)) {
             const second = getMaxFreeMember(
                 members,
-                'wisdom',
+                starter.charisma > starter.wisdom ? 'wisdom' : 'charisma',
                 activeQuests,
                 starter
             )
@@ -115,5 +115,7 @@ function getMaxFreeMember(
             `Cannot assign quest: not enoug members (${members.length})`
         )
     }
-    return freeMembersSorted[0]
+    const counterpart = trait === 'charisma' ? 'wisdom' : 'charisma'
+    const candidate = freeMembersSorted.find((m) => m[trait] >= m[counterpart])
+    return candidate ? candidate : freeMembersSorted[0]
 }

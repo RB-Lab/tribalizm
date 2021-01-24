@@ -1,6 +1,7 @@
 import {
     Brainstorm,
     BrainstormStore,
+    DoubelVotingError,
     IdeasStore,
     QuestIdea,
     SelfVotingError,
@@ -106,7 +107,14 @@ describe('Voting', () => {
                 world.voting.voteUp(world.idea.id, world.idea.meberId)
             ).toBeRejectedWithError(SelfVotingError)
         })
-        it('should NOT allow voting twice')
+        it('should NOT allow voting twice', async () => {
+            const world = setUp()
+            await world.voting.start(world.brainstorm.id)
+            await world.voting.voteUp(world.idea.id, world.member.id)
+            await expectAsync(
+                world.voting.voteUp(world.idea.id, world.member.id)
+            ).toBeRejectedWithError(DoubelVotingError)
+        })
         it('should NOT allow voting for non-existing idea', async () => {
             const world = setUp()
             await world.voting.start(world.brainstorm.id)
