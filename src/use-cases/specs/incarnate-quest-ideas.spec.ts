@@ -4,8 +4,13 @@ import {
     IdeasStore,
     QuestIdea,
 } from '../entities/brainstorm'
-import { Member, MembersStore } from '../entities/member'
-import { QuestsStore, QuestStatus, QuestType } from '../entities/quest'
+import { Member, MembersStore, SavedMember } from '../entities/member'
+import {
+    QuestsStore,
+    QuestStatus,
+    QuestType,
+    SavedQuest,
+} from '../entities/quest'
 import { IdeasIncarnation } from '../incarnate-ideas'
 
 describe('When brainstorm is over', () => {
@@ -82,8 +87,8 @@ describe('When brainstorm is over', () => {
             const world = setUp()
             const { quest } = await world.incarnateOneIdea()
             const oneWeekAhead = Date.now() + 7 * 24 * 3_600_000
-            expect(quest.date.getTime()).toBeGreaterThan(oneWeekAhead - 1000)
-            expect(quest.date.getTime()).toBeLessThan(oneWeekAhead + 1000)
+            expect(quest.date).toBeGreaterThan(oneWeekAhead - 1000)
+            expect(quest.date).toBeLessThan(oneWeekAhead + 1000)
         })
     })
     describe('Quests assignment', () => {
@@ -182,22 +187,14 @@ describe('When brainstorm is over', () => {
         })
         it("won't assign quest to the same person twice", async () => {
             const world = setUp()
-            const starter = new Member('m-1', 'u-1', 't-42', 10, 6)
-            const superman = new Member('m-2', 'u-2', 't-42', 20, 20)
-            const otherChief = new Member('m-3', 'u-3', 't-42', 5, 2)
-            world.memberStore.find.and.resolveTo([
-                starter,
-                superman,
-                otherChief,
+            const { members } = world.makeSimpleTribe([
+                { charisma: 10, wisdom: 6, quests: 1 },
+                { charisma: 20, wisdom: 20 },
+                { charisma: 5, wisdom: 2 },
             ])
-            world.questStore.getActiveQuestsCount.and.resolveTo({
-                'm-1': 1,
-                'm-2': 0,
-                'm-3': 0,
-            })
             const { quest } = await world.incarnateOneIdea()
-            expect(quest.memberIds).toContain(otherChief.id)
-            expect(quest.memberIds).toContain(superman.id)
+            expect(quest.memberIds).toContain(members[1].id)
+            expect(quest.memberIds).toContain(members[2].id)
         })
         it('should pick two even if evryone has active quests', async () => {
             const world = setUp()
@@ -248,7 +245,7 @@ function setUp() {
         save: Promise.resolve([]),
     })
     const questStore = jasmine.createSpyObj<QuestsStore>('QuestsStore', {
-        save: Promise.resolve([]),
+        saveBulk: Promise.resolve([]),
         getActiveQuestsCount: Promise.resolve({}),
     })
     const brainstormStore = jasmine.createSpyObj<BrainstormStore>(
@@ -265,7 +262,7 @@ function setUp() {
         questStore
     )
     const getQuestsToSave = (call: number = 0) => {
-        const quests = questStore.save.calls.argsFor(call)[0]
+        const quests = questStore.saveBulk.calls.argsFor(call)[0]
         if (!Array.isArray(quests)) {
             throw new Error('expected quest to save to be an array')
         }
@@ -291,13 +288,13 @@ function setUp() {
         makeSimpleTribe(ms: MemberFake[]) {
             const members = ms.map(
                 (m, i) =>
-                    new Member(
-                        memId(i),
-                        `u-${i + 1}`,
-                        brainstorm.tribeId,
-                        m.charisma,
-                        m.wisdom
-                    )
+                    new Member({
+                        id: memId(i),
+                        userId: `u-${i + 1}`,
+                        tribeId: brainstorm.tribeId,
+                        charisma: m.charisma,
+                        wisdom: m.wisdom,
+                    }) as SavedMember
             )
             const quests = members.reduce(
                 (qs, m, i) => ({ ...qs, [m.id]: ms[i].quests || 0 }),
@@ -337,5 +334,6 @@ function range(n: number) {
     return new Array(n).fill(0).map((_, i) => i)
 }
 function makeMember(tribeId: string) {
-    return (id: string | number) => new Member(`${id}`, `${id}`, tribeId)
+    return (id: string | number) =>
+        new Member({ id: `${id}`, userId: `${id}`, tribeId }) as SavedMember
 }

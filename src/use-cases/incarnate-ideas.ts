@@ -1,5 +1,5 @@
 import { BrainstormStore, IdeasStore, QuestIdea } from './entities/brainstorm'
-import { Member, MembersStore } from './entities/member'
+import { Member, MembersStore, SavedMember } from './entities/member'
 import { EntityNotFound } from './entities/not-found-error'
 import { Quest, QuestsStore } from './entities/quest'
 
@@ -38,7 +38,7 @@ export class IdeasIncarnation {
                 .map(this.incarnate)
         )
 
-        this.questsStore.save(quests)
+        this.questsStore.saveBulk(quests)
         ideas.forEach((i) => i.finish())
         brainstorm.finish()
         this.ideasStore.save(ideas)
@@ -87,7 +87,7 @@ export class IdeasIncarnation {
 
         return new Quest({
             description: idea.description,
-            date: new Date(oneWeekAhead),
+            date: oneWeekAhead,
             memberIds: assignies,
         })
     }
@@ -98,10 +98,10 @@ function minQuests(activeQuests: { [id: string]: number }) {
 }
 
 function getMaxFreeMember(
-    members: Member[],
+    members: SavedMember[],
     trait: 'charisma' | 'wisdom',
     activeQuests: Record<string, number>,
-    exclude?: Member
+    exclude?: SavedMember
 ) {
     const freeMembersSorted = members
         .slice()

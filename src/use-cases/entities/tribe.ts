@@ -5,12 +5,24 @@ export interface TribeStore {
         coordinates?: Coordinates
         after?: string
         limit?: number
-    }) => Promise<Tribe[]>
-    getById: (id: string) => Promise<Tribe | null>
+    }) => Promise<SavedTribe[]>
+    getById: (id: string) => Promise<SavedTribe | null>
 }
 
-export class Tribe {
-    private _id: string
+export interface ITribe {
+    name: string
+    description: string
+    logo: string
+    vocabulary: TribeType
+    chiefId: string
+    shamanId: string | null
+}
+export interface SavedTribe extends ITribe {
+    id: string
+}
+
+export class Tribe implements ITribe {
+    private _id: string | null
     get id() {
         return this._id
     }
@@ -30,18 +42,41 @@ export class Tribe {
     get vocabulary() {
         return this._vocabulary
     }
-    constructor(
-        id: string,
-        name: string,
-        description: string = '',
-        logo: string = '',
-        vocabulary: TribeType = TribeType.tribe
-    ) {
-        this._id = id
-        this._name = name
-        this._description = description
-        this._logo = logo
-        this._vocabulary = vocabulary
+    private _chiefId: string | null
+    get chiefId() {
+        if (!this._chiefId) {
+            throw new NoChiefTribeError(
+                `Tribe ${this.name} (${this.id}) has no chief!`
+            )
+        }
+        return this._chiefId
+    }
+    private _shamanId: string | null
+    get shamanId() {
+        return this._shamanId
+    }
+    constructor(params: {
+        id?: string
+        chiefId?: string
+        shamanId?: string
+        name: string
+        description?: string
+        logo?: string
+        vocabulary?: TribeType
+    }) {
+        this._id = params.id || null
+        this._chiefId = params.chiefId || null
+        this._shamanId = params.shamanId || null
+        this._name = params.name
+        this._description = params.description || ''
+        this._logo = params.logo || ''
+        this._vocabulary = params.vocabulary || TribeType.tribe
+    }
+}
+
+export class NoChiefTribeError extends Error {
+    constructor(msg: string) {
+        super(msg)
     }
 }
 

@@ -8,14 +8,14 @@ import {
     UpdateFinishedBrainstormError,
     UpdateFinishedIdeaError,
 } from '../entities/brainstorm'
-import { Member, MembersStore } from '../entities/member'
+import { Member, MembersStore, SavedMember } from '../entities/member'
 import { EntityNotFound } from '../entities/not-found-error'
 import {
     ExternalMemberVoteError,
     StormMismatchError,
     Voting,
     VotingNotStartedError,
-} from '../voting'
+} from '../vote-idea'
 
 describe('Voting', () => {
     it('should transition brainstorm to voting state', async () => {
@@ -157,7 +157,11 @@ describe('Voting', () => {
         })
         it('should NOT allow voting for external persons', async () => {
             const world = setUp()
-            const member = new Member('m-n42', 'u', 't-not-42')
+            const member = new Member({
+                id: 'm-n42',
+                userId: 'u',
+                tribeId: 't-not-42',
+            }) as SavedMember
             world.memberStore.getById.and.resolveTo(member)
             await world.voting.start(world.brainstorm.id)
             await expectAsync(
@@ -175,7 +179,11 @@ function setUp() {
         brainstormId: 'foo',
         description: `desc i-42`,
     })
-    const member = new Member('m-42', 'u-42', 't-42')
+    const member = new Member({
+        id: 'm-42',
+        userId: 'u-42',
+        tribeId: 't-42',
+    }) as SavedMember
 
     const memberStore = jasmine.createSpyObj<MembersStore>('MemberStore', {
         find: Promise.resolve([]),

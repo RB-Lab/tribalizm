@@ -1,11 +1,23 @@
 export interface QuestsStore {
-    save: <T extends Quest | Quest[]>(quest: T) => Promise<T>
+    save: (quest: IQuest) => Promise<SavedQuest>
+    saveBulk: (quest: IQuest[]) => Promise<SavedQuest[]>
     getActiveQuestsCount: (
         memberIds: string[]
     ) => Promise<{ [id: string]: number }>
 }
+export interface IQuest {
+    type: QuestType
+    status: QuestStatus
+    description: string
+    date: number // timestamp
+    place: string
+    memberIds: string[]
+}
+export interface SavedQuest extends IQuest {
+    id: string
+}
 
-export class Quest {
+export class Quest implements IQuest {
     private _id: string | null
     get id() {
         return this._id
@@ -22,7 +34,7 @@ export class Quest {
     get description() {
         return this._description
     }
-    private _date: Date
+    private _date: number
     get date() {
         return this._date
     }
@@ -41,7 +53,7 @@ export class Quest {
             type?: QuestType
             status?: QuestStatus
             description?: string
-            date?: Date
+            date?: number
             place?: string
             memberIds?: string[]
         } = {}
@@ -50,7 +62,7 @@ export class Quest {
         this._type = params.type || QuestType.coordination
         this._status = params.status || QuestStatus.proposed
         this._description = params.description || ''
-        this._date = params.date || new Date()
+        this._date = params.date || Date.now()
         this._place = params.place || ''
         this._memberIds = params.memberIds || []
     }

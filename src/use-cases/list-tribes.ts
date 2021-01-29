@@ -1,5 +1,5 @@
+import { Coordinates } from './entities/location'
 import { TribeStore } from './entities/tribe'
-import { User } from './entities/user'
 
 export class StrangerNowhereError extends Error {
     constructor(msg: string) {
@@ -13,21 +13,21 @@ export class TribesList {
         this.tribesStore = tribeGetter
     }
     getLocalTribes({
-        user,
+        coordinates,
         after,
         limit = 10,
     }: {
-        user: User
+        coordinates: Coordinates | null
         after?: string
         limit?: number
     }) {
-        if (!user.coordinates) {
+        if (!coordinates) {
             throw new StrangerNowhereError(
                 'Cannot get tribes for stranger in the middle of nowhere'
             )
         }
         return this.tribesStore.find({
-            coordinates: user.coordinates,
+            coordinates: coordinates,
             after,
             limit,
         })

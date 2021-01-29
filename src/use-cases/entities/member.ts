@@ -2,11 +2,24 @@ export interface MembersStore {
     find: (params: {
         tribeId?: string | string[]
         id?: string | string[]
-    }) => Promise<Member[]>
-    getById: (id: string) => Promise<Member | null>
+    }) => Promise<SavedMember[]>
+    getById: (id: string) => Promise<SavedMember | null>
+    save: (member: IMember) => Promise<SavedMember>
 }
-export class Member {
-    private _id: string
+
+export interface IMember {
+    userId: string
+    tribeId: string
+    charisma: number
+    wisdom: number
+    isCandidate: boolean
+}
+export interface SavedMember extends IMember {
+    id: string
+}
+
+export class Member implements IMember {
+    private _id: string | null
     get id() {
         return this._id
     }
@@ -26,17 +39,23 @@ export class Member {
     get wisdom() {
         return this._wisdom
     }
-    constructor(
-        id: string,
-        userId: string,
-        tribeId: string,
-        charisma: number = 0,
-        wisdom: number = 0
-    ) {
-        this._id = id
-        this._userId = userId
-        this._tribeId = tribeId
-        this._charisma = charisma
-        this._wisdom = wisdom
+    private _isCandidate: boolean
+    get isCandidate() {
+        return this._isCandidate
+    }
+    constructor(params: {
+        id?: string
+        userId: string
+        tribeId: string
+        charisma?: number
+        wisdom?: number
+        isCandidate?: boolean
+    }) {
+        this._id = params.id || null
+        this._userId = params.userId
+        this._tribeId = params.tribeId
+        this._charisma = params.charisma || 0
+        this._wisdom = params.wisdom || 0
+        this._isCandidate = params.isCandidate || true
     }
 }
