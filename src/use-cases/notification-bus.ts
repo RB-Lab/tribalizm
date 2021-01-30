@@ -1,4 +1,4 @@
-import { Message } from './message'
+import { Message } from './entities/message'
 
 export interface NotificationBus {
     notify: <T extends Message>(message: T) => void

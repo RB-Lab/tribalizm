@@ -1,23 +1,19 @@
-import { BrainstormStore, IdeasStore, QuestIdea } from './entities/brainstorm'
-import { Member, MembersStore, SavedMember } from './entities/member'
+import { Context } from './context'
+import { BrainstormStore, IdeaStore, IQuestIdea } from './entities/brainstorm'
+import { MembersStore, SavedMember } from './entities/member'
 import { EntityNotFound } from './entities/not-found-error'
-import { Quest, QuestsStore } from './entities/quest'
+import { Quest, QuestStore } from './entities/quest'
 
 export class IdeasIncarnation {
-    private ideasStore: IdeasStore
+    private ideasStore: IdeaStore
     private membersStore: MembersStore
     private barinstormStore: BrainstormStore
-    private questsStore: QuestsStore
-    constructor(
-        ideasStore: IdeasStore,
-        barinstormStore: BrainstormStore,
-        membersStore: MembersStore,
-        questsStore: QuestsStore
-    ) {
-        this.ideasStore = ideasStore
-        this.barinstormStore = barinstormStore
-        this.membersStore = membersStore
-        this.questsStore = questsStore
+    private questsStore: QuestStore
+    constructor(context: Context) {
+        this.ideasStore = context.stores.ideasStore
+        this.barinstormStore = context.stores.brainstormStore
+        this.membersStore = context.stores.memberStore
+        this.questsStore = context.stores.questStore
     }
 
     incarnateIdeas = async (brainstormId: string) => {
@@ -41,11 +37,11 @@ export class IdeasIncarnation {
         this.questsStore.saveBulk(quests)
         ideas.forEach((i) => i.finish())
         brainstorm.finish()
-        this.ideasStore.save(ideas)
+        this.ideasStore.saveBulk(ideas)
         this.barinstormStore.save(brainstorm)
     }
 
-    private incarnate = async (idea: QuestIdea) => {
+    private incarnate = async (idea: IQuestIdea) => {
         const oneWeekAhead = Date.now() + 7 * 24 * 3_600_000
         const upvoterIds = idea.votes
             .filter((v) => v.vote === 'up')

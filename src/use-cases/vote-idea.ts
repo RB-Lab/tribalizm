@@ -1,21 +1,24 @@
-import { Brainstorm, BrainstormStore, IdeasStore } from './entities/brainstorm'
+import { Context } from './context'
+import {
+    Brainstorm,
+    BrainstormStore,
+    IdeaStore,
+    SavedBrainstorm,
+} from './entities/brainstorm'
 import { MembersStore } from './entities/member'
 import { EntityNotFound } from './entities/not-found-error'
 
 export class Voting {
-    private _ideasStore: IdeasStore
+    private _ideasStore: IdeaStore
     private _brainstormStore: BrainstormStore
     private _memberStore: MembersStore
-    private _brainstorm: Brainstorm | null = null
+    // TODO remove this state
+    private _brainstorm: SavedBrainstorm | null = null
 
-    constructor(
-        ideasStore: IdeasStore,
-        brainstormStore: BrainstormStore,
-        memberStroe: MembersStore
-    ) {
-        this._ideasStore = ideasStore
-        this._memberStore = memberStroe
-        this._brainstormStore = brainstormStore
+    constructor(context: Context) {
+        this._ideasStore = context.stores.ideasStore
+        this._memberStore = context.stores.memberStore
+        this._brainstormStore = context.stores.brainstormStore
     }
 
     start = async (brainsormId: string) => {

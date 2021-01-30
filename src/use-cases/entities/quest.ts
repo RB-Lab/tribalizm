@@ -1,4 +1,4 @@
-export interface QuestsStore {
+export interface QuestStore {
     save: (quest: IQuest) => Promise<SavedQuest>
     saveBulk: (quest: IQuest[]) => Promise<SavedQuest[]>
     getActiveQuestsCount: (
@@ -6,6 +6,7 @@ export interface QuestsStore {
     ) => Promise<{ [id: string]: number }>
 }
 export interface IQuest {
+    id: string | null
     type: QuestType
     status: QuestStatus
     description: string

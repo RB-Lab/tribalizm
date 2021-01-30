@@ -6,28 +6,13 @@ import {
     QuestMessageType,
     TribeApplication,
 } from '../apply-tribe'
-import {
-    Application,
-    ApplicationPhase,
-    ApplicationStore,
-    IApplication,
-    SavedApplication,
-} from '../entities/application'
-import { MembersStore } from '../entities/member'
-import { NotificationBus } from '../entities/notification-bus'
-import {
-    IQuest,
-    QuestsStore,
-    QuestStatus,
-    QuestType,
-    SavedQuest,
-} from '../entities/quest'
-import { SavedTribe, Tribe, TribeStore } from '../entities/tribe'
-import { UserStore } from '../entities/user'
+import { ApplicationPhase, IApplication } from '../entities/application'
+import { IQuest, QuestStatus, QuestType } from '../entities/quest'
+import { chiefId, createContext } from './test-context'
 
 describe('Initiation quests', () => {
     it('transfers application to "chiefInitiation" phase', async () => {
-        const world = setUp()
+        const world = await setUp()
         await world.tribeApplication.startInitiation(world.defaultRequest)
         expect(world.applicationStore.save).toHaveBeenCalledWith(
             jasmine.objectContaining<IApplication>({
@@ -36,7 +21,7 @@ describe('Initiation quests', () => {
         )
     })
     it('works with proper application', async () => {
-        const world = setUp()
+        const world = await setUp()
         await world.tribeApplication.startInitiation(world.defaultRequest)
         expect(world.applicationStore.getById).toHaveBeenCalledWith(
             world.application.id
@@ -44,7 +29,7 @@ describe('Initiation quests', () => {
     })
     describe("doesn't allow to", () => {
         it('start initiation without elder', async () => {
-            const world = setUp()
+            const world = await setUp()
             world.applicationStore.getById.and.resolveTo({
                 ...world.application,
                 elderId: null,
@@ -54,7 +39,7 @@ describe('Initiation quests', () => {
             ).toBeRejectedWithError(NoElderSetError)
         })
         it('initiate with improper elder', async () => {
-            const world = setUp()
+            const world = await setUp()
             await expectAsync(
                 world.tribeApplication.startInitiation({
                     ...world.defaultRequest,
@@ -68,7 +53,7 @@ describe('Initiation quests', () => {
         // it('finallize from "chiefInitiation" phase')
     })
     it('fires an initiation quest', async () => {
-        const world = setUp()
+        const world = await setUp()
         await world.tribeApplication.startInitiation(world.defaultRequest)
         expect(world.questStore.save).toHaveBeenCalledWith(
             jasmine.objectContaining<IQuest>({
@@ -84,14 +69,14 @@ describe('Initiation quests', () => {
         )
     })
     it('notifies a member on initiaition quest', async () => {
-        const world = setUp()
+        const world = await setUp()
         await world.tribeApplication.startInitiation(world.defaultRequest)
         expect(world.notififcationBus.notify).toHaveBeenCalledWith(
             jasmine.objectContaining<QuestMessage>({
                 type: QuestMessageType,
                 payload: jasmine.objectContaining<QuestMessage['payload']>({
                     targetId: world.application.memberId,
-                    questId,
+                    questId: jasmine.any(String),
                     questType: QuestType.initiation,
                     time: world.defaultRequest.time,
                     place: world.defaultRequest.place,
@@ -109,74 +94,25 @@ describe('Initiation quests', () => {
     // it('notifies a member on their approval')
 })
 
-const tribeId = 'tribe-1'
-const chiefId = 'chief'
-const shamanId = 'shaman'
-const questId = 'quest-id'
-export function setUp(world: { elder: string } = { elder: chiefId }) {
-    const application = new Application({
-        id: 'a-foo',
-        tribeId: tribeId,
-        memberId: 'new-member',
-        coverLetter: 'I want to foo!',
-        elderId: world.elder,
-    }) as SavedApplication
+async function setUp(world: { elder: string } = { elder: chiefId }) {
+    const context = createContext(world)
+    const application = await context.stores.applicationStore.getById(
+        'whatever'
+    )
     const defaultRequest: InitiationRequest = {
-        applicationId: application.id,
+        applicationId: application!.id,
         memberId: chiefId,
         place: 'The Foo Bar',
-        time: 1700100500000,
+        time: 1_700_100_500_000,
     }
-    const applicationStore = jasmine.createSpyObj<ApplicationStore>(
-        'ApplicationStore',
-        {
-            save: Promise.resolve(application),
-            getById: Promise.resolve(application),
-        }
-    )
-    const notififcationBus = jasmine.createSpyObj<NotificationBus>(
-        'NotificationBus',
-        ['notify']
-    )
 
-    const tribe = new Tribe({
-        id: tribeId,
-        name: 'FooTribe',
-        chiefId,
-        shamanId,
-    }) as SavedTribe
-    const tribseStore = jasmine.createSpyObj<TribeStore>({
-        find: Promise.resolve([]),
-        getById: Promise.resolve(tribe),
-    })
-    const memberStore = jasmine.createSpyObj<MembersStore>('MembersStore', [
-        'find',
-        'getById',
-    ])
-    const userStore = jasmine.createSpyObj<UserStore>('UserStore', ['getById'])
-
-    const questStore = jasmine.createSpyObj<QuestsStore>('QuestsStore', {
-        save: Promise.resolve({
-            id: questId,
-            type: QuestType.initiation,
-        } as SavedQuest),
-    })
-
-    const tribeApplication = new TribeApplication(
-        notififcationBus,
-        applicationStore,
-        tribseStore,
-        memberStore,
-        userStore,
-        questStore
-    )
+    const tribeApplication = new TribeApplication(context)
     return {
         defaultRequest,
-        tribe,
-        applicationStore,
-        notififcationBus,
-        questStore,
-        application,
+        applicationStore: context.stores.applicationStore,
+        notififcationBus: context.async.notififcationBus,
+        questStore: context.stores.questStore,
+        application: application!,
         tribeApplication,
     }
 }

@@ -2,10 +2,11 @@ import { Application, ApplicationStore } from './entities/application'
 import { Member, MembersStore } from './entities/member'
 import { Message } from './entities/message'
 import { EntityNotFound } from './entities/not-found-error'
-import { NotificationBus } from './entities/notification-bus'
-import { Quest, QuestsStore, QuestType } from './entities/quest'
+import { NotificationBus } from './notification-bus'
+import { Quest, QuestStore, QuestType } from './entities/quest'
 import { TribeStore } from './entities/tribe'
 import { UserStore } from './entities/user'
+import { Context } from './context'
 
 export class TribeApplication {
     private applicationStore: ApplicationStore
@@ -13,21 +14,14 @@ export class TribeApplication {
     private tribeStore: TribeStore
     private memberStore: MembersStore
     private userStore: UserStore
-    private questStore: QuestsStore
-    constructor(
-        notififcationBus: NotificationBus,
-        applicationStore: ApplicationStore,
-        tribeStore: TribeStore,
-        memberStore: MembersStore,
-        userStore: UserStore,
-        questStore: QuestsStore
-    ) {
-        this.applicationStore = applicationStore
-        this.notififcationBus = notififcationBus
-        this.tribeStore = tribeStore
-        this.memberStore = memberStore
-        this.userStore = userStore
-        this.questStore = questStore
+    private questStore: QuestStore
+    constructor(context: Context) {
+        this.notififcationBus = context.async.notififcationBus
+        this.applicationStore = context.stores.applicationStore
+        this.tribeStore = context.stores.tribeStore
+        this.memberStore = context.stores.memberStore
+        this.userStore = context.stores.userStore
+        this.questStore = context.stores.questStore
     }
 
     appyToTribe = async (

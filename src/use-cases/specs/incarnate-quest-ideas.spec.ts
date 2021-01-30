@@ -1,26 +1,17 @@
-import {
-    Brainstorm,
-    BrainstormStore,
-    IdeasStore,
-    QuestIdea,
-} from '../entities/brainstorm'
-import { Member, MembersStore, SavedMember } from '../entities/member'
-import {
-    QuestsStore,
-    QuestStatus,
-    QuestType,
-    SavedQuest,
-} from '../entities/quest'
+import { QuestIdea } from '../entities/brainstorm'
+import { Member, SavedMember } from '../entities/member'
+import { QuestStatus, QuestType } from '../entities/quest'
 import { IdeasIncarnation } from '../incarnate-ideas'
+import { createContext } from './test-context'
 
 describe('When brainstorm is over', () => {
     it('instantiates itself from storage', async () => {
-        const world = setUp()
+        const world = await setUp()
         await world.incarnation.incarnateIdeas('foo')
-        expect(world.brainstormStore.getById).toHaveBeenCalledOnceWith('foo')
+        expect(world.brainstormStore.getById).toHaveBeenCalledWith('foo')
     })
     it('finds proper ideas and members', async () => {
-        const world = setUp()
+        const world = await setUp()
 
         await world.incarnation.incarnateIdeas(world.brainstorm.id)
         expect(world.memberStore.find).toHaveBeenCalledWith({
@@ -33,12 +24,12 @@ describe('When brainstorm is over', () => {
 
     describe('Ideas to quests incarnation', () => {
         it('incarnates quests with description of idea', async () => {
-            const world = setUp()
+            const world = await setUp()
             const { idea, quest } = await world.incarnateOneIdea()
             expect(quest.description).toEqual(idea.description)
         })
         it('incarnates no more than half tribe count', async () => {
-            const world = setUp()
+            const world = await setUp()
             const ideas = [1, 2, 3, 4, 5].map(makeIdea)
             ideas.forEach(vote(5))
             world.ideasStore.find.and.resolveTo(ideas)
@@ -48,7 +39,7 @@ describe('When brainstorm is over', () => {
             expect(questsToSave.length).toBeLessThanOrEqual(3)
         })
         it('incarnates only most popular ideas (& score >= 2)', async () => {
-            const world = setUp()
+            const world = await setUp()
             const ideas = [1, 2, 3, 4, 5, 6].map(makeIdea)
             vote(5, 1)(ideas[0]) // +4 yes
             vote(5, 4)(ideas[1]) // 1 no
@@ -74,17 +65,17 @@ describe('When brainstorm is over', () => {
             expect(sixthIdea).withContext('sixthIdea').toBeTruthy()
         })
         it('incarnates to "coordination" quests', async () => {
-            const world = setUp()
+            const world = await setUp()
             const { quest } = await world.incarnateOneIdea()
             expect(quest.type).toEqual(QuestType.coordination)
         })
         it('incarnates as "proposed" quest', async () => {
-            const world = setUp()
+            const world = await setUp()
             const { quest } = await world.incarnateOneIdea()
             expect(quest.status).toEqual(QuestStatus.proposed)
         })
         it('proposes quest one week ahead', async () => {
-            const world = setUp()
+            const world = await setUp()
             const { quest } = await world.incarnateOneIdea()
             const oneWeekAhead = Date.now() + 7 * 24 * 3_600_000
             expect(quest.date).toBeGreaterThan(oneWeekAhead - 1000)
@@ -93,12 +84,12 @@ describe('When brainstorm is over', () => {
     })
     describe('Quests assignment', () => {
         it('assigns quest to two members', async () => {
-            const world = setUp()
+            const world = await setUp()
             const { quest } = await world.incarnateOneIdea()
             expect(quest.memberIds.length).toEqual(2)
         })
         it('assigns it to idea starter', async () => {
-            const world = setUp()
+            const world = await setUp()
             const { quest, idea } = await world.incarnateOneIdea()
             expect(quest.memberIds).toContain(idea.meberId)
         })
@@ -107,7 +98,7 @@ describe('When brainstorm is over', () => {
         //      assigned between these 3 members (each have 3-4) while other
         //      7 passive tribesmen won't have any. ¯\_(ツ)_/¯ maybe that's OK.
         it('should pick only upvoters', async () => {
-            const world = setUp()
+            const world = await setUp()
             const idea = makeIdea('i-1')
             idea.voteDown('mv-1')
             idea.voteUp('mv-2')
@@ -122,7 +113,7 @@ describe('When brainstorm is over', () => {
             expect(quest.memberIds).not.toContain('mv-6')
         })
         it('should instantiate all affected members', async () => {
-            const world = setUp()
+            const world = await setUp()
             const { idea } = await world.incarnateOneIdea()
             const upvoterIds = idea.votes.map((v) => v.memberId)
             const idsToFind = world.memberStore.find.calls.mostRecent().args[0]
@@ -134,7 +125,7 @@ describe('When brainstorm is over', () => {
             })
         })
         it('should pick shaman for chief (starter)', async () => {
-            const world = setUp()
+            const world = await setUp()
             const { members } = world.makeSimpleTribe([
                 { charisma: 10, wisdom: 6 }, // chief: 10 > 6
                 { charisma: 12, wisdom: 7 }, // also chief: 12 > 6
@@ -147,7 +138,7 @@ describe('When brainstorm is over', () => {
             expect(quest.memberIds).toContain(members[2].id)
         })
         it('should pick chief for shaman', async () => {
-            const world = setUp()
+            const world = await setUp()
             const { members } = world.makeSimpleTribe([
                 { charisma: 2, wisdom: 5 }, // starter is shaman: 2 < 5
                 { charisma: 6, wisdom: 4 }, // chief
@@ -160,7 +151,7 @@ describe('When brainstorm is over', () => {
             expect(quest.memberIds).toContain(members[2].id)
         })
         it('should pick wisest cheif if no shamans in tribe', async () => {
-            const world = setUp()
+            const world = await setUp()
             const { members } = world.makeSimpleTribe([
                 { charisma: 5, wisdom: 2 },
                 { charisma: 6, wisdom: 4 },
@@ -173,7 +164,7 @@ describe('When brainstorm is over', () => {
             expect(quest.memberIds).toContain(members[3].id)
         })
         it('should pick only those who has no active quests', async () => {
-            const world = setUp()
+            const world = await setUp()
             const { members } = world.makeSimpleTribe([
                 { charisma: 10, wisdom: 6, quests: 1 },
                 { charisma: 2, wisdom: 4 },
@@ -186,7 +177,7 @@ describe('When brainstorm is over', () => {
             expect(quest.memberIds).toContain(members[2].id)
         })
         it("won't assign quest to the same person twice", async () => {
-            const world = setUp()
+            const world = await setUp()
             const { members } = world.makeSimpleTribe([
                 { charisma: 10, wisdom: 6, quests: 1 },
                 { charisma: 20, wisdom: 20 },
@@ -197,7 +188,7 @@ describe('When brainstorm is over', () => {
             expect(quest.memberIds).toContain(members[2].id)
         })
         it('should pick two even if evryone has active quests', async () => {
-            const world = setUp()
+            const world = await setUp()
             const { members } = world.makeSimpleTribe([
                 { charisma: 3, wisdom: 4, quests: 3 },
                 { charisma: 2, wisdom: 4, quests: 3 },
@@ -211,11 +202,11 @@ describe('When brainstorm is over', () => {
     })
 
     it('finalises containing ideas', async () => {
-        const { incarnation, ideasStore } = setUp()
+        const { incarnation, ideasStore } = await setUp()
         const ideas = [1, 2, 3].map(makeIdea)
         ideasStore.find.and.resolveTo(ideas)
         await incarnation.incarnateIdeas('foo')
-        const ideasToSave = ideasStore.save.calls.argsFor(0)[0]
+        const ideasToSave = ideasStore.saveBulk.calls.argsFor(0)[0]
         expect(Array.isArray(ideasToSave)).toBe(true)
         Array.isArray(ideasToSave) &&
             ideasToSave.forEach((idea) => {
@@ -224,63 +215,42 @@ describe('When brainstorm is over', () => {
     })
 
     it('finalises itself', async () => {
-        const { incarnation, brainstormStore } = setUp()
+        const { incarnation, brainstormStore } = await setUp()
         await incarnation.incarnateIdeas('foo')
         const stormToSave = brainstormStore.save.calls.argsFor(0)[0]
         expect(stormToSave.state).toEqual('finished')
     })
 })
 
-function setUp() {
-    const brainstorm = new Brainstorm('foo', 't-42')
+async function setUp() {
+    const context = createContext()
+    const brainstorm = (await context.stores.brainstormStore.getById(
+        'whatever'
+    ))!
 
     const members = [0, 1, 2, 3, 4]
         .map(memId)
         .map(makeMember(brainstorm.tribeId))
-    const memberStore = jasmine.createSpyObj<MembersStore>('MembersStore', {
-        find: Promise.resolve(members),
-    })
-    const ideasStore = jasmine.createSpyObj<IdeasStore>('IdeasStore', {
-        find: Promise.resolve([]),
-        save: Promise.resolve([]),
-    })
-    const questStore = jasmine.createSpyObj<QuestsStore>('QuestsStore', {
-        saveBulk: Promise.resolve([]),
-        getActiveQuestsCount: Promise.resolve({}),
-    })
-    const brainstormStore = jasmine.createSpyObj<BrainstormStore>(
-        'BrainstormStore',
-        {
-            getById: Promise.resolve(brainstorm),
-            save: Promise.resolve(brainstorm),
-        }
-    )
-    const incarnation = new IdeasIncarnation(
-        ideasStore,
-        brainstormStore,
-        memberStore,
-        questStore
-    )
+
+    context.stores.memberStore.find.and.resolveTo(members)
+    const incarnation = new IdeasIncarnation(context)
     const getQuestsToSave = (call: number = 0) => {
-        const quests = questStore.saveBulk.calls.argsFor(call)[0]
+        const quests = context.stores.questStore.saveBulk.calls.argsFor(call)[0]
         if (!Array.isArray(quests)) {
             throw new Error('expected quest to save to be an array')
         }
         return quests
     }
     return {
+        ...context.stores,
         brainstorm,
-        brainstormStore,
-        ideasStore,
-        memberStore,
         incarnation,
-        questStore,
         members,
         getQuestsToSave,
         incarnateOneIdea: async () => {
             const idea = makeIdea(1)
             vote(5)(idea)
-            ideasStore.find.and.resolveTo([idea])
+            context.stores.ideasStore.find.and.resolveTo([idea])
 
             await incarnation.incarnateIdeas(brainstorm.id)
             return { quest: getQuestsToSave()[0], idea }
@@ -300,8 +270,8 @@ function setUp() {
                 (qs, m, i) => ({ ...qs, [m.id]: ms[i].quests || 0 }),
                 {}
             )
-            memberStore.find.and.resolveTo(members)
-            questStore.getActiveQuestsCount.and.resolveTo(quests)
+            context.stores.memberStore.find.and.resolveTo(members)
+            context.stores.questStore.getActiveQuestsCount.and.resolveTo(quests)
             return { members, quests }
         },
     }

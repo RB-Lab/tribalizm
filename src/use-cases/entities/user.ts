@@ -5,6 +5,7 @@ export interface UserStore {
 }
 
 export interface IUser {
+    id: string | null
     name: string
     coordinates: Coordinates | null
 }

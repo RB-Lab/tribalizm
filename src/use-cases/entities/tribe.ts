@@ -10,6 +10,7 @@ export interface TribeStore {
 }
 
 export interface ITribe {
+    id: string | null
     name: string
     description: string
     logo: string

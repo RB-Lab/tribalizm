@@ -1,17 +1,29 @@
-export interface IdeasStore {
-    getById: (ideaId: string) => Promise<QuestIdea | null>
-    save: <T extends QuestIdea | QuestIdea[]>(idea: T) => Promise<T>
-    find: (params: { brainstormId?: string }) => Promise<QuestIdea[]>
+export interface IdeaStore {
+    getById: (ideaId: string) => Promise<SavedQuestIdea | null>
+    save: (idea: IQuestIdea) => Promise<SavedQuestIdea>
+    saveBulk: (idea: IQuestIdea[]) => Promise<SavedQuestIdea[]>
+    find: (params: { brainstormId?: string }) => Promise<SavedQuestIdea[]>
 }
 
 export interface BrainstormStore {
-    getById: (id: string) => Promise<Brainstorm | null>
-    save: (brainsorm: Brainstorm) => Promise<Brainstorm>
+    getById: (id: string) => Promise<SavedBrainstorm | null>
+    save: (brainsorm: IBrainstorm) => Promise<SavedBrainstorm>
 }
 
-export type BrainStormState = 'initiated' | 'generation' | 'voting' | 'finished'
+export type BrainstormState = 'initiated' | 'generation' | 'voting' | 'finished'
 
-export class Brainstorm {
+export interface IBrainstorm {
+    id: string | null
+    tribeId: string
+    state: BrainstormState
+    date: number
+    toVoting: () => void
+    finish: () => void
+}
+export interface SavedBrainstorm extends IBrainstorm {
+    id: string
+}
+export class Brainstorm implements IBrainstorm {
     private _id: string
     get id() {
         return this._id
@@ -20,24 +32,24 @@ export class Brainstorm {
     get tribeId() {
         return this._tribeId
     }
-    private _state: BrainStormState
+    private _state: BrainstormState
     get state() {
         return this._state
     }
-    private _date: Date
+    private _date: number
     get date() {
         return this._date
     }
-    constructor(
-        id: string,
-        tribeId: string,
-        state: BrainStormState = 'initiated',
-        date: Date = new Date()
-    ) {
-        this._id = id
-        this._tribeId = tribeId
-        this._state = state
-        this._date = date
+    constructor(params: {
+        id: string
+        tribeId: string
+        state?: BrainstormState
+        date?: number
+    }) {
+        this._id = params.id
+        this._tribeId = params.tribeId
+        this._state = params.state || 'initiated'
+        this._date = params.date || Date.now()
     }
     toVoting = () => {
         if (this.state === 'finished') {
@@ -57,8 +69,24 @@ export class UpdateFinishedBrainstormError extends Error {
     }
 }
 
+export interface IQuestIdea {
+    id: string | null
+    description: string
+    meberId: string
+    brainstormId: string
+    state: IdeaState
+    votes: BrainstromVote[]
+    voteUp: (memberId: string) => void
+    voteDown: (memberId: string) => void
+    getScore: () => number
+    finish: () => void
+}
+export interface SavedQuestIdea extends IQuestIdea {
+    id: string
+}
+
 type IdeaState = 'new' | 'finished'
-export class QuestIdea {
+export class QuestIdea implements IQuestIdea {
     private _id: string
     get id() {
         return this._id

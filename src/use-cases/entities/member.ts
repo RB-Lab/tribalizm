@@ -8,6 +8,7 @@ export interface MembersStore {
 }
 
 export interface IMember {
+    id: string | null
     userId: string
     tribeId: string
     charisma: number

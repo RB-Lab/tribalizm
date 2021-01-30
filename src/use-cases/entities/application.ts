@@ -4,6 +4,7 @@ export interface ApplicationStore {
 }
 
 export interface IApplication {
+    id: string | null
     tribeId: string
     memberId: string
     coverLetter: string
