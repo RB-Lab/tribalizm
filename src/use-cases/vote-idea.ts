@@ -5,13 +5,13 @@ import {
     IdeaStore,
     SavedBrainstorm,
 } from './entities/brainstorm'
-import { MembersStore } from './entities/member'
+import { MemberStore } from './entities/member'
 import { EntityNotFound } from './entities/not-found-error'
 
 export class Voting {
     private _ideasStore: IdeaStore
     private _brainstormStore: BrainstormStore
-    private _memberStore: MembersStore
+    private _memberStore: MemberStore
     // TODO remove this state
     private _brainstorm: SavedBrainstorm | null = null
 

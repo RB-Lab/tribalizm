@@ -4,9 +4,13 @@ export interface QuestStore {
     getActiveQuestsCount: (
         memberIds: string[]
     ) => Promise<{ [id: string]: number }>
+    find: (query: {
+        ideaId?: (string | null) | Array<string | null>
+    }) => Promise<SavedQuest[]>
 }
 export interface IQuest {
     id: string | null
+    ideaId: string | null
     type: QuestType
     status: QuestStatus
     description: string
@@ -22,6 +26,10 @@ export class Quest implements IQuest {
     private _id: string | null
     get id() {
         return this._id
+    }
+    private _ideaId: string | null
+    get ideaId() {
+        return this._ideaId
     }
     private _type: QuestType
     get type() {
@@ -51,6 +59,7 @@ export class Quest implements IQuest {
     constructor(
         params: {
             id?: string
+            ideaId?: string
             type?: QuestType
             status?: QuestStatus
             description?: string
@@ -60,6 +69,7 @@ export class Quest implements IQuest {
         } = {}
     ) {
         this._id = params.id || null
+        this._ideaId = params.ideaId || null
         this._type = params.type || QuestType.coordination
         this._status = params.status || QuestStatus.proposed
         this._description = params.description || ''

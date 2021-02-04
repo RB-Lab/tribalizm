@@ -1,10 +1,12 @@
-export interface MembersStore {
+export interface MemberStore {
     find: (params: {
         tribeId?: string | string[]
         id?: string | string[]
+        userId?: string | string[]
     }) => Promise<SavedMember[]>
     getById: (id: string) => Promise<SavedMember | null>
     save: (member: IMember) => Promise<SavedMember>
+    saveBulk: (member: IMember[]) => Promise<SavedMember[]>
 }
 
 export interface IMember {

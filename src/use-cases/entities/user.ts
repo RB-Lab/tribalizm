@@ -27,11 +27,11 @@ export class User implements IUser {
         return this._coordinates
     }
     constructor(params: {
-        id: string
+        id?: string
         name: string
         coordinates: Coordinates
     }) {
-        this._id = params.id
+        this._id = params.id || null
         this._name = params.name
         this._coordinates = params.coordinates
     }

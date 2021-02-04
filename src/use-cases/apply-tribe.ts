@@ -1,5 +1,5 @@
 import { Application, ApplicationStore } from './entities/application'
-import { Member, MembersStore } from './entities/member'
+import { Member, MemberStore } from './entities/member'
 import { Message } from './entities/message'
 import { EntityNotFound } from './entities/not-found-error'
 import { NotificationBus } from './notification-bus'
@@ -12,7 +12,7 @@ export class TribeApplication {
     private applicationStore: ApplicationStore
     private notififcationBus: NotificationBus
     private tribeStore: TribeStore
-    private memberStore: MembersStore
+    private memberStore: MemberStore
     private userStore: UserStore
     private questStore: QuestStore
     constructor(context: Context) {
@@ -30,12 +30,15 @@ export class TribeApplication {
         coverLetter: string
     ) => {
         const user = await this.userStore.getById(userId)
-        const tribe = await this.tribeStore.getById(tribeId)
         if (!user) {
             throw new EntityNotFound(`User ${userId} not found`)
         }
+        const tribe = await this.tribeStore.getById(tribeId)
         if (!tribe) {
             throw new EntityNotFound(`Tribe ${tribeId} not found`)
+        }
+        if (!tribe.chiefId) {
+            throw new NoChiefTribeError(`Tribe ${tribeId} has no chief`)
         }
         const chief = await this.memberStore.getById(tribe.chiefId)
         if (!chief) {
@@ -63,6 +66,7 @@ export class TribeApplication {
                 userName: user.name,
             },
         })
+        return app
     }
 
     startInitiation = async (req: InitiationRequest) => {
@@ -109,6 +113,12 @@ export interface InitiationRequest {
     memberId: string
     place: string
     time: number
+}
+
+export class NoChiefTribeError extends Error {
+    constructor(msg: string) {
+        super(msg)
+    }
 }
 
 export const ApplicationMessageType = 'application-message'

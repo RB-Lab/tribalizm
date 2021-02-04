@@ -1,6 +1,6 @@
 import { ApplicationStore } from './entities/application'
 import { BrainstormStore, IdeaStore } from './entities/brainstorm'
-import { MembersStore } from './entities/member'
+import { MemberStore } from './entities/member'
 import { QuestStore } from './entities/quest'
 import { TribeStore } from './entities/tribe'
 import { UserStore } from './entities/user'
@@ -10,7 +10,7 @@ export interface Context {
     stores: {
         applicationStore: ApplicationStore
         tribeStore: TribeStore
-        memberStore: MembersStore
+        memberStore: MemberStore
         userStore: UserStore
         questStore: QuestStore
         ideasStore: IdeaStore

@@ -1,12 +1,16 @@
 import { Context } from './context'
-import { BrainstormStore, IdeaStore, IQuestIdea } from './entities/brainstorm'
-import { MembersStore, SavedMember } from './entities/member'
+import {
+    BrainstormStore,
+    IdeaStore,
+    SavedQuestIdea,
+} from './entities/brainstorm'
+import { MemberStore, SavedMember } from './entities/member'
 import { EntityNotFound } from './entities/not-found-error'
 import { Quest, QuestStore } from './entities/quest'
 
 export class IdeasIncarnation {
     private ideasStore: IdeaStore
-    private membersStore: MembersStore
+    private membersStore: MemberStore
     private barinstormStore: BrainstormStore
     private questsStore: QuestStore
     constructor(context: Context) {
@@ -41,7 +45,7 @@ export class IdeasIncarnation {
         this.barinstormStore.save(brainstorm)
     }
 
-    private incarnate = async (idea: IQuestIdea) => {
+    private incarnate = async (idea: SavedQuestIdea) => {
         const oneWeekAhead = Date.now() + 7 * 24 * 3_600_000
         const upvoterIds = idea.votes
             .filter((v) => v.vote === 'up')
@@ -62,7 +66,7 @@ export class IdeasIncarnation {
             memberIds
         )
         let assignies: string[]
-        if (activeQuests[starter.id] <= minQuests(activeQuests)) {
+        if ((activeQuests[starter.id] || 0) <= minQuests(activeQuests)) {
             const second = getMaxFreeMember(
                 members,
                 starter.charisma > starter.wisdom ? 'wisdom' : 'charisma',
@@ -82,6 +86,7 @@ export class IdeasIncarnation {
         }
 
         return new Quest({
+            ideaId: idea.id,
             description: idea.description,
             date: oneWeekAhead,
             memberIds: assignies,

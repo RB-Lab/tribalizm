@@ -7,6 +7,7 @@ export interface TribeStore {
         limit?: number
     }) => Promise<SavedTribe[]>
     getById: (id: string) => Promise<SavedTribe | null>
+    save: (tribe: ITribe) => Promise<SavedTribe>
 }
 
 export interface ITribe {
@@ -15,7 +16,7 @@ export interface ITribe {
     description: string
     logo: string
     vocabulary: TribeType
-    chiefId: string
+    chiefId: string | null
     shamanId: string | null
 }
 export interface SavedTribe extends ITribe {
@@ -45,11 +46,6 @@ export class Tribe implements ITribe {
     }
     private _chiefId: string | null
     get chiefId() {
-        if (!this._chiefId) {
-            throw new NoChiefTribeError(
-                `Tribe ${this.name} (${this.id}) has no chief!`
-            )
-        }
         return this._chiefId
     }
     private _shamanId: string | null
@@ -72,12 +68,6 @@ export class Tribe implements ITribe {
         this._description = params.description || ''
         this._logo = params.logo || ''
         this._vocabulary = params.vocabulary || TribeType.tribe
-    }
-}
-
-export class NoChiefTribeError extends Error {
-    constructor(msg: string) {
-        super(msg)
     }
 }
 

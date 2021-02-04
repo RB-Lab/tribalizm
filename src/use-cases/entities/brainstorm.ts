@@ -24,7 +24,7 @@ export interface SavedBrainstorm extends IBrainstorm {
     id: string
 }
 export class Brainstorm implements IBrainstorm {
-    private _id: string
+    private _id: string | null
     get id() {
         return this._id
     }
@@ -41,16 +41,17 @@ export class Brainstorm implements IBrainstorm {
         return this._date
     }
     constructor(params: {
-        id: string
+        id?: string
         tribeId: string
         state?: BrainstormState
         date?: number
     }) {
-        this._id = params.id
+        this._id = params.id || null
         this._tribeId = params.tribeId
         this._state = params.state || 'initiated'
         this._date = params.date || Date.now()
     }
+
     toVoting = () => {
         if (this.state === 'finished') {
             throw new UpdateFinishedBrainstormError(
@@ -87,7 +88,7 @@ export interface SavedQuestIdea extends IQuestIdea {
 
 type IdeaState = 'new' | 'finished'
 export class QuestIdea implements IQuestIdea {
-    private _id: string
+    private _id: string | null
     get id() {
         return this._id
     }
@@ -112,14 +113,14 @@ export class QuestIdea implements IQuestIdea {
         return this._votes
     }
     constructor(params: {
-        id: string
+        id?: string
         description: string
         meberId: string
         brainstormId: string
         state?: IdeaState
         votes?: BrainstromVote[]
     }) {
-        this._id = params.id
+        this._id = params.id || null
         this._meberId = params.meberId
         this._brainstormId = params.brainstormId
         this._description = params.description
