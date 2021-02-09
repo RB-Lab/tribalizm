@@ -28,15 +28,15 @@ describe('Stranger application', () => {
         )
 
         expect(onApplication).toHaveBeenCalledTimes(1)
-        const message = onApplication.calls.argsFor(0)[0] as ApplicationMessage
-
-        expect(message.type).toEqual(ApplicationMessageType)
-        expect(message.payload).toEqual(
-            jasmine.objectContaining<ApplicationMessage['payload']>({
-                coverLetter,
-                elderId: world.tribe.chiefId!,
-                applicationId: app.id,
-                userName: world.user.name,
+        expect(onApplication).toHaveBeenCalledWith(
+            jasmine.objectContaining<ApplicationMessage>({
+                type: ApplicationMessageType,
+                payload: {
+                    coverLetter,
+                    elderId: world.tribe.chiefId!,
+                    applicationId: app.id,
+                    userName: world.user.name,
+                },
             })
         )
     })
@@ -53,7 +53,7 @@ describe('Stranger application', () => {
             jasmine.objectContaining<SavedApplication>({
                 coverLetter,
                 tribeId: world.tribe.id,
-                elderId: world.tribe.chiefId,
+                chiefId: world.tribe.chiefId,
                 phase: ApplicationPhase.initial,
             })
         )

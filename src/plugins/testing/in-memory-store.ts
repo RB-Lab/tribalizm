@@ -14,19 +14,9 @@ export class InMemoryStore<T> {
         return new this._class(record) as T & Storable
     }
     private _serialize = (doc: any) => {
-        const keys = [
-            ...Object.keys(
-                Object.getOwnPropertyDescriptors(Object.getPrototypeOf(doc))
-            ),
-            ...Object.keys(doc),
-        ]
-        return Array.from(new Set(keys)).reduce((res, key) => {
+        return getKeys(doc).reduce((res, key) => {
             const value = doc[key]
-            if (
-                typeof value === 'function' ||
-                key.startsWith('_') ||
-                key === 'constructor'
-            ) {
+            if (typeof value === 'function') {
                 return res
             }
             return { ...res, [key]: value }
@@ -61,7 +51,7 @@ export class InMemoryStore<T> {
     ) => {
         const results = Object.values(this._store).filter((doc) => {
             return Object.keys(query).every((k) => {
-                if (!isValidQueryKey(k, query)) {
+                if (!isValidObjectKey(k, query)) {
                     return false
                 }
                 const queryParam = query[k]
@@ -75,9 +65,22 @@ export class InMemoryStore<T> {
     }
 }
 
-function isValidQueryKey<T>(
+export function isValidObjectKey<T>(
     key: string | number | symbol,
     doc: T
 ): key is keyof T {
     return key in doc
+}
+
+export function getKeys<T extends object>(doc: T) {
+    const keys = [
+        ...Object.keys(
+            Object.getOwnPropertyDescriptors(Object.getPrototypeOf(doc))
+        ),
+        ...Object.keys(doc),
+    ]
+
+    return Array.from(new Set(keys)).filter(
+        (k) => !(k.startsWith('_') || k === 'constructor')
+    )
 }

@@ -46,6 +46,9 @@ export class Member implements IMember {
     get isCandidate() {
         return this._isCandidate
     }
+    set isCandidate(isCandidate: boolean) {
+        this._isCandidate = isCandidate
+    }
     constructor(params: {
         id?: string
         userId: string
@@ -59,6 +62,7 @@ export class Member implements IMember {
         this._tribeId = params.tribeId
         this._charisma = params.charisma || 0
         this._wisdom = params.wisdom || 0
-        this._isCandidate = params.isCandidate || true
+        this._isCandidate =
+            params.isCandidate === undefined ? true : params.isCandidate
     }
 }

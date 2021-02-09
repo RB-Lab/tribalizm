@@ -3,14 +3,20 @@ export interface ApplicationStore {
     getById: (id: string) => Promise<SavedApplication | null>
 }
 
+type ApplicationStatus = 'approved' | 'decilned'
+
 export interface IApplication {
     id: string | null
     tribeId: string
     memberId: string
     coverLetter: string
-    elderId: string | null
+    chiefId: string | null
+    shamanId: string | null
     phase: ApplicationPhase
+    status?: ApplicationStatus
     nextPhase: () => void
+    approve: () => void
+    decline: () => void
 }
 export interface SavedApplication extends IApplication {
     id: string
@@ -19,6 +25,7 @@ export interface SavedApplication extends IApplication {
 export enum ApplicationPhase {
     initial = 'initial',
     chiefInitiation = 'chiefInitiation',
+    awaitingShaman = 'awaitingShaman',
     shamanInitiation = 'shamanInitiation',
     finished = 'finished',
 }
@@ -39,12 +46,23 @@ export class Application implements IApplication {
     get coverLetter() {
         return this._coverLetter
     }
-    private _elderId: string | null = null
-    get elderId() {
-        return this._elderId
+    private _chiefId: string | null = null
+    get chiefId() {
+        return this._chiefId
     }
-    set elderId(newId: string | null) {
-        this._elderId = newId
+    set chiefId(newId: string | null) {
+        this._chiefId = newId
+    }
+    private _shamanId: string | null = null
+    get shamanId() {
+        return this._shamanId
+    }
+    set shamanId(newId: string | null) {
+        this._shamanId = newId
+    }
+    private _status: ApplicationStatus | undefined
+    get status() {
+        return this._status
     }
     private _phase: ApplicationPhase
     get phase() {
@@ -56,15 +74,27 @@ export class Application implements IApplication {
         tribeId: string
         memberId: string
         coverLetter: string
-        elderId?: string
+        chiefId?: string
+        shamanId?: string
         phase?: ApplicationPhase
+        status?: ApplicationStatus
     }) {
         this._id = params.id || null
         this._tribeId = params.tribeId
         this._memberId = params.memberId
         this._coverLetter = params.coverLetter
-        this._elderId = params.elderId || null
+        this._chiefId = params.chiefId || null
+        this._shamanId = params.shamanId || null
         this._phase = params.phase || ApplicationPhase.initial
+        this._status = params.status
+    }
+    approve = () => {
+        this._phase = ApplicationPhase.finished
+        this._status = 'approved'
+    }
+    decline = () => {
+        this._phase = ApplicationPhase.finished
+        this._status = 'decilned'
     }
 
     nextPhase = () => {
@@ -73,6 +103,9 @@ export class Application implements IApplication {
                 this._phase = ApplicationPhase.chiefInitiation
                 break
             case ApplicationPhase.chiefInitiation:
+                this._phase = ApplicationPhase.awaitingShaman
+                break
+            case ApplicationPhase.awaitingShaman:
                 this._phase = ApplicationPhase.shamanInitiation
                 break
             case ApplicationPhase.shamanInitiation:
