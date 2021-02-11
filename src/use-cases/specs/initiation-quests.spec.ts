@@ -1,16 +1,13 @@
 import {
     ApplicationApproved,
-    ApplicationApprovedMessageType,
     ApplicationDeclined,
-    ApplicationMessage,
     ElderMismatchError,
+    Initiation,
     InitiationRequest,
     NoChiefSetError,
     QuestMessage,
-    QuestMessageType,
-    TribeApplication,
     WrongPhaseError,
-} from '../apply-tribe'
+} from '../initiation'
 import { Application, ApplicationPhase } from '../entities/application'
 import { Coordinates } from '../entities/location'
 import { Member } from '../entities/member'
@@ -19,12 +16,13 @@ import { IQuest, QuestStatus, QuestType } from '../entities/quest'
 import { Tribe } from '../entities/tribe'
 import { User } from '../entities/user'
 import { assign, createContext } from './test-context'
+import { ApplicationMessage } from '../apply-tribe'
 
 describe('Initiation quests:', () => {
     describe('Chief initiation', () => {
         it('transfers application to "chiefInitiation" phase', async () => {
             const world = await setUp()
-            await world.tribeApplication.startInitiation(
+            await world.initiation.startInitiation(
                 world.defaultInitiationRequest
             )
             const app = await world.applicationStore.getById(
@@ -49,7 +47,7 @@ describe('Initiation quests:', () => {
                 })
             )
             await expectAsync(
-                world.tribeApplication.startInitiation({
+                world.initiation.startInitiation({
                     ...world.defaultInitiationRequest,
                     applicationId: badApp.id,
                 })
@@ -58,7 +56,7 @@ describe('Initiation quests:', () => {
         it('FAILs to initiate with improper elder', async () => {
             const world = await setUp()
             await expectAsync(
-                world.tribeApplication.startInitiation({
+                world.initiation.startInitiation({
                     ...world.defaultInitiationRequest,
                     memberId: 'imporoper-elder-id',
                 })
@@ -66,13 +64,15 @@ describe('Initiation quests:', () => {
         })
         it('notifies a member on initiaition quest', async () => {
             const world = await setUp()
-            const onQuest = world.spyOnMessage<QuestMessage>(QuestMessageType)
-            await world.tribeApplication.startInitiation(
+            const onQuest = world.spyOnMessage<QuestMessage>(
+                'new-quest-message'
+            )
+            await world.initiation.startInitiation(
                 world.defaultInitiationRequest
             )
             expect(onQuest).toHaveBeenCalledWith(
                 jasmine.objectContaining<QuestMessage>({
-                    type: QuestMessageType,
+                    type: 'new-quest-message',
                     payload: jasmine.objectContaining<QuestMessage['payload']>({
                         targetMemberId: world.application.memberId,
                         questId: jasmine.any(String),
@@ -85,12 +85,9 @@ describe('Initiation quests:', () => {
         })
         it('fires an initiation quest', async () => {
             const world = await setUp()
-            await world.tribeApplication.startInitiation(
-                world.defaultInitiationRequest
-            )
 
             world.notififcationBus.subscribe<QuestMessage>(
-                QuestMessageType,
+                'new-quest-message',
                 async (message) => {
                     const quest = await world.questStore.getById(
                         message.payload.questId
@@ -109,9 +106,11 @@ describe('Initiation quests:', () => {
                     )
                 }
             )
+            await world.initiation.startInitiation(
+                world.defaultInitiationRequest
+            )
         })
     })
-
     describe('Chief approval', () => {
         it('FAILs if NOT in "chiefInitiation" phase', async () => {
             await failOnWrongPhase(
@@ -128,18 +127,15 @@ describe('Initiation quests:', () => {
                 })
             )
             await expectAsync(
-                world.tribeApplication.approveByChief({
+                world.initiation.approveByChief({
                     applicationId: world.application.id,
                     memberId: 'wrong-member-id',
                 })
             ).toBeRejectedWithError(ElderMismatchError)
         })
         it('transfers approved application to shaman', async () => {
-            const world = await setUp()
-            await world.tribeApplication.startInitiation(
-                world.defaultInitiationRequest
-            )
-            await world.tribeApplication.approveByChief({
+            const world = await toChiefAproval()
+            await world.initiation.approveByChief({
                 applicationId: world.application.id,
                 memberId: world.chief.id,
             })
@@ -150,14 +146,11 @@ describe('Initiation quests:', () => {
             expect(app?.shamanId).toEqual(world.shaman.id)
         })
         it('notifies shaman about application', async () => {
-            const world = await setUp()
-            await world.tribeApplication.startInitiation(
-                world.defaultInitiationRequest
-            )
+            const world = await toChiefAproval()
             const onApprove = world.spyOnMessage<ApplicationMessage>(
                 'application-message'
             )
-            await world.tribeApplication.approveByChief({
+            await world.initiation.approveByChief({
                 applicationId: world.application.id,
                 memberId: world.chief.id,
             })
@@ -175,12 +168,9 @@ describe('Initiation quests:', () => {
             )
         })
         it('approves the memeber, if tribe has no shaman', async () => {
-            const world = await setUp()
+            const world = await toChiefAproval()
             await world.tribeStore.save(assign(world.tribe, { shamanId: null }))
-            await world.tribeApplication.startInitiation(
-                world.defaultInitiationRequest
-            )
-            await world.tribeApplication.approveByChief({
+            await world.initiation.approveByChief({
                 applicationId: world.application.id,
                 memberId: world.chief.id,
             })
@@ -195,21 +185,18 @@ describe('Initiation quests:', () => {
                 .toEqual(false)
         })
         it('notifies member on (express) approval', async () => {
-            const world = await setUp()
+            const world = await toChiefAproval()
             await world.tribeStore.save(assign(world.tribe, { shamanId: null }))
             const onApprove = world.spyOnMessage<ApplicationApproved>(
-                ApplicationApprovedMessageType
+                'application-approved'
             )
-            await world.tribeApplication.startInitiation(
-                world.defaultInitiationRequest
-            )
-            await world.tribeApplication.approveByChief({
+            await world.initiation.approveByChief({
                 applicationId: world.application.id,
                 memberId: world.chief.id,
             })
             expect(onApprove).toHaveBeenCalledWith(
                 jasmine.objectContaining<ApplicationApproved>({
-                    type: ApplicationApprovedMessageType,
+                    type: 'application-approved',
                     payload: {
                         targetMemberId: world.newMember.id,
                     },
@@ -227,29 +214,17 @@ describe('Initiation quests:', () => {
             )
         })
         it('FAILs to initiate with improper elder', async () => {
-            const world = await setUp()
-            await world.tribeApplication.startInitiation(
-                world.defaultInitiationRequest
-            )
-            await world.tribeApplication.approveByChief(
-                world.defaultInitiationRequest
-            )
+            const world = await toShamanInitiation()
             await expectAsync(
-                world.tribeApplication.startShamanInitiation({
+                world.initiation.startShamanInitiation({
                     ...world.defaultInitiationRequest,
                     memberId: 'imporoper-elder-id',
                 })
             ).toBeRejectedWithError(ElderMismatchError)
         })
         it('transfers application to "shamanInitiation" phase', async () => {
-            const world = await setUp()
-            await world.tribeApplication.startInitiation(
-                world.defaultInitiationRequest
-            )
-            await world.tribeApplication.approveByChief(
-                world.defaultInitiationRequest
-            )
-            await world.tribeApplication.startShamanInitiation({
+            const world = await toShamanInitiation()
+            await world.initiation.startShamanInitiation({
                 ...world.defaultInitiationRequest,
                 memberId: world.shaman.id,
             })
@@ -259,23 +234,10 @@ describe('Initiation quests:', () => {
             expect(app?.phase).toEqual(ApplicationPhase.shamanInitiation)
         })
         it('fires an initiation quest', async () => {
-            const world = await setUp()
-            const onQuest = world.spyOnMessage<QuestMessage>(QuestMessageType)
-            await world.tribeApplication.startInitiation(
-                world.defaultInitiationRequest
-            )
-            await world.tribeApplication.approveByChief(
-                world.defaultInitiationRequest
-            )
-            // get rid of notififcation fired by startInitiation
-            onQuest.calls.reset()
-            await world.tribeApplication.startShamanInitiation({
-                ...world.defaultInitiationRequest,
-                memberId: world.shaman.id,
-            })
+            const world = await toShamanInitiation()
 
             world.notififcationBus.subscribe<QuestMessage>(
-                QuestMessageType,
+                'new-quest-message',
                 async (message) => {
                     const quest = await world.questStore.getById(
                         message.payload.questId
@@ -294,25 +256,23 @@ describe('Initiation quests:', () => {
                     )
                 }
             )
+            await world.initiation.startShamanInitiation({
+                ...world.defaultInitiationRequest,
+                memberId: world.shaman.id,
+            })
         })
         it('notifies a member on initiaition quest', async () => {
-            const world = await setUp()
-            const onQuest = world.spyOnMessage<QuestMessage>(QuestMessageType)
-            await world.tribeApplication.startInitiation(
-                world.defaultInitiationRequest
+            const world = await toShamanInitiation()
+            const onQuest = world.spyOnMessage<QuestMessage>(
+                'new-quest-message'
             )
-            await world.tribeApplication.approveByChief(
-                world.defaultInitiationRequest
-            )
-            // get rid of notififcation fired by startInitiation
-            onQuest.calls.reset()
-            await world.tribeApplication.startShamanInitiation({
+            await world.initiation.startShamanInitiation({
                 ...world.defaultInitiationRequest,
                 memberId: world.shaman.id,
             })
             expect(onQuest).toHaveBeenCalledWith(
                 jasmine.objectContaining<QuestMessage>({
-                    type: QuestMessageType,
+                    type: 'new-quest-message',
                     payload: jasmine.objectContaining<QuestMessage['payload']>({
                         targetMemberId: world.application.memberId,
                         questId: jasmine.any(String),
@@ -335,39 +295,17 @@ describe('Initiation quests:', () => {
         })
 
         it('FAILs to approve by wrong shaman', async () => {
-            const world = await setUp()
-
-            await world.tribeApplication.startInitiation(
-                world.defaultInitiationRequest
-            )
-            await world.tribeApplication.approveByChief(
-                world.defaultInitiationRequest
-            )
-            await world.tribeApplication.startShamanInitiation({
-                ...world.defaultInitiationRequest,
-                memberId: world.shaman.id,
-            })
+            const world = await toShamanApproval()
             await expectAsync(
-                world.tribeApplication.approveByShaman({
+                world.initiation.approveByShaman({
                     applicationId: world.application.id,
                     memberId: 'wrong-member-id',
                 })
             ).toBeRejectedWithError(ElderMismatchError)
         })
         it('makes a full-fledged member after two approvals', async () => {
-            const world = await setUp()
-
-            await world.tribeApplication.startInitiation(
-                world.defaultInitiationRequest
-            )
-            await world.tribeApplication.approveByChief(
-                world.defaultInitiationRequest
-            )
-            await world.tribeApplication.startShamanInitiation({
-                ...world.defaultInitiationRequest,
-                memberId: world.shaman.id,
-            })
-            await world.tribeApplication.approveByShaman({
+            const world = await toShamanApproval()
+            await world.initiation.approveByShaman({
                 applicationId: world.application.id,
                 memberId: world.shaman.id,
             })
@@ -382,30 +320,18 @@ describe('Initiation quests:', () => {
                 .toEqual(false)
         })
         it('notifies a member on their approval', async () => {
-            const world = await setUp()
+            const world = await toShamanApproval()
             const onApprove = world.spyOnMessage<ApplicationApproved>(
                 'application-approved'
             )
 
-            await world.tribeApplication.startInitiation(
-                world.defaultInitiationRequest
-            )
-            await world.tribeApplication.approveByChief(
-                world.defaultInitiationRequest
-            )
-            await world.tribeApplication.startShamanInitiation({
-                ...world.defaultInitiationRequest,
-                memberId: world.shaman.id,
-            })
-            // get rid of notififcation fired by startInitiation
-            onApprove.calls.reset()
-            await world.tribeApplication.approveByShaman({
+            await world.initiation.approveByShaman({
                 applicationId: world.application.id,
                 memberId: world.shaman.id,
             })
             expect(onApprove).toHaveBeenCalledWith(
                 jasmine.objectContaining<ApplicationApproved>({
-                    type: ApplicationApprovedMessageType,
+                    type: 'application-approved',
                     payload: {
                         targetMemberId: world.newMember.id,
                     },
@@ -430,44 +356,26 @@ describe('Initiation quests:', () => {
             )
         })
         it('FAILs to decline by wrong elder (chief)', async () => {
-            const world = await setUp()
-
-            await world.tribeApplication.startInitiation(
-                world.defaultInitiationRequest
-            )
+            const world = await toChiefAproval()
             await expectAsync(
-                world.tribeApplication.decline({
+                world.initiation.decline({
                     applicationId: world.application.id,
                     memberId: 'wrong-member-id',
                 })
             ).toBeRejectedWithError(ElderMismatchError)
         })
         it('FAILs to decline by wrong elder (shaman)', async () => {
-            const world = await setUp()
-
-            await world.tribeApplication.startInitiation(
-                world.defaultInitiationRequest
-            )
-            await world.tribeApplication.approveByChief(
-                world.defaultInitiationRequest
-            )
-            await world.tribeApplication.startShamanInitiation({
-                ...world.defaultInitiationRequest,
-                memberId: world.shaman.id,
-            })
+            const world = await toShamanApproval()
             await expectAsync(
-                world.tribeApplication.decline({
+                world.initiation.decline({
                     applicationId: world.application.id,
                     memberId: 'wrong-member-id',
                 })
             ).toBeRejectedWithError(ElderMismatchError)
         })
         it('finalizes declined application', async () => {
-            const world = await setUp()
-            await world.tribeApplication.startInitiation(
-                world.defaultInitiationRequest
-            )
-            await world.tribeApplication.decline(world.defaultInitiationRequest)
+            const world = await toChiefAproval()
+            await world.initiation.decline(world.defaultInitiationRequest)
             const app = await world.applicationStore.getById(
                 world.defaultInitiationRequest.applicationId
             )
@@ -479,18 +387,16 @@ describe('Initiation quests:', () => {
                 .toEqual(true)
         })
         it('notifies non-member on application decline', async () => {
-            const world = await setUp()
-            const onApprove = world.spyOnMessage<ApplicationDeclined>(
+            const world = await toShamanApproval()
+            const onDecline = world.spyOnMessage<ApplicationDeclined>(
                 'application-declined'
             )
 
-            await world.tribeApplication.startInitiation(
-                world.defaultInitiationRequest
-            )
-            // get rid of notififcation fired by startInitiation
-            onApprove.calls.reset()
-            await world.tribeApplication.decline(world.defaultInitiationRequest)
-            expect(onApprove).toHaveBeenCalledWith(
+            await world.initiation.decline({
+                ...world.defaultInitiationRequest,
+                memberId: world.shaman.id,
+            })
+            expect(onDecline).toHaveBeenCalledWith(
                 jasmine.objectContaining<ApplicationDeclined>({
                     type: 'application-declined',
                     payload: {
@@ -550,7 +456,7 @@ async function setUp() {
         time: 1_700_100_500_000,
     }
 
-    const tribeApplication = new TribeApplication(context)
+    const initiation = new Initiation(context)
     return {
         tribe,
         newMember,
@@ -559,15 +465,39 @@ async function setUp() {
         shaman,
         defaultInitiationRequest,
         application,
-        tribeApplication,
+        initiation,
         ...context.async,
         ...context.stores,
-        spyOnMessage<T extends Message>(messageType: T['type']) {
+        spyOnMessage: <T extends Message>(messageType: T['type']) => {
             const spy = jasmine.createSpy(`on${messageType}`)
             context.async.notififcationBus.subscribe(messageType, spy)
             return spy
         },
     }
+}
+
+async function toChiefAproval() {
+    const world = await setUp()
+
+    await world.initiation.startInitiation(world.defaultInitiationRequest)
+    return world
+}
+
+async function toShamanInitiation() {
+    const world = await toChiefAproval()
+
+    await world.initiation.approveByChief(world.defaultInitiationRequest)
+    return world
+}
+
+async function toShamanApproval() {
+    const world = await toShamanInitiation()
+
+    await world.initiation.startShamanInitiation({
+        ...world.defaultInitiationRequest,
+        memberId: world.shaman.id,
+    })
+    return world
 }
 
 async function failOnWrongPhase(
@@ -590,7 +520,7 @@ async function failOnWrongPhase(
                 assign(world.application, { phase, shamanId: world.shaman.id })
             )
             await expectAsync(
-                world.tribeApplication[metod]({
+                world.initiation[metod]({
                     ...world.defaultInitiationRequest,
                     memberId: world[role].id,
                 })

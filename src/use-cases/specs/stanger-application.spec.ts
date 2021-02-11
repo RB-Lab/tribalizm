@@ -1,6 +1,5 @@
 import {
     ApplicationMessage,
-    ApplicationMessageType,
     NoChiefTribeError,
     TribeApplication,
 } from '../apply-tribe'
@@ -30,7 +29,7 @@ describe('Stranger application', () => {
         expect(onApplication).toHaveBeenCalledTimes(1)
         expect(onApplication).toHaveBeenCalledWith(
             jasmine.objectContaining<ApplicationMessage>({
-                type: ApplicationMessageType,
+                type: 'application-message',
                 payload: {
                     coverLetter,
                     elderId: world.tribe.chiefId!,
