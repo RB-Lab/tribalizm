@@ -1,9 +1,10 @@
-import { Context } from '../context'
-import { Brainstorm, QuestIdea } from '../entities/brainstorm'
-import { Member, MemberStore, SavedMember } from '../entities/member'
-import { Quest, QuestStatus, QuestStore, QuestType } from '../entities/quest'
-import { SavedTribe, Tribe, TribeStore } from '../entities/tribe'
-import { IdeasIncarnation } from '../incarnate-ideas'
+import { Context } from '../use-cases/context'
+import { Brainstorm, QuestIdea } from '../use-cases/entities/brainstorm'
+import { Member } from '../use-cases/entities/member'
+import { Quest, QuestStatus, QuestType } from '../use-cases/entities/quest'
+import { Tribe } from '../use-cases/entities/tribe'
+import { IdeasIncarnation } from '../use-cases/incarnate-ideas'
+import { QuestMessage } from '../use-cases/quest-message'
 import { createContext } from './test-context'
 
 describe('When brainstorm is over', () => {
@@ -71,8 +72,8 @@ describe('When brainstorm is over', () => {
             const world = await setUp()
             const { quest } = await world.incarnateOneIdea()
             const oneWeekAhead = Date.now() + 7 * 24 * 3_600_000
-            expect(quest.date).toBeGreaterThan(oneWeekAhead - 1000)
-            expect(quest.date).toBeLessThan(oneWeekAhead + 1000)
+            expect(quest.time).toBeGreaterThan(oneWeekAhead - 1000)
+            expect(quest.time).toBeLessThan(oneWeekAhead + 1000)
         })
         it('finalises containing ideas', async () => {
             const world = await setUp({ ideas: 3 })
@@ -213,6 +214,37 @@ describe('When brainstorm is over', () => {
             expect(quest.memberIds).toContain(world.members[2].id)
         })
     })
+    describe('Quest notification', () => {
+        it('notifies both both members on quest proposal', async () => {
+            const world = await setUp()
+            const spy = jasmine.createSpy('onQuest')
+            world.notififcationBus.subscribe<QuestMessage>(
+                'new-quest-message',
+                spy
+            )
+            const { quest } = await world.incarnateOneIdea()
+            const expectedMessage = jasmine.objectContaining<QuestMessage>({
+                type: 'new-quest-message',
+                payload: jasmine.objectContaining<QuestMessage['payload']>({
+                    memberIds: jasmine.arrayWithExactContents(quest.memberIds),
+                    questId: quest.id,
+                    place: '',
+                    type: quest.type,
+                    time: quest.time,
+                }),
+            })
+            expect(spy).toHaveBeenCalledTimes(2)
+            expect(spy.calls.argsFor(0)[0]).toEqual(expectedMessage)
+            expect(spy.calls.argsFor(1)[0]).toEqual(expectedMessage)
+            const notifiedMembers = [
+                spy.calls.argsFor(0)[0].payload.targetMemberId,
+                spy.calls.argsFor(1)[0].payload.targetMemberId,
+            ]
+            expect(notifiedMembers).toEqual(
+                jasmine.arrayWithExactContents(quest.memberIds)
+            )
+        })
+    })
 })
 const defaultMembers = [
     { charisma: 10, wisdom: 6 }, // chief: 10 > 6
@@ -287,6 +319,7 @@ async function setUp(settings: Settings = {}) {
 
     return {
         ...context.stores,
+        ...context.async,
         incarnation,
         vote,
         getQuestByIdeaN,

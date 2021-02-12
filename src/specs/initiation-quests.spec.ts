@@ -5,18 +5,21 @@ import {
     Initiation,
     InitiationRequest,
     NoChiefSetError,
-    QuestMessage,
     WrongPhaseError,
-} from '../initiation'
-import { Application, ApplicationPhase } from '../entities/application'
-import { Coordinates } from '../entities/location'
-import { Member } from '../entities/member'
-import { Message } from '../entities/message'
-import { IQuest, QuestStatus, QuestType } from '../entities/quest'
-import { Tribe } from '../entities/tribe'
-import { User } from '../entities/user'
+} from '../use-cases/initiation'
+import { QuestMessage } from '../use-cases/quest-message'
+import {
+    Application,
+    ApplicationPhase,
+} from '../use-cases/entities/application'
+import { Coordinates } from '../use-cases/entities/location'
+import { Member } from '../use-cases/entities/member'
+import { Message } from '../use-cases/entities/message'
+import { IQuest, QuestStatus, QuestType } from '../use-cases/entities/quest'
+import { Tribe } from '../use-cases/entities/tribe'
+import { User } from '../use-cases/entities/user'
 import { assign, createContext } from './test-context'
-import { ApplicationMessage } from '../apply-tribe'
+import { ApplicationMessage } from '../use-cases/apply-tribe'
 
 describe('Initiation quests:', () => {
     describe('Chief initiation', () => {
@@ -76,7 +79,7 @@ describe('Initiation quests:', () => {
                     payload: jasmine.objectContaining<QuestMessage['payload']>({
                         targetMemberId: world.application.memberId,
                         questId: jasmine.any(String),
-                        questType: QuestType.initiation,
+                        type: QuestType.initiation,
                         time: world.defaultInitiationRequest.time,
                         place: world.defaultInitiationRequest.place,
                     }),
@@ -96,7 +99,7 @@ describe('Initiation quests:', () => {
                         jasmine.objectContaining<IQuest>({
                             type: QuestType.initiation,
                             status: QuestStatus.proposed,
-                            date: world.defaultInitiationRequest.time,
+                            time: world.defaultInitiationRequest.time,
                             place: world.defaultInitiationRequest.place,
                             memberIds: jasmine.arrayContaining([
                                 world.chief.id,
@@ -246,7 +249,7 @@ describe('Initiation quests:', () => {
                         jasmine.objectContaining<IQuest>({
                             type: QuestType.initiation,
                             status: QuestStatus.proposed,
-                            date: world.defaultInitiationRequest.time,
+                            time: world.defaultInitiationRequest.time,
                             place: world.defaultInitiationRequest.place,
                             memberIds: jasmine.arrayContaining([
                                 world.shaman.id,
@@ -276,7 +279,7 @@ describe('Initiation quests:', () => {
                     payload: jasmine.objectContaining<QuestMessage['payload']>({
                         targetMemberId: world.application.memberId,
                         questId: jasmine.any(String),
-                        questType: QuestType.initiation,
+                        type: QuestType.initiation,
                         time: world.defaultInitiationRequest.time,
                         place: world.defaultInitiationRequest.place,
                     }),

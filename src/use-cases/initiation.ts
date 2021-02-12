@@ -12,6 +12,7 @@ import { TribeStore } from './entities/tribe'
 import { UserStore } from './entities/user'
 import { Context } from './context'
 import { ApplicationMessage } from './apply-tribe'
+import { QuestMessage } from './quest-message'
 
 export class Initiation {
     private applicationStore: ApplicationStore
@@ -44,7 +45,7 @@ export class Initiation {
         }
         const newQuest = new Quest({
             type: QuestType.initiation,
-            date: req.time,
+            time: req.time,
             place: req.place,
             memberIds: [app.chiefId, app.memberId],
         })
@@ -52,11 +53,9 @@ export class Initiation {
         this.notififcationBus.notify<QuestMessage>({
             type: 'new-quest-message',
             payload: {
-                place: req.place,
+                ...quest,
                 questId: quest.id,
                 targetMemberId: app.memberId,
-                questType: quest.type,
-                time: req.time,
             },
         })
         app.nextPhase()
@@ -112,7 +111,7 @@ export class Initiation {
         //      and notification kinda as well.. must be assured.
         const newQuest = new Quest({
             type: QuestType.initiation,
-            date: req.time,
+            time: req.time,
             place: req.place,
             memberIds: [app.shamanId, app.memberId],
         })
@@ -120,11 +119,9 @@ export class Initiation {
         this.notififcationBus.notify<QuestMessage>({
             type: 'new-quest-message',
             payload: {
-                place: req.place,
+                ...quest,
                 questId: quest.id,
                 targetMemberId: app.memberId,
-                questType: quest.type,
-                time: req.time,
             },
         })
         app.nextPhase()
@@ -244,17 +241,6 @@ export interface ApplicationChangeRequest {
 export type ChiefApprovalRequest = ApplicationChangeRequest
 export type ShamanApprovalRequest = ChiefApprovalRequest
 export type DeclineRequest = ChiefApprovalRequest
-
-export interface QuestMessage extends Message {
-    type: 'new-quest-message'
-    payload: {
-        targetMemberId: string
-        questId: string
-        questType: QuestType
-        time: number
-        place: string
-    }
-}
 
 export interface ApplicationApproved extends Message {
     type: 'application-approved'

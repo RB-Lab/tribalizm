@@ -14,7 +14,7 @@ export interface IQuest {
     type: QuestType
     status: QuestStatus
     description: string
-    date: number // timestamp
+    time: number // timestamp
     place: string
     memberIds: string[]
 }
@@ -23,59 +23,24 @@ export interface SavedQuest extends IQuest {
 }
 
 export class Quest implements IQuest {
-    private _id: string | null
-    get id() {
-        return this._id
-    }
-    private _ideaId: string | null
-    get ideaId() {
-        return this._ideaId
-    }
-    private _type: QuestType
-    get type() {
-        return this._type
-    }
-    private _status: QuestStatus
-    get status() {
-        return this._status
-    }
-    private _description: string
-    get description() {
-        return this._description
-    }
-    private _date: number
-    get date() {
-        return this._date
-    }
-    private _place: string
-    get place() {
-        return this._place
-    }
-    private _memberIds: string[]
-    get memberIds() {
-        return this._memberIds
-    }
+    public id: string | null
+    public ideaId: string | null
+    public type: QuestType
+    public status: QuestStatus
+    public description: string
+    public time: number
+    public place: string
+    public memberIds: string[]
 
-    constructor(
-        params: {
-            id?: string
-            ideaId?: string
-            type?: QuestType
-            status?: QuestStatus
-            description?: string
-            date?: number
-            place?: string
-            memberIds?: string[]
-        } = {}
-    ) {
-        this._id = params.id || null
-        this._ideaId = params.ideaId || null
-        this._type = params.type || QuestType.coordination
-        this._status = params.status || QuestStatus.proposed
-        this._description = params.description || ''
-        this._date = params.date || Date.now()
-        this._place = params.place || ''
-        this._memberIds = params.memberIds || []
+    constructor(params: Partial<SavedQuest> = {}) {
+        this.id = params.id || null
+        this.ideaId = params.ideaId || null
+        this.type = params.type || QuestType.coordination
+        this.status = params.status || QuestStatus.proposed
+        this.description = params.description || ''
+        this.time = params.time || Date.now()
+        this.place = params.place || ''
+        this.memberIds = params.memberIds || []
     }
 }
 

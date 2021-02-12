@@ -30,6 +30,12 @@ export enum ApplicationPhase {
     finished = 'finished',
 }
 export class Application implements IApplication {
+    // TODO get rid of getters. Reasons
+    //      1. basically there is no use of them
+    //      2. there is a lot of overhead, because it doesn't allow to use spread operators
+    //      3. you don't see them in console and logs, but instead see privte fields
+    //      4. it doesn't allow to use JSON.stringify
+    //      5. You have to rememeber to add setters when needed (inconsistently)
     private _id: string | null
     get id() {
         return this._id

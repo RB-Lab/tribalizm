@@ -1,15 +1,12 @@
-import { InMemoryApplicationStore } from '../../plugins/testing/application-store'
-import { InMemoryBrainstormStore } from '../../plugins/testing/brainstorm-store'
-import { InMemoryIdeaStore } from '../../plugins/testing/idea-store'
-import {
-    getKeys,
-    isValidObjectKey,
-} from '../../plugins/testing/in-memory-store'
-import { InMemoryMemberStore } from '../../plugins/testing/member-store'
-import { TestNotificationBus } from '../../plugins/testing/notification-bus'
-import { InMemoryQuestStore } from '../../plugins/testing/quest-store'
-import { InMemoryTribeStore } from '../../plugins/testing/tribe-store'
-import { InMemoryUserStore } from '../../plugins/testing/user-store'
+import { InMemoryApplicationStore } from '../plugins/testing/application-store'
+import { InMemoryBrainstormStore } from '../plugins/testing/brainstorm-store'
+import { InMemoryIdeaStore } from '../plugins/testing/idea-store'
+import { getKeys, isValidObjectKey } from '../plugins/testing/in-memory-store'
+import { InMemoryMemberStore } from '../plugins/testing/member-store'
+import { TestNotificationBus } from '../plugins/testing/notification-bus'
+import { InMemoryQuestStore } from '../plugins/testing/quest-store'
+import { InMemoryTribeStore } from '../plugins/testing/tribe-store'
+import { InMemoryUserStore } from '../plugins/testing/user-store'
 
 export function assign<T extends object>(doc: T, update: Partial<T>) {
     const keys = getKeys(doc)

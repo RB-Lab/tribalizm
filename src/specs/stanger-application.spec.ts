@@ -2,13 +2,16 @@ import {
     ApplicationMessage,
     NoChiefTribeError,
     TribeApplication,
-} from '../apply-tribe'
-import { ApplicationPhase, SavedApplication } from '../entities/application'
-import { Coordinates } from '../entities/location'
-import { Member, SavedMember } from '../entities/member'
-import { EntityNotFound } from '../entities/not-found-error'
-import { Tribe } from '../entities/tribe'
-import { User } from '../entities/user'
+} from '../use-cases/apply-tribe'
+import {
+    ApplicationPhase,
+    SavedApplication,
+} from '../use-cases/entities/application'
+import { Coordinates } from '../use-cases/entities/location'
+import { Member, SavedMember } from '../use-cases/entities/member'
+import { EntityNotFound } from '../use-cases/entities/not-found-error'
+import { Tribe } from '../use-cases/entities/tribe'
+import { User } from '../use-cases/entities/user'
 import { createContext } from './test-context'
 
 const coverLetter = 'I want to FOO!'

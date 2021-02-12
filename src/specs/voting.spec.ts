@@ -6,16 +6,16 @@ import {
     SelfVotingError,
     UpdateFinishedBrainstormError,
     UpdateFinishedIdeaError,
-} from '../entities/brainstorm'
-import { Member } from '../entities/member'
-import { EntityNotFound } from '../entities/not-found-error'
-import { Tribe } from '../entities/tribe'
+} from '../use-cases/entities/brainstorm'
+import { Member } from '../use-cases/entities/member'
+import { EntityNotFound } from '../use-cases/entities/not-found-error'
+import { Tribe } from '../use-cases/entities/tribe'
 import {
     ExternalMemberVoteError,
     StormMismatchError,
     Voting,
     VotingNotStartedError,
-} from '../vote-idea'
+} from '../use-cases/vote-idea'
 import { createContext } from './test-context'
 
 describe('Voting', () => {

@@ -5,28 +5,28 @@ import {
     SavedQuestIdea,
 } from './entities/brainstorm'
 import { MemberStore, SavedMember } from './entities/member'
+import { Message } from './entities/message'
 import { EntityNotFound } from './entities/not-found-error'
-import { Quest, QuestStore } from './entities/quest'
+import { Quest, QuestStore, QuestType } from './entities/quest'
+import { QuestMessage } from './quest-message'
 
 export class IdeasIncarnation {
-    private ideasStore: IdeaStore
-    private membersStore: MemberStore
-    private barinstormStore: BrainstormStore
-    private questsStore: QuestStore
+    private context: Context
     constructor(context: Context) {
-        this.ideasStore = context.stores.ideasStore
-        this.barinstormStore = context.stores.brainstormStore
-        this.membersStore = context.stores.memberStore
-        this.questsStore = context.stores.questStore
+        this.context = context
     }
 
     incarnateIdeas = async (brainstormId: string) => {
-        const brainstorm = await this.barinstormStore.getById(brainstormId)
+        const brainstorm = await this.context.stores.brainstormStore.getById(
+            brainstormId
+        )
         if (!brainstorm) {
             throw new EntityNotFound(`Brainstorm ${brainstormId} not found`)
         }
-        const ideas = await this.ideasStore.find({ brainstormId })
-        const members = await this.membersStore.find({
+        const ideas = await this.context.stores.ideasStore.find({
+            brainstormId,
+        })
+        const members = await this.context.stores.memberStore.find({
             tribeId: brainstorm.tribeId,
         })
 
@@ -38,11 +38,26 @@ export class IdeasIncarnation {
                 .map(this.incarnate)
         )
 
-        this.questsStore.saveBulk(quests)
+        const savedQuests = await this.context.stores.questStore.saveBulk(
+            quests
+        )
         ideas.forEach((i) => i.finish())
         brainstorm.finish()
-        this.ideasStore.saveBulk(ideas)
-        this.barinstormStore.save(brainstorm)
+        await this.context.stores.ideasStore.saveBulk(ideas)
+        await this.context.stores.brainstormStore.save(brainstorm)
+
+        savedQuests.forEach((quest) => {
+            quest.memberIds.forEach((targetMemberId) => {
+                this.context.async.notififcationBus.notify<QuestMessage>({
+                    type: 'new-quest-message',
+                    payload: {
+                        ...quest,
+                        questId: quest.id,
+                        targetMemberId,
+                    },
+                })
+            })
+        })
     }
 
     private incarnate = async (idea: SavedQuestIdea) => {
@@ -51,7 +66,7 @@ export class IdeasIncarnation {
             .filter((v) => v.vote === 'up')
             .map((v) => v.memberId)
         const memberIds = [...upvoterIds, idea.meberId]
-        const members = await this.membersStore.find({
+        const members = await this.context.stores.memberStore.find({
             id: memberIds,
         })
         const starter = members.find((m) => m.id === idea.meberId)
@@ -62,7 +77,7 @@ export class IdeasIncarnation {
         if (!others.length) {
             throw new Error('Cannot find upvoters')
         }
-        const activeQuests = await this.questsStore.getActiveQuestsCount(
+        const activeQuests = await this.context.stores.questStore.getActiveQuestsCount(
             memberIds
         )
         let assignies: string[]
@@ -88,11 +103,12 @@ export class IdeasIncarnation {
         return new Quest({
             ideaId: idea.id,
             description: idea.description,
-            date: oneWeekAhead,
+            time: oneWeekAhead,
             memberIds: assignies,
         })
     }
 }
+
 function minQuests(activeQuests: { [id: string]: number }) {
     const counts = Object.values(activeQuests)
     return counts.length ? Math.min(...counts) || 0 : 0
