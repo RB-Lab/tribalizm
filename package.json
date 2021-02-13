@@ -8,8 +8,8 @@
     "license": "UNLICENZED",
     "private": true,
     "scripts": {
-        "test": "ts-node ./node_modules/.bin/jasmine src/**/*.spec.ts",
-        "tdd": "nodemon -q --exec 'yarn test' src/**/*.ts"
+        "test": "ts-node ./node_modules/.bin/jasmine './src/**/*.spec.ts'",
+        "tdd": "nodemon -e ts,json -q --exec 'yarn test'"
     },
     "dependencies": {
         "@types/node": "^14.14.20",
