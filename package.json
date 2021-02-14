@@ -8,11 +8,14 @@
     "license": "UNLICENZED",
     "private": true,
     "scripts": {
+        "start": "nodemon src/main.ts",
         "test": "ts-node ./node_modules/.bin/jasmine './src/**/*.spec.ts'",
         "tdd": "nodemon -e ts,json -q --exec 'yarn test'"
     },
     "dependencies": {
+        "@types/express": "^4.17.11",
         "@types/node": "^14.14.20",
+        "express": "^4.17.1",
         "ts-node": "^9.1.1",
         "typescript": "^4.1.3"
     },
