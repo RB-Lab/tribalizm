@@ -1,5 +1,5 @@
 import { Member } from '../use-cases/entities/member'
-import { Message } from '../use-cases/entities/message'
+import { Message } from '../use-cases/message'
 import {
     IndeclinableError,
     InvalidAcceptanceTime,
@@ -14,7 +14,7 @@ import {
     QuestChangeMessage,
     QuestNegotiation,
 } from '../use-cases/negotiate-quest'
-import { createContext } from './test-context'
+import { createContext, makeMessageSpy } from './test-context'
 
 describe('Quest negotiation', () => {
     it('updates quest details on change proposal', async () => {
@@ -160,6 +160,8 @@ describe('Quest negotiation', () => {
         )
     })
     xit('notifes other parties on decline', async () => {
+        // add a field 'incomplete' to quests that has not enough members assigned?
+        // or just consider incomplete all quests with members < 2?
         fail('to be determined')
     })
     it('FAILs to decline "initiation" quest', async () => {
@@ -211,12 +213,7 @@ async function setUp() {
         member2,
         defaultProposal,
         questNegotiation,
-        ...context.async,
         ...context.stores,
-        spyOnMessage: <T extends Message>(messageType: T['type']) => {
-            const spy = jasmine.createSpy(`on${messageType}`)
-            context.async.notififcationBus.subscribe(messageType, spy)
-            return spy
-        },
+        spyOnMessage: makeMessageSpy(context.async.notififcationBus),
     }
 }

@@ -3,12 +3,12 @@ import {
     BrainstromVote,
     DoubelVotingError,
     QuestIdea,
-    SelfVotingError,
+    SelfVotingIdeaError,
     UpdateFinishedBrainstormError,
     UpdateFinishedIdeaError,
 } from '../use-cases/entities/brainstorm'
 import { Member } from '../use-cases/entities/member'
-import { EntityNotFound } from '../use-cases/entities/not-found-error'
+import { EntityNotFound } from '../use-cases/not-found-error'
 import { Tribe } from '../use-cases/entities/tribe'
 import {
     ExternalMemberVoteError,
@@ -89,7 +89,7 @@ describe('Voting', () => {
             await world.voting.start(world.brainstorm.id)
             await expectAsync(
                 world.voting.voteUp(world.idea.id, world.idea.meberId)
-            ).toBeRejectedWithError(SelfVotingError)
+            ).toBeRejectedWithError(SelfVotingIdeaError)
         })
         it('should NOT allow voting twice', async () => {
             const world = await setUp()

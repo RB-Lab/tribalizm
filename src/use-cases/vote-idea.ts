@@ -6,7 +6,7 @@ import {
     SavedBrainstorm,
 } from './entities/brainstorm'
 import { MemberStore } from './entities/member'
-import { EntityNotFound } from './entities/not-found-error'
+import { EntityNotFound } from './not-found-error'
 
 export class Voting {
     private _ideasStore: IdeaStore

@@ -5,8 +5,8 @@ import {
     SavedQuestIdea,
 } from './entities/brainstorm'
 import { MemberStore, SavedMember } from './entities/member'
-import { Message } from './entities/message'
-import { EntityNotFound } from './entities/not-found-error'
+import { Message } from './message'
+import { EntityNotFound } from './not-found-error'
 import { Quest, QuestStore, QuestType } from './entities/quest'
 import { QuestMessage } from './quest-message'
 

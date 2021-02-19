@@ -14,11 +14,11 @@ import {
 } from '../use-cases/entities/application'
 import { Coordinates } from '../use-cases/entities/location'
 import { Member } from '../use-cases/entities/member'
-import { Message } from '../use-cases/entities/message'
+import { Message } from '../use-cases/message'
 import { IQuest, QuestStatus, QuestType } from '../use-cases/entities/quest'
 import { Tribe } from '../use-cases/entities/tribe'
 import { User } from '../use-cases/entities/user'
-import { assign, createContext } from './test-context'
+import { assign, createContext, makeMessageSpy } from './test-context'
 import { ApplicationMessage } from '../use-cases/apply-tribe'
 
 describe('Initiation quests:', () => {
@@ -471,11 +471,7 @@ async function setUp() {
         initiation,
         ...context.async,
         ...context.stores,
-        spyOnMessage: <T extends Message>(messageType: T['type']) => {
-            const spy = jasmine.createSpy(`on${messageType}`)
-            context.async.notififcationBus.subscribe(messageType, spy)
-            return spy
-        },
+        spyOnMessage: makeMessageSpy(context.async.notififcationBus),
     }
 }
 

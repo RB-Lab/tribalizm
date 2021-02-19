@@ -1,6 +1,6 @@
 import { Context } from './context'
-import { Message } from './entities/message'
-import { EntityNotFound } from './entities/not-found-error'
+import { Message } from './message'
+import { EntityNotFound } from './not-found-error'
 
 export class QuestNegotiation {
     private context: Context

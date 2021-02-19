@@ -14,25 +14,12 @@ export interface SavedUser extends IUser {
 }
 
 export class User implements IUser {
-    private _id: string | null
-    get id() {
-        return this._id
-    }
-    private _name: string
-    get name() {
-        return this._name
-    }
-    private _coordinates: Coordinates
-    get coordinates() {
-        return this._coordinates
-    }
-    constructor(params: {
-        id?: string
-        name: string
-        coordinates: Coordinates
-    }) {
-        this._id = params.id || null
-        this._name = params.name
-        this._coordinates = params.coordinates
+    public id: string | null
+    public name: string
+    public coordinates: Coordinates | null
+    constructor(params: Pick<IUser, 'name'> & Partial<SavedUser>) {
+        this.id = params.id || null
+        this.name = params.name
+        this.coordinates = params.coordinates || null
     }
 }

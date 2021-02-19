@@ -10,6 +10,7 @@ export interface QuestStore {
         ideaId?: (string | null) | Array<string | null>
     }) => Promise<SavedQuest[]>
 }
+
 export interface IQuest {
     id: string | null
     ideaId: string | null
@@ -19,12 +20,22 @@ export interface IQuest {
     time: number // timestamp
     place: string
     memberIds: string[]
-    accepted: string[]
-    /** @returns members to notify */
+    acceptedIds: string[]
+    finishedIds: string[]
+    votedMembers: VotedMembers
     accept: (memberId: string) => string[]
     /** @returns members to notify */
     propose: (time: number, place: string, memberId: string) => string[]
     decline: (memberId: string) => void
+    /** @returns members to notify */
+    finish: (memberId: string) => void
+    getNextVoteAction: (memberId: string) => VoteAction | null
+    castCharisma: (
+        memberId: string,
+        voteForId: string,
+        charisma: number
+    ) => void
+    castWisdom: (memberId: string, voteForId: string, charisma: number) => void
 }
 export interface SavedQuest extends IQuest {
     id: string
@@ -39,7 +50,9 @@ export class Quest implements IQuest {
     public time: number
     public place: string
     public memberIds: string[]
-    public accepted: string[]
+    public acceptedIds: string[]
+    public finishedIds: string[]
+    public votedMembers: VotedMembers
 
     constructor(params: Partial<SavedQuest> = {}) {
         this.id = params.id || null
@@ -50,7 +63,9 @@ export class Quest implements IQuest {
         this.time = params.time || Date.now()
         this.place = params.place || ''
         this.memberIds = params.memberIds || []
-        this.accepted = params.accepted || []
+        this.acceptedIds = params.acceptedIds || []
+        this.finishedIds = params.finishedIds || []
+        this.votedMembers = params.votedMembers || {}
     }
 
     propose = (time: number, place: string, memberId: string) => {
@@ -65,7 +80,7 @@ export class Quest implements IQuest {
         this.time = time
         this.place = place
         this.status = QuestStatus.proposed
-        this.accepted = [memberId]
+        this.acceptedIds = [memberId]
         return this.memberIds.filter((id) => id !== memberId)
     }
 
@@ -76,8 +91,8 @@ export class Quest implements IQuest {
                 'This quet is outdated. Please propose a new time'
             )
         }
-        this.accepted.push(memberId)
-        if (this.accepted.length === this.memberIds.length) {
+        this.acceptedIds.push(memberId)
+        if (this.acceptedIds.length === this.memberIds.length) {
             this.status = QuestStatus.accepted
             return this.memberIds.filter((id) => id !== memberId)
         }
@@ -90,7 +105,66 @@ export class Quest implements IQuest {
         }
         this.checkAssigned(memberId)
         this.memberIds = this.memberIds.filter((id) => id !== memberId)
-        this.accepted = this.accepted.filter((id) => id !== memberId)
+        this.acceptedIds = this.acceptedIds.filter((id) => id !== memberId)
+    }
+
+    finish = (memberId: string) => {
+        this.checkAssigned(memberId)
+        this.finishedIds.push(memberId)
+    }
+    getNextVoteAction = (memberId: string) => {
+        this.checkAssigned(memberId)
+        const actions: Votable[] = ['charisma', 'wisdom']
+        const voted = this.votedMembers[memberId] || {}
+        for (let id of this.memberIds) {
+            if (id !== memberId) {
+                const votes = voted[id] || {}
+                for (let action of actions) {
+                    if (votes[action] === undefined) {
+                        return { action, memberId: id }
+                    }
+                }
+            }
+        }
+        return null
+    }
+    castCharisma = (memberId: string, voteForId: string, charisma: number) => {
+        this.castTrait(memberId, voteForId, { charisma })
+    }
+    castWisdom = (memberId: string, voteForId: string, wisdom: number) => {
+        this.castTrait(memberId, voteForId, { wisdom })
+    }
+
+    private castTrait = (
+        memberId: string,
+        voteForId: string,
+        trait: { wisdom: number } | { charisma: number }
+    ) => {
+        this.checkAssigned(memberId)
+        if (memberId === voteForId) {
+            throw new SelfVotingError('Voting for yourself is not allowed')
+        }
+        const traitVote = 'wisdom' in trait ? trait.wisdom : trait.charisma
+
+        if (traitVote > 9 || traitVote < 0) {
+            const traitName = Object.keys(trait)[0]
+            throw new VoteRangeError(
+                `${
+                    traitName[0].toUpperCase + traitName.slice(1)
+                } vote must be between 0 and 9 but ${traitVote} given`
+            )
+        }
+        const voted = this.votedMembers[memberId] || {}
+        this.votedMembers = {
+            ...this.votedMembers,
+            [memberId]: {
+                ...voted,
+                [voteForId]: {
+                    ...voted[voteForId],
+                    ...trait,
+                },
+            },
+        }
     }
 
     private checkAssigned(memberId: string) {
@@ -118,11 +192,30 @@ export class NotYourQuest extends Error {
     }
 }
 
+export class SelfVotingError extends Error {
+    constructor(msg: string) {
+        super(msg)
+    }
+}
+export class VoteRangeError extends Error {
+    constructor(msg: string) {
+        super(msg)
+    }
+}
+
 export class IndeclinableError extends Error {
     constructor(msg: string) {
         super(msg)
     }
 }
+type Votable = 'charisma' | 'wisdom'
+
+interface VoteAction {
+    action: Votable
+    memberId: string
+}
+
+type VotedMembers = Record<string, Record<string, Record<Votable, number>>>
 
 export enum QuestType {
     coordination = 'coordination',

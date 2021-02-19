@@ -4,8 +4,8 @@ import {
     ApplicationStore,
 } from './entities/application'
 import { Member, MemberStore } from './entities/member'
-import { Message } from './entities/message'
-import { EntityNotFound } from './entities/not-found-error'
+import { Message } from './message'
+import { EntityNotFound } from './not-found-error'
 import { NotificationBus } from './notification-bus'
 import { Quest, QuestStore, QuestType } from './entities/quest'
 import { TribeStore } from './entities/tribe'

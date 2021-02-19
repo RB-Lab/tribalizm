@@ -132,7 +132,7 @@ export class QuestIdea implements IQuestIdea {
     }
     private checkCanVote(memberId: string) {
         if (this._meberId === memberId) {
-            throw new SelfVotingError(
+            throw new SelfVotingIdeaError(
                 `Voting for own ideas is not allowed. 
                 Idea: ${this.id}, member: ${this._meberId}`
             )
@@ -170,7 +170,7 @@ export class QuestIdea implements IQuestIdea {
     }
 }
 
-export class SelfVotingError extends Error {
+export class SelfVotingIdeaError extends Error {
     constructor(msg: string) {
         super(msg)
     }

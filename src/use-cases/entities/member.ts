@@ -16,53 +16,46 @@ export interface IMember {
     charisma: number
     wisdom: number
     isCandidate: boolean
+    votes: MemberVote[]
+    castVote: (vote: MemberVote) => void
 }
 export interface SavedMember extends IMember {
     id: string
 }
 
 export class Member implements IMember {
-    private _id: string | null
-    get id() {
-        return this._id
-    }
-    private _userId: string
-    get userId() {
-        return this._userId
-    }
-    private _tribeId: string
-    get tribeId() {
-        return this._tribeId
-    }
-    private _charisma: number
-    get charisma() {
-        return this._charisma
-    }
-    private _wisdom: number
-    get wisdom() {
-        return this._wisdom
-    }
-    private _isCandidate: boolean
-    get isCandidate() {
-        return this._isCandidate
-    }
-    set isCandidate(isCandidate: boolean) {
-        this._isCandidate = isCandidate
-    }
-    constructor(params: {
-        id?: string
-        userId: string
-        tribeId: string
-        charisma?: number
-        wisdom?: number
-        isCandidate?: boolean
-    }) {
-        this._id = params.id || null
-        this._userId = params.userId
-        this._tribeId = params.tribeId
-        this._charisma = params.charisma || 0
-        this._wisdom = params.wisdom || 0
-        this._isCandidate =
+    public id: string | null
+    public userId: string
+    public tribeId: string
+    public charisma: number
+    public wisdom: number
+    public isCandidate: boolean
+    public votes: MemberVote[]
+    constructor(
+        params: Partial<SavedMember> & Pick<IMember, 'userId' | 'tribeId'>
+    ) {
+        this.id = params.id || null
+        this.userId = params.userId
+        this.tribeId = params.tribeId
+        this.charisma = params.charisma || 0
+        this.wisdom = params.wisdom || 0
+        this.votes = params.votes || []
+        this.isCandidate =
             params.isCandidate === undefined ? true : params.isCandidate
     }
+
+    castVote = (vote: MemberVote) => {
+        this.votes.push(vote)
+    }
+}
+
+export interface MemberVote {
+    /** Member who voted */
+    memberId: string
+    /** Quest that was the reason for voting */
+    questId: string
+    charisma: number
+    wisdom: number
+    /** Timestamp of voting moment */
+    casted: number
 }

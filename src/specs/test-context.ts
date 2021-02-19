@@ -7,6 +7,8 @@ import { TestNotificationBus } from '../plugins/testing/notification-bus'
 import { InMemoryQuestStore } from '../plugins/testing/quest-store'
 import { InMemoryTribeStore } from '../plugins/testing/tribe-store'
 import { InMemoryUserStore } from '../plugins/testing/user-store'
+import { Message } from '../use-cases/message'
+import { NotificationBus } from '../use-cases/notification-bus'
 
 export function assign<T extends object>(doc: T, update: Partial<T>) {
     const keys = getKeys(doc)
@@ -39,5 +41,13 @@ export function createContext() {
         async: {
             notififcationBus,
         },
+    }
+}
+
+export function makeMessageSpy(bus: NotificationBus) {
+    return <T extends Message>(messageType: T['type']) => {
+        const spy = jasmine.createSpy(`on${messageType}`)
+        bus.subscribe(messageType, spy)
+        return spy
     }
 }

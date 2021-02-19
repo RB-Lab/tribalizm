@@ -1,4 +1,4 @@
-import { Message } from '../../use-cases/entities/message'
+import { Message } from '../../use-cases/message'
 import { NotificationBus } from '../../use-cases/notification-bus'
 
 type Subscriber = <T extends Message>(message: T) => void
