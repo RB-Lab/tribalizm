@@ -47,24 +47,27 @@ describe('Non-execution quest finale', () => {
             memberName: world.user2.name,
         })
     })
-    // TODO refactor charisma/wisdom cat specs
-    describe('Charisma cast', () => {
+
+    function runCastTests(trait: 'charisma' | 'wisdom') {
+        const otherTrait = trait === 'charisma' ? 'wisdom' : 'charisma'
+        const method = trait === 'charisma' ? 'castCharisma' : 'castWisdom'
+        const otherMethod = trait === 'charisma' ? 'castWisdom' : 'castCharisma'
+
         it('FAILs to cast by not quest assignee', async () => {
             const world = await setUp()
             await expectAsync(
-                world.questFinal.castCharisma({
-                    ...world.defaultFinalReq,
+                world.questFinal[method]({
+                    ...world.defaultCastRequest,
                     memberId: 'not-a-member',
-                    charisma: 7,
                 })
             ).toBeRejectedWithError(NotYourQuest)
         })
         it('FAILs to cast for self', async () => {
             const world = await setUp()
             await expectAsync(
-                world.questFinal.castCharisma({
-                    ...world.defaultFinalReq,
-                    voteForId: world.defaultFinalReq.memberId,
+                world.questFinal[method]({
+                    ...world.defaultCastRequest,
+                    voteForId: world.defaultCastRequest.memberId,
                     charisma: 7,
                 })
             ).toBeRejectedWithError(SelfVotingError)
@@ -72,135 +75,49 @@ describe('Non-execution quest finale', () => {
         it('FAILs to cast more than 10 or less than 1', async () => {
             const world = await setUp()
             await expectAsync(
-                world.questFinal.castCharisma({
-                    ...world.defaultFinalReq,
+                world.questFinal[method]({
+                    ...world.defaultCastRequest,
                     charisma: 132,
-                })
-            ).toBeRejectedWithError(VoteRangeError)
-            await expectAsync(
-                world.questFinal.castCharisma({
-                    ...world.defaultFinalReq,
-                    charisma: -1,
-                })
-            ).toBeRejectedWithError(VoteRangeError)
-        })
-        it('requires vote for wisdom when done', async () => {
-            const world = await setUp()
-            await world.questFinal.castCharisma({
-                ...world.defaultFinalReq,
-                charisma: 7,
-            })
-            const action = await world.questFinal.getNextVoteAction(
-                world.defaultFinalReq
-            )
-            expect(action).toEqual({
-                memberId: world.member2.id,
-                action: 'wisdom',
-                memberName: world.user2.name,
-            })
-        })
-        it('should not cast vote when wisdom is not casted yet', async () => {
-            const world = await setUp()
-            await world.questFinal.castCharisma({
-                ...world.defaultFinalReq,
-                charisma: 7,
-            })
-            const member2 = await world.memberStore.getById(world.member2.id)
-            expect(member2?.votes.length).toEqual(0)
-        })
-        it('casts vote, if wisdom already set', async () => {
-            const world = await setUp()
-            await world.questFinal.castWisdom({
-                ...world.defaultFinalReq,
-                wisdom: 7,
-            })
-            await world.questFinal.castCharisma({
-                ...world.defaultFinalReq,
-                charisma: 7,
-            })
-            const member2 = await world.memberStore.getById(world.member2.id)
-            expect(member2?.votes.length).toEqual(1)
-            const vote = member2!.votes[0]
-            expect(vote).toEqual({
-                charisma: 7,
-                wisdom: 7,
-                memberId: world.member1.id,
-                questId: world.quest.id,
-                casted: jasmine.any(Number),
-            })
-            expect(vote.casted).toBeGreaterThan(Date.now() - 1000)
-            expect(vote.casted).toBeLessThan(Date.now() + 1000)
-        })
-    })
-    describe('Wisdom cast', () => {
-        it('FAILs to cast by not quest assignee', async () => {
-            const world = await setUp()
-            await expectAsync(
-                world.questFinal.castWisdom({
-                    ...world.defaultFinalReq,
-                    memberId: 'not-a-member',
-                    wisdom: 7,
-                })
-            ).toBeRejectedWithError(NotYourQuest)
-        })
-        it('FAILs to cast for self', async () => {
-            const world = await setUp()
-            await expectAsync(
-                world.questFinal.castWisdom({
-                    ...world.defaultFinalReq,
-                    voteForId: world.defaultFinalReq.memberId,
-                    wisdom: 7,
-                })
-            ).toBeRejectedWithError(SelfVotingError)
-        })
-        it('FAILs to cast more than 10 or less than 1', async () => {
-            const world = await setUp()
-            await expectAsync(
-                world.questFinal.castWisdom({
-                    ...world.defaultFinalReq,
                     wisdom: 132,
                 })
             ).toBeRejectedWithError(VoteRangeError)
             await expectAsync(
-                world.questFinal.castWisdom({
-                    ...world.defaultFinalReq,
+                world.questFinal[method]({
+                    ...world.defaultCastRequest,
+                    charisma: -1,
                     wisdom: -1,
                 })
             ).toBeRejectedWithError(VoteRangeError)
         })
-        it('requires vote for charisma when done', async () => {
+        it(`requires vote for ${otherTrait} when done`, async () => {
             const world = await setUp()
-            await world.questFinal.castWisdom({
-                ...world.defaultFinalReq,
-                wisdom: 7,
+            await world.questFinal[method]({
+                ...world.defaultCastRequest,
             })
             const action = await world.questFinal.getNextVoteAction(
-                world.defaultFinalReq
+                world.defaultCastRequest
             )
             expect(action).toEqual({
                 memberId: world.member2.id,
-                action: 'charisma',
+                action: otherTrait,
                 memberName: world.user2.name,
             })
         })
-        it('should not cast vote when charisma is not casted yet', async () => {
+        it(`should not cast vote when ${otherTrait} is not casted yet`, async () => {
             const world = await setUp()
-            await world.questFinal.castWisdom({
-                ...world.defaultFinalReq,
-                wisdom: 7,
+            await world.questFinal[method]({
+                ...world.defaultCastRequest,
             })
             const member2 = await world.memberStore.getById(world.member2.id)
             expect(member2?.votes.length).toEqual(0)
         })
-        it('casts vote, if charisma already set', async () => {
+        it(`casts vote, if ${otherTrait} already set`, async () => {
             const world = await setUp()
-            await world.questFinal.castCharisma({
-                ...world.defaultFinalReq,
-                charisma: 7,
+            await world.questFinal[otherMethod]({
+                ...world.defaultCastRequest,
             })
-            await world.questFinal.castWisdom({
-                ...world.defaultFinalReq,
-                wisdom: 7,
+            await world.questFinal[method]({
+                ...world.defaultCastRequest,
             })
             const member2 = await world.memberStore.getById(world.member2.id)
             expect(member2?.votes.length).toEqual(1)
@@ -215,6 +132,12 @@ describe('Non-execution quest finale', () => {
             expect(vote.casted).toBeGreaterThan(Date.now() - 1000)
             expect(vote.casted).toBeLessThan(Date.now() + 1000)
         })
+    }
+    describe('Charisma cast', () => {
+        runCastTests('charisma')
+    })
+    describe('Wisdom cast', () => {
+        runCastTests('wisdom')
     })
     it('requests cast for next member, when first is done', async () => {
         const world = await setUp()
@@ -281,6 +204,11 @@ async function setUp() {
         questId: quest.id,
         voteForId: member2.id,
     }
+    const defaultCastRequest = {
+        ...defaultFinalReq,
+        charisma: 7,
+        wisdom: 7,
+    }
 
     return {
         ...context.stores,
@@ -293,6 +221,7 @@ async function setUp() {
         user3,
         quest,
         defaultFinalReq,
+        defaultCastRequest,
         spyOnMessage: makeMessageSpy(context.async.notififcationBus),
     }
 }
