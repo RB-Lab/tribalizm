@@ -1,14 +1,8 @@
-export interface IdeaStore {
-    getById: (ideaId: string) => Promise<SavedQuestIdea | null>
-    save: (idea: IQuestIdea) => Promise<SavedQuestIdea>
-    saveBulk: (idea: IQuestIdea[]) => Promise<SavedQuestIdea[]>
-    find: (params: { brainstormId?: string }) => Promise<SavedQuestIdea[]>
-}
+import { Store } from './store'
 
-export interface BrainstormStore {
-    getById: (id: string) => Promise<SavedBrainstorm | null>
-    save: (brainsorm: IBrainstorm) => Promise<SavedBrainstorm>
-}
+export interface IdeaStore extends Store<IQuestIdea> {}
+
+export interface BrainstormStore extends Store<IBrainstorm> {}
 
 export type BrainstormState = 'initiated' | 'generation' | 'voting' | 'finished'
 
@@ -24,32 +18,20 @@ export interface SavedBrainstorm extends IBrainstorm {
     id: string
 }
 export class Brainstorm implements IBrainstorm {
-    private _id: string | null
-    get id() {
-        return this._id
-    }
-    private _tribeId: string
-    get tribeId() {
-        return this._tribeId
-    }
-    private _state: BrainstormState
-    get state() {
-        return this._state
-    }
-    private _date: number
-    get date() {
-        return this._date
-    }
+    public id: string | null
+    public tribeId: string
+    public state: BrainstormState
+    public date: number
     constructor(params: {
         id?: string
         tribeId: string
         state?: BrainstormState
         date?: number
     }) {
-        this._id = params.id || null
-        this._tribeId = params.tribeId
-        this._state = params.state || 'initiated'
-        this._date = params.date || Date.now()
+        this.id = params.id || null
+        this.tribeId = params.tribeId
+        this.state = params.state || 'initiated'
+        this.date = params.date || Date.now()
     }
 
     toVoting = () => {
@@ -58,10 +40,10 @@ export class Brainstorm implements IBrainstorm {
                 `Cannot update brainstrom ${this.id}: it is already finished`
             )
         }
-        this._state = 'voting'
+        this.state = 'voting'
     }
     finish = () => {
-        this._state = 'finished'
+        this.state = 'finished'
     }
 }
 export class UpdateFinishedBrainstormError extends Error {
@@ -88,30 +70,12 @@ export interface SavedQuestIdea extends IQuestIdea {
 
 type IdeaState = 'new' | 'finished'
 export class QuestIdea implements IQuestIdea {
-    private _id: string | null
-    get id() {
-        return this._id
-    }
-    private _description: string
-    get description() {
-        return this._description
-    }
-    private _meberId: string
-    get meberId() {
-        return this._meberId
-    }
-    private _brainstormId: string
-    get brainstormId() {
-        return this._brainstormId
-    }
-    private _state: IdeaState
-    get state() {
-        return this._state
-    }
-    private _votes: BrainstromVote[]
-    get votes() {
-        return this._votes
-    }
+    public id: string | null
+    public description: string
+    public meberId: string
+    public brainstormId: string
+    public state: IdeaState
+    public votes: BrainstromVote[]
     constructor(params: {
         id?: string
         description: string
@@ -120,53 +84,54 @@ export class QuestIdea implements IQuestIdea {
         state?: IdeaState
         votes?: BrainstromVote[]
     }) {
-        this._id = params.id || null
-        this._meberId = params.meberId
-        this._brainstormId = params.brainstormId
-        this._description = params.description
-        this._state = params.state || 'new'
-        this._votes = params.votes || []
+        this.id = params.id || null
+        this.meberId = params.meberId
+        this.brainstormId = params.brainstormId
+        this.description = params.description
+        this.state = params.state || 'new'
+        this.votes = params.votes || []
     }
     finish = () => {
-        this._state = 'finished'
-    }
-    private checkCanVote(memberId: string) {
-        if (this._meberId === memberId) {
-            throw new SelfVotingIdeaError(
-                `Voting for own ideas is not allowed. 
-                Idea: ${this.id}, member: ${this._meberId}`
-            )
-        }
-        if (this._state === 'finished') {
-            throw new UpdateFinishedIdeaError(
-                `Cannot vote for finished idea; idea id: ${this.id}`
-            )
-        }
+        this.state = 'finished'
     }
     voteUp = (memberId: string) => {
         this.checkCanVote(memberId)
-        const thisVote = this.votes.find(
-            (v) => v.memberId === memberId && v.vote === 'up'
-        )
-        if (thisVote) {
-            throw new DoubelVotingError('Cannot vote twice')
-        }
-        this._votes.push({ vote: 'up', memberId })
+        this.vote(memberId, 'up')
     }
     voteDown = (memberId: string) => {
         this.checkCanVote(memberId)
-        const thisVote = this.votes.find(
-            (v) => v.memberId === memberId && v.vote === 'down'
-        )
-        if (thisVote) {
-            throw new DoubelVotingError('Cannot vote twice')
-        }
-        this._votes.push({ vote: 'down', memberId })
+        this.vote(memberId, 'down')
     }
     getScore = () => {
         const downVotes = this.votes.filter((v) => v.vote === 'down').length
         const upVotes = this.votes.length - downVotes
         return upVotes - downVotes
+    }
+    private vote = (memberId: string, vote: 'up' | 'down') => {
+        const currentMemberVote = this.votes.find(
+            (v) => v.memberId === memberId
+        )
+        if (currentMemberVote) {
+            if (currentMemberVote.vote === vote) {
+                throw new DoubelVotingError('Cannot vote twice')
+            }
+            currentMemberVote.vote = vote
+            return
+        }
+        this.votes.push({ vote, memberId })
+    }
+    private checkCanVote(memberId: string) {
+        if (this.meberId === memberId) {
+            throw new SelfVotingIdeaError(
+                `Voting for own ideas is not allowed. 
+                Idea: ${this.id}, member: ${this.meberId}`
+            )
+        }
+        if (this.state === 'finished') {
+            throw new UpdateFinishedIdeaError(
+                `Cannot vote for finished idea; idea id: ${this.id}`
+            )
+        }
     }
 }
 

@@ -1,13 +1,8 @@
 import { Context } from './context'
-import {
-    BrainstormStore,
-    IdeaStore,
-    SavedQuestIdea,
-} from './entities/brainstorm'
-import { MemberStore, SavedMember } from './entities/member'
-import { Message } from './message'
+import { SavedQuestIdea } from './entities/brainstorm'
+import { Quest } from './entities/quest'
+import { getBestFreeMember, minQuests } from './get-best-free-member'
 import { EntityNotFound } from './not-found-error'
-import { Quest, QuestStore, QuestType } from './entities/quest'
 import { QuestMessage } from './quest-message'
 
 export class IdeasIncarnation {
@@ -23,7 +18,7 @@ export class IdeasIncarnation {
         if (!brainstorm) {
             throw new EntityNotFound(`Brainstorm ${brainstormId} not found`)
         }
-        const ideas = await this.context.stores.ideasStore.find({
+        const ideas = await this.context.stores.ideaStore.find({
             brainstormId,
         })
         const members = await this.context.stores.memberStore.find({
@@ -43,7 +38,7 @@ export class IdeasIncarnation {
         )
         ideas.forEach((i) => i.finish())
         brainstorm.finish()
-        await this.context.stores.ideasStore.saveBulk(ideas)
+        await this.context.stores.ideaStore.saveBulk(ideas)
         await this.context.stores.brainstormStore.save(brainstorm)
 
         savedQuests.forEach((quest) => {
@@ -80,59 +75,22 @@ export class IdeasIncarnation {
         const activeQuests = await this.context.stores.questStore.getActiveQuestsCount(
             memberIds
         )
-        let assignies: string[]
-        if ((activeQuests[starter.id] || 0) <= minQuests(activeQuests)) {
-            const second = getMaxFreeMember(
-                members,
-                starter.charisma > starter.wisdom ? 'wisdom' : 'charisma',
-                activeQuests,
-                starter
-            )
-            assignies = [starter.id, second.id]
-        } else {
-            const first = getMaxFreeMember(members, 'charisma', activeQuests)
-            const second = getMaxFreeMember(
-                members,
-                first.charisma > first.wisdom ? 'wisdom' : 'charisma',
-                activeQuests,
-                first
-            )
-            assignies = [first.id, second.id]
+        let first = starter
+        if ((activeQuests[starter.id] || 0) > minQuests(activeQuests)) {
+            first = getBestFreeMember(members, 'charisma', activeQuests, [])
         }
+        const second = getBestFreeMember(
+            members,
+            first.charisma > first.wisdom ? 'wisdom' : 'charisma',
+            activeQuests,
+            [first.id]
+        )
 
         return new Quest({
             ideaId: idea.id,
             description: idea.description,
             time: oneWeekAhead,
-            memberIds: assignies,
+            memberIds: [first.id, second.id],
         })
     }
-}
-
-function minQuests(activeQuests: { [id: string]: number }) {
-    const counts = Object.values(activeQuests)
-    return counts.length ? Math.min(...counts) || 0 : 0
-}
-
-function getMaxFreeMember(
-    members: SavedMember[],
-    trait: 'charisma' | 'wisdom',
-    activeQuests: Record<string, number>,
-    exclude?: SavedMember
-) {
-    const freeMembersSorted = members
-        .slice()
-        .sort((a, b) => b[trait] - a[trait])
-        .filter((m) => {
-            if (exclude && exclude.id === m.id) return false
-            return (activeQuests[m.id] || 0) <= minQuests(activeQuests)
-        })
-    if (!freeMembersSorted.length) {
-        throw new Error(
-            `Cannot assign quest: not enoug members (${members.length})`
-        )
-    }
-    const counterpart = trait === 'charisma' ? 'wisdom' : 'charisma'
-    const candidate = freeMembersSorted.find((m) => m[trait] >= m[counterpart])
-    return candidate ? candidate : freeMembersSorted[0]
 }

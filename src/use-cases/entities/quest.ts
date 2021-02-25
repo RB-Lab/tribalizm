@@ -1,33 +1,32 @@
-// TODO exctract a common sotre interface
-export interface QuestStore {
-    save: (quest: IQuest) => Promise<SavedQuest>
-    saveBulk: (quest: IQuest[]) => Promise<SavedQuest[]>
-    getById: (id: string) => Promise<SavedQuest | null>
+import { Storable, Store } from './store'
+
+export interface QuestStore extends Store<IQuest> {
     getActiveQuestsCount: (
         memberIds: string[]
     ) => Promise<{ [id: string]: number }>
-    find: (query: {
-        ideaId?: (string | null) | Array<string | null>
-    }) => Promise<SavedQuest[]>
 }
 
-export interface IQuest {
+export interface IQuestData {
     id: string | null
     ideaId: string | null
     type: QuestType
     status: QuestStatus
     description: string
-    time: number // timestamp
+    /** timestamp when quest to take place */
+    time: number
     place: string
     memberIds: string[]
     acceptedIds: string[]
     finishedIds: string[]
     votedMembers: VotedMembers
+    parentQuestId: string | null
+}
+export interface IQuest extends IQuestData {
+    /** @returns members to notify */
     accept: (memberId: string) => string[]
     /** @returns members to notify */
     propose: (time: number, place: string, memberId: string) => string[]
     decline: (memberId: string) => void
-    /** @returns members to notify */
     finish: (memberId: string) => void
     getNextVoteAction: (memberId: string) => VoteAction | null
     castCharisma: (
@@ -37,10 +36,6 @@ export interface IQuest {
     ) => void
     castWisdom: (memberId: string, voteForId: string, charisma: number) => void
 }
-export interface SavedQuest extends IQuest {
-    id: string
-}
-
 export class Quest implements IQuest {
     public id: string | null
     public ideaId: string | null
@@ -53,8 +48,9 @@ export class Quest implements IQuest {
     public acceptedIds: string[]
     public finishedIds: string[]
     public votedMembers: VotedMembers
+    public parentQuestId: string | null
 
-    constructor(params: Partial<SavedQuest> = {}) {
+    constructor(params: Partial<IQuestData & Storable> = {}) {
         this.id = params.id || null
         this.ideaId = params.ideaId || null
         this.type = params.type || QuestType.coordination
@@ -66,6 +62,7 @@ export class Quest implements IQuest {
         this.acceptedIds = params.acceptedIds || []
         this.finishedIds = params.finishedIds || []
         this.votedMembers = params.votedMembers || {}
+        this.parentQuestId = params.parentQuestId || null
     }
 
     propose = (time: number, place: string, memberId: string) => {

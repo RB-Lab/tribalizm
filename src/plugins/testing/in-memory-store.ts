@@ -1,10 +1,11 @@
 import * as equal from 'fast-deep-equal'
+import { Store } from '../../use-cases/entities/store'
 
 interface Storable {
     id: string
 }
-export class InMemoryStore<T> {
-    private _store: Record<string, any> = {}
+export class InMemoryStore<T> implements Store<T> {
+    protected _store: Record<string, any> = {}
     get store() {
         return this._store
     }
@@ -46,9 +47,7 @@ export class InMemoryStore<T> {
         const res = this._store[id]
         return Promise.resolve(res ? this._instantiate(res) : null)
     }
-    find = <K extends keyof T | 'id'>(
-        query: Partial<Record<K, (T & Storable)[K] | Array<(T & Storable)[K]>>>
-    ) => {
+    find: Store<T>['find'] = (query) => {
         const results = Object.values(this._store).filter((doc) => {
             return Object.keys(query).every((k) => {
                 if (!isValidObjectKey(k, query)) {

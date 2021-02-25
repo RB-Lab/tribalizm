@@ -8,11 +8,10 @@ import {
     UpdateFinishedIdeaError,
 } from '../use-cases/entities/brainstorm'
 import { Member } from '../use-cases/entities/member'
-import { EntityNotFound } from '../use-cases/not-found-error'
 import { Tribe } from '../use-cases/entities/tribe'
+import { EntityNotFound } from '../use-cases/not-found-error'
 import {
     ExternalMemberVoteError,
-    StormMismatchError,
     Voting,
     VotingNotStartedError,
 } from '../use-cases/vote-idea'
@@ -79,8 +78,14 @@ describe('Voting', () => {
                 })
             )
         })
-        xit('should allow re-voting', async () => {
-            fail('TODO')
+        it('should allow re-voting', async () => {
+            const world = await setUp()
+            await world.voting.start(world.brainstorm.id)
+            await world.voting.voteUp(world.idea.id, world.votingMember.id)
+            await world.voting.voteDown(world.idea.id, world.votingMember.id)
+            const idea = await world.getIdea()
+            expect(idea?.votes.length).toEqual(1)
+            expect(idea?.getScore()).toEqual(-1)
         })
     })
     describe('for ideas (failure)', () => {
@@ -112,24 +117,10 @@ describe('Voting', () => {
                 world.voting.voteDown(world.idea.id, world.votingMember.id)
             ).toBeRejectedWithError(VotingNotStartedError)
         })
-        it('should NOT allow voting for idea not from this storm', async () => {
-            const world = await setUp()
-            const otherIdea = await world.ideasStore.save(
-                new QuestIdea({
-                    brainstormId: 'other-storm',
-                    description: "this won't pass",
-                    meberId: world.ideaMember.id,
-                })
-            )
-            await world.voting.start(world.brainstorm.id)
-            await expectAsync(
-                world.voting.voteDown(otherIdea.id, world.votingMember.id)
-            ).toBeRejectedWithError(StormMismatchError)
-        })
         it('should NOT allow voting for finished ideas', async () => {
             const world = await setUp()
             world.idea.finish()
-            await world.ideasStore.save(world.idea)
+            await world.ideaStore.save(world.idea)
             await world.voting.start(world.brainstorm.id)
             await expectAsync(
                 world.voting.voteDown(world.idea.id, world.votingMember.id)
@@ -186,7 +177,7 @@ async function setUp() {
             state: 'generation',
         })
     )
-    const idea = await context.stores.ideasStore.save(
+    const idea = await context.stores.ideaStore.save(
         new QuestIdea({
             brainstormId: brainstorm.id,
             description: 'To FOO!',
@@ -202,6 +193,6 @@ async function setUp() {
         tribe,
         ideaMember,
         votingMember,
-        getIdea: async () => context.stores.ideasStore.getById(idea.id),
+        getIdea: async () => context.stores.ideaStore.getById(idea.id),
     }
 }

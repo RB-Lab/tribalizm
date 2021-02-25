@@ -1,5 +1,6 @@
 import { Context } from './context'
-import { SavedQuest } from './entities/quest'
+import { IQuest } from './entities/quest'
+import { Storable } from './entities/store'
 import { EntityNotFound } from './not-found-error'
 
 export class QuestFinal {
@@ -42,7 +43,7 @@ export class QuestFinal {
     }
 
     private async maybeCastVote(
-        quest: SavedQuest,
+        quest: IQuest & Storable,
         memberId: string,
         voteForId: string
     ) {

@@ -171,7 +171,6 @@ describe('Non-execution quest finale', () => {
         ).toBe(null)
     })
 })
-describe('Execution quest finalisation', () => {})
 
 async function setUp() {
     const context = createContext()

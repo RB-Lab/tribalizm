@@ -215,7 +215,7 @@ describe('When brainstorm is over', () => {
         })
     })
     describe('Quest notification', () => {
-        it('notifies both both members on quest proposal', async () => {
+        it('notifies both members on quest proposal', async () => {
             const world = await setUp()
             const spy = jasmine.createSpy('onQuest')
             world.notififcationBus.subscribe<QuestMessage>(
@@ -282,7 +282,7 @@ async function setUp(settings: Settings = {}) {
                 meberId: members[0].id,
             })
     )
-    const ideas = await context.stores.ideasStore.saveBulk(rawIdeas)
+    const ideas = await context.stores.ideaStore.saveBulk(rawIdeas)
 
     const maxVotes = members.length - 1
     async function vote(ideaN: number, votes = { up: maxVotes, down: 0 }) {
@@ -298,7 +298,7 @@ async function setUp(settings: Settings = {}) {
         members
             .slice(1 + votes.up, votes.up + votes.down)
             .forEach((m) => idea.voteDown(m.id))
-        await context.stores.ideasStore.save(idea)
+        await context.stores.ideaStore.save(idea)
     }
     function getIdeaByN(ideaN: number) {
         const idea = ideas[ideaN]
@@ -327,7 +327,7 @@ async function setUp(settings: Settings = {}) {
         members,
         tribe,
         getIdeas: async () => {
-            return await context.stores.ideasStore.find({
+            return await context.stores.ideaStore.find({
                 brainstormId: brainstorm.id,
             })
         },

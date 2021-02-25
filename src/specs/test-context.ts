@@ -7,6 +7,8 @@ import { TestNotificationBus } from '../plugins/testing/notification-bus'
 import { InMemoryQuestStore } from '../plugins/testing/quest-store'
 import { InMemoryTribeStore } from '../plugins/testing/tribe-store'
 import { InMemoryUserStore } from '../plugins/testing/user-store'
+import { Brainstorm, QuestIdea } from '../use-cases/entities/brainstorm'
+import { Quest } from '../use-cases/entities/quest'
 import { Message } from '../use-cases/message'
 import { NotificationBus } from '../use-cases/notification-bus'
 
@@ -20,17 +22,17 @@ export function assign<T extends object>(doc: T, update: Partial<T>) {
 
 export function createContext() {
     const notififcationBus = new TestNotificationBus()
-    const ideasStore = new InMemoryIdeaStore()
-    const brainstormStore = new InMemoryBrainstormStore()
+    const ideaStore = new InMemoryIdeaStore(QuestIdea)
+    const brainstormStore = new InMemoryBrainstormStore(Brainstorm)
     const applicationStore = new InMemoryApplicationStore()
     const memberStore = new InMemoryMemberStore()
-    const questStore = new InMemoryQuestStore()
+    const questStore = new InMemoryQuestStore(Quest)
     const tribeStore = new InMemoryTribeStore()
     const userStore = new InMemoryUserStore()
 
     return {
         stores: {
-            ideasStore,
+            ideaStore,
             brainstormStore,
             applicationStore,
             memberStore,

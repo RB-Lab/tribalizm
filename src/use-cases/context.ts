@@ -13,7 +13,7 @@ export interface Context {
         memberStore: MemberStore
         userStore: UserStore
         questStore: QuestStore
-        ideasStore: IdeaStore
+        ideaStore: IdeaStore
         brainstormStore: BrainstormStore
     }
     async: {

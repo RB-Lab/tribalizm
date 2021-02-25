@@ -1,10 +1,5 @@
 import { Context } from './context'
-import {
-    Brainstorm,
-    BrainstormStore,
-    IdeaStore,
-    SavedBrainstorm,
-} from './entities/brainstorm'
+import { BrainstormStore, IdeaStore } from './entities/brainstorm'
 import { MemberStore } from './entities/member'
 import { EntityNotFound } from './not-found-error'
 
@@ -12,49 +7,34 @@ export class Voting {
     private _ideasStore: IdeaStore
     private _brainstormStore: BrainstormStore
     private _memberStore: MemberStore
-    // TODO remove this state
-    private _brainstorm: SavedBrainstorm | null = null
 
     constructor(context: Context) {
-        this._ideasStore = context.stores.ideasStore
+        this._ideasStore = context.stores.ideaStore
         this._memberStore = context.stores.memberStore
         this._brainstormStore = context.stores.brainstormStore
     }
 
     start = async (brainsormId: string) => {
-        this._brainstorm = await this._brainstormStore.getById(brainsormId)
-        if (!this._brainstorm) {
-            throw new EntityNotFound(`Brainstorm ${brainsormId} not found`)
-        }
-        if (this._brainstorm.state === 'voting') {
+        const brainstorm = await this.getBrainstorm(brainsormId)
+        if (brainstorm.state === 'voting') {
             return
         }
-        this._brainstorm.toVoting()
-        await this._brainstormStore.save(this._brainstorm)
+        brainstorm.toVoting()
+        await this._brainstormStore.save(brainstorm)
     }
 
     private checkVotingAllowed = async (ideaId: string, memberId: string) => {
-        const idea = await this._ideasStore.getById(ideaId)
-        if (!idea) {
-            throw new EntityNotFound(`Idea ${ideaId} not found`)
-        }
-        if (!this._brainstorm) {
+        const idea = await this.getIdea(ideaId)
+        const brainstorm = await this.getBrainstorm(idea.brainstormId)
+        if (brainstorm.state !== 'voting') {
             throw new VotingNotStartedError(
                 "Cannot vote when voting hasn't beens started"
             )
         }
-        if (idea.brainstormId !== this._brainstorm.id) {
-            throw new StormMismatchError(
-                `Cannot vote idea from strom ${idea.brainstormId} in storm ${this._brainstorm.id}`
-            )
-        }
-        const member = await this._memberStore.getById(memberId)
-        if (!member) {
-            throw new EntityNotFound(`Member ${memberId} not found`)
-        }
-        if (member.tribeId !== this._brainstorm.tribeId) {
+        const member = await this.getMember(memberId)
+        if (member.tribeId !== brainstorm.tribeId) {
             throw new ExternalMemberVoteError(
-                `Member of tribe ${member.tribeId} cannot vote for brainstorm of tribe ${this._brainstorm.tribeId}`
+                `Member of tribe ${member.tribeId} cannot vote for brainstorm of tribe ${brainstorm.tribeId}`
             )
         }
         return idea
@@ -70,15 +50,33 @@ export class Voting {
         idea.voteDown(memberId)
         this._ideasStore.save(idea)
     }
-}
 
-export class VotingNotStartedError extends Error {
-    constructor(msg: string) {
-        super(msg)
+    private async getMember(memberId: string) {
+        const member = await this._memberStore.getById(memberId)
+        if (!member) {
+            throw new EntityNotFound(`Member ${memberId} not found`)
+        }
+        return member
+    }
+
+    private async getIdea(ideaId: string) {
+        const idea = await this._ideasStore.getById(ideaId)
+        if (!idea) {
+            throw new EntityNotFound(`Idea ${ideaId} not found`)
+        }
+        return idea
+    }
+
+    private async getBrainstorm(brainsormId: string) {
+        const brainstorm = await this._brainstormStore.getById(brainsormId)
+        if (!brainstorm) {
+            throw new EntityNotFound(`Brainstorm ${brainsormId} not found`)
+        }
+        return brainstorm
     }
 }
 
-export class StormMismatchError extends Error {
+export class VotingNotStartedError extends Error {
     constructor(msg: string) {
         super(msg)
     }
