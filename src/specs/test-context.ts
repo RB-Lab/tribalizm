@@ -5,6 +5,7 @@ import { getKeys, isValidObjectKey } from '../plugins/testing/in-memory-store'
 import { InMemoryMemberStore } from '../plugins/testing/member-store'
 import { TestNotificationBus } from '../plugins/testing/notification-bus'
 import { InMemoryQuestStore } from '../plugins/testing/quest-store'
+import { InMemoryTaskStore } from '../plugins/testing/task-store'
 import { InMemoryTribeStore } from '../plugins/testing/tribe-store'
 import { InMemoryUserStore } from '../plugins/testing/user-store'
 import { Brainstorm, QuestIdea } from '../use-cases/entities/brainstorm'
@@ -29,6 +30,7 @@ export function createContext() {
     const questStore = new InMemoryQuestStore(Quest)
     const tribeStore = new InMemoryTribeStore()
     const userStore = new InMemoryUserStore()
+    const taskStore = new InMemoryTaskStore()
 
     return {
         stores: {
@@ -39,6 +41,7 @@ export function createContext() {
             questStore,
             tribeStore,
             userStore,
+            taskStore,
         },
         async: {
             notififcationBus,

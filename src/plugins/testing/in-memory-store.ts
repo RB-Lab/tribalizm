@@ -6,13 +6,11 @@ interface Storable {
 }
 export class InMemoryStore<T> implements Store<T> {
     protected _store: Record<string, any> = {}
-    get store() {
-        return this._store
-    }
     private _getId = () => Math.random().toString().slice(2)
-    private _class: new (record: any) => T
+    private _class?: new (record: any) => T
     private _instantiate = (record: any) => {
-        return new this._class(record) as T & Storable
+        const instance = this._class ? new this._class(record) : { ...record }
+        return instance as T & Storable
     }
     private _serialize = (doc: any) => {
         return getKeys(doc).reduce((res, key) => {
@@ -23,11 +21,11 @@ export class InMemoryStore<T> implements Store<T> {
             return { ...res, [key]: value }
         }, {})
     }
-    private _log = (...args: any[]) => {
-        console.log(`${this._class.name}: `, ...args)
+    protected _log = (...args: any[]) => {
+        const name = console.log(`${this.constructor.name}: `, ...args)
     }
 
-    constructor(_class: new (record: any) => T) {
+    constructor(_class?: new (record: any) => T) {
         this._class = _class
     }
 
