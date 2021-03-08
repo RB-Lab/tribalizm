@@ -10,7 +10,8 @@ import {
 } from '../use-cases/entities/quest'
 import { Tribe } from '../use-cases/entities/tribe'
 import { QuestMessage } from '../use-cases/quest-message'
-import { NoIdeaError, QuestSource } from '../use-cases/quest-source'
+import { QuestSource } from '../use-cases/quest-source'
+import { NoIdeaError } from '../use-cases/no-idea-error'
 import { Voting } from '../use-cases/vote-idea'
 import { createContext, makeMessageSpy } from './test-context'
 

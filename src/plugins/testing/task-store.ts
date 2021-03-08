@@ -1,4 +1,3 @@
-import { time } from 'console'
 import { ITask, TaskStore } from '../../use-cases/entities/task'
 import { InMemoryStore } from './in-memory-store'
 

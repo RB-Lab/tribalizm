@@ -1,5 +1,6 @@
 import { InMemoryApplicationStore } from '../plugins/testing/application-store'
 import { InMemoryBrainstormStore } from '../plugins/testing/brainstorm-store'
+import { InMemoryGatheringStore } from '../plugins/testing/gathering-stroe'
 import { InMemoryIdeaStore } from '../plugins/testing/idea-store'
 import { getKeys, isValidObjectKey } from '../plugins/testing/in-memory-store'
 import { InMemoryMemberStore } from '../plugins/testing/member-store'
@@ -9,6 +10,7 @@ import { InMemoryTaskStore } from '../plugins/testing/task-store'
 import { InMemoryTribeStore } from '../plugins/testing/tribe-store'
 import { InMemoryUserStore } from '../plugins/testing/user-store'
 import { Brainstorm, QuestIdea } from '../use-cases/entities/brainstorm'
+import { Gathering } from '../use-cases/entities/gathering'
 import { Quest } from '../use-cases/entities/quest'
 import { Message } from '../use-cases/message'
 import { NotificationBus } from '../use-cases/notification-bus'
@@ -31,6 +33,7 @@ export function createContext() {
     const tribeStore = new InMemoryTribeStore()
     const userStore = new InMemoryUserStore()
     const taskStore = new InMemoryTaskStore()
+    const gatheringStore = new InMemoryGatheringStore(Gathering)
 
     return {
         stores: {
@@ -42,6 +45,7 @@ export function createContext() {
             tribeStore,
             userStore,
             taskStore,
+            gatheringStore,
         },
         async: {
             notififcationBus,

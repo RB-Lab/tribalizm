@@ -164,6 +164,7 @@ describe('Quest negotiation', () => {
         // or just consider incomplete all quests with members < 2?
         fail('to be determined')
     })
+    it('FAILs to decline first quest by original idea author')
     it('FAILs to decline "initiation" quest', async () => {
         const world = await setUp()
         world.quest.type = QuestType.initiation

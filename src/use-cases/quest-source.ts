@@ -1,15 +1,11 @@
-import { Context } from './context'
+import { ContextUser } from './context-user'
 import { SavedQuestIdea } from './entities/brainstorm'
 import { NotYourQuest, Quest } from './entities/quest'
 import { getBestFreeMember } from './get-best-free-member'
-import { EntityNotFound } from './not-found-error'
+import { NoIdeaError } from './no-idea-error'
 import { QuestMessage } from './quest-message'
 
-export class QuestSource {
-    private context: Context
-    constructor(context: Context) {
-        this.context = context
-    }
+export class QuestSource extends ContextUser {
     reQuest = async (req: ReQuestRequest) => {
         const parentQuest = await this.getQuest(req.parentQuestId)
         if (!parentQuest.memberIds.includes(req.memberId)) {
@@ -55,7 +51,7 @@ export class QuestSource {
             })
         )
         quest.memberIds.forEach((targetMemberId) => {
-            this.context.async.notififcationBus.notify<QuestMessage>({
+            this.notify<QuestMessage>({
                 type: 'new-quest-message',
                 payload: {
                     ...quest,
@@ -64,6 +60,7 @@ export class QuestSource {
                 },
             })
         })
+        return quest
     }
 
     private getQuestAssignees = async (
@@ -101,22 +98,6 @@ export class QuestSource {
         )
         return [first.id, second.id]
     }
-
-    // TODO replace all errors with error messages straight in use cases? 🤔
-    private async getQuest(questId: string) {
-        const quest = await this.context.stores.questStore.getById(questId)
-        if (!quest) {
-            throw new EntityNotFound(`Quest ${questId} not found`)
-        }
-        return quest
-    }
-    private async getIdea(ideaId: string) {
-        const idea = await this.context.stores.ideaStore.getById(ideaId)
-        if (!idea) {
-            throw new EntityNotFound(`Idea ${ideaId} not found`)
-        }
-        return idea
-    }
 }
 
 interface SpawnRequest {
@@ -127,12 +108,6 @@ interface SpawnRequest {
 interface ReQuestRequest extends SpawnRequest {
     time: number
     place: string
-}
-
-export class NoIdeaError extends Error {
-    constructor(msg: string) {
-        super(msg)
-    }
 }
 
 export class NotEnoughMembers extends Error {

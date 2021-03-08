@@ -1,5 +1,6 @@
 import { ApplicationStore } from './entities/application'
 import { BrainstormStore, IdeaStore } from './entities/brainstorm'
+import { GatheringtStore } from './entities/gathering'
 import { MemberStore } from './entities/member'
 import { QuestStore } from './entities/quest'
 import { TaskStore } from './entities/task'
@@ -17,6 +18,7 @@ export interface Context {
         ideaStore: IdeaStore
         brainstormStore: BrainstormStore
         taskStore: TaskStore
+        gatheringStore: GatheringtStore
     }
     async: {
         notififcationBus: NotificationBus

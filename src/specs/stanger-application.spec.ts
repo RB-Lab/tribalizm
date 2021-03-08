@@ -61,7 +61,7 @@ describe('Stranger application', () => {
         )
     })
 
-    it('should throw if user not found', async () => {
+    it('FAILs if user not found', async () => {
         const world = await setUp()
         await expectAsync(
             world.tribeApplication.appyToTribe(
@@ -72,7 +72,7 @@ describe('Stranger application', () => {
         ).toBeRejectedWithError(EntityNotFound)
     })
 
-    it('should throw if tribe not found', async () => {
+    it('FAILs if tribe not found', async () => {
         const world = await setUp()
         await expectAsync(
             world.tribeApplication.appyToTribe(
@@ -82,7 +82,7 @@ describe('Stranger application', () => {
             )
         ).toBeRejectedWithError(EntityNotFound)
     })
-    it('should throw if tribe have no chief', async () => {
+    it('FAILs if tribe have no chief', async () => {
         const world = await setUp()
         const tribe = await world.tribeStore.save(new Tribe({ name: 'tribe' }))
         await expectAsync(
@@ -93,7 +93,7 @@ describe('Stranger application', () => {
             )
         ).toBeRejectedWithError(NoChiefTribeError)
     })
-    it('should throw if tribe chief not found', async () => {
+    it('FAILs if tribe chief not found', async () => {
         const world = await setUp()
         const tribe = await world.tribeStore.save(
             new Tribe({ name: 'tribe', chiefId: 'non-existing' })
