@@ -11,7 +11,9 @@ import { InMemoryTribeStore } from '../plugins/testing/tribe-store'
 import { InMemoryUserStore } from '../plugins/testing/user-store'
 import { Brainstorm, QuestIdea } from '../use-cases/entities/brainstorm'
 import { Gathering } from '../use-cases/entities/gathering'
+import { Member } from '../use-cases/entities/member'
 import { Quest } from '../use-cases/entities/quest'
+import { Tribe } from '../use-cases/entities/tribe'
 import { Message } from '../use-cases/message'
 import { NotificationBus } from '../use-cases/notification-bus'
 
@@ -35,6 +37,53 @@ export function createContext() {
     const taskStore = new InMemoryTaskStore()
     const gatheringStore = new InMemoryGatheringStore(Gathering)
 
+    const makeTribe = async (n = 6) => {
+        const tribe = await tribeStore.save(
+            new Tribe({
+                name: 'Foo tribe',
+            })
+        )
+        const members = await memberStore.saveBulk(
+            new Array(n).fill(0).map(
+                (_, i) =>
+                    new Member({
+                        tribeId: tribe.id,
+                        userId: `user${i}.id`,
+                    })
+            )
+        )
+        return { tribe, members }
+    }
+    const makeIdea = async (ups = [1, 3, 4, 6], downs = [2, 5]) => {
+        const tribeSize = ups.length + downs.length + 1
+        const { tribe, members } = await makeTribe(tribeSize)
+        const brainstorm = await brainstormStore.save(
+            new Brainstorm({
+                tribeId: tribe.id,
+                state: 'voting',
+            })
+        )
+        const idea = await ideaStore.save(
+            new QuestIdea({
+                brainstormId: brainstorm.id,
+                description: 'let us FOOO!',
+                meberId: members[0].id,
+            })
+        )
+        ups.forEach((i) => idea.voteUp(members[i].id))
+        downs.forEach((i) => idea.voteDown(members[i].id))
+        const upvoters = ups.map((i) => members[i].id)
+        const downvoters = downs.map((i) => members[i].id)
+        const allTribe = members.map((m) => m.id)
+
+        return { tribe, members, idea, upvoters, downvoters, allTribe }
+    }
+    const testing = {
+        spyOnMessage: makeMessageSpy(notififcationBus),
+        makeTribe,
+        makeIdea,
+    }
+
     return {
         stores: {
             ideaStore,
@@ -50,12 +99,13 @@ export function createContext() {
         async: {
             notififcationBus,
         },
+        testing,
     }
 }
 
 export function makeMessageSpy(bus: NotificationBus) {
     return <T extends Message>(messageType: T['type']) => {
-        const spy = jasmine.createSpy(`on${messageType}`)
+        const spy = jasmine.createSpy(`on-${messageType}`)
         bus.subscribe(messageType, spy)
         return spy
     }

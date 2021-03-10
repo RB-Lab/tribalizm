@@ -1,7 +1,20 @@
 import { ContextUser } from './context-user'
 
 export class GateringAcknowledge extends ContextUser {
-    accept = async (req: GatheringAcceptRequest) => {
+    accept = async (req: GatheringAcknowledgeRequest) => {
+        const gathering = await this.getGathering(req.gatheringId)
+        await this.checkTribe(req)
+        gathering.accept(req.memberId)
+        this.context.stores.gatheringStore.save(gathering)
+    }
+    decline = async (req: GatheringAcknowledgeRequest) => {
+        const gathering = await this.getGathering(req.gatheringId)
+        await this.checkTribe(req)
+        gathering.decline(req.memberId)
+        this.context.stores.gatheringStore.save(gathering)
+    }
+
+    private async checkTribe(req: GatheringAcknowledgeRequest) {
         const gathering = await this.getGathering(req.gatheringId)
         const member = await this.getMember(req.memberId)
         if (member.tribeId !== gathering.tribeId) {
@@ -9,18 +22,10 @@ export class GateringAcknowledge extends ContextUser {
                 `Gathering ${gathering.id} doesn't belong to your tribe`
             )
         }
-        gathering.accept(req.memberId)
-        this.context.stores.gatheringStore.save(gathering)
     }
-    decline = async (req: GatheringDecilneRequest) => {}
 }
 
-export interface GatheringAcceptRequest {
-    memberId: string
-    gatheringId: string
-}
-
-export interface GatheringDecilneRequest {
+export interface GatheringAcknowledgeRequest {
     memberId: string
     gatheringId: string
 }

@@ -10,7 +10,6 @@ export interface IGatheringData {
     time: number
     place: string
     type: GatheringType
-    members: string[]
     accepted: string[]
     declined: string[]
 }
@@ -30,7 +29,6 @@ export class Gathering implements IGathering {
     time: number
     place: string
     type: GatheringType
-    members: string[]
     accepted: string[]
     declined: string[]
     constructor(params: NeededParams & Partial<IGatheringData & Storable>) {
@@ -40,13 +38,16 @@ export class Gathering implements IGathering {
         this.time = params.time
         this.place = params.place
         this.type = params.type
-        this.members = params.members || []
         this.accepted = params.accepted || []
         this.declined = params.declined || []
     }
 
     accept = (memberId: string) => {
+        this.declined = this.declined.filter((id) => id !== memberId)
         this.accepted.push(memberId)
     }
-    decline = (memberId: string) => {}
+    decline = (memberId: string) => {
+        this.accepted = this.accepted.filter((id) => id !== memberId)
+        this.declined.push(memberId)
+    }
 }

@@ -1,17 +1,13 @@
-import { Brainstorm, QuestIdea } from '../use-cases/entities/brainstorm'
-import { Member } from '../use-cases/entities/member'
 import {
-    IQuest,
     IQuestData,
     NotYourQuest,
     Quest,
     QuestStatus,
     QuestType,
 } from '../use-cases/entities/quest'
-import { Tribe } from '../use-cases/entities/tribe'
+import { NoIdeaError } from '../use-cases/no-idea-error'
 import { QuestMessage } from '../use-cases/quest-message'
 import { QuestSource } from '../use-cases/quest-source'
-import { NoIdeaError } from '../use-cases/no-idea-error'
 import { Voting } from '../use-cases/vote-idea'
 import { createContext, makeMessageSpy } from './test-context'
 
@@ -141,38 +137,15 @@ describe('Spawn new quest', () => {
 
 async function setUp() {
     const context = createContext()
-    const tribe = await context.stores.tribeStore.save(
-        new Tribe({
-            name: 'Foo tribe',
-        })
-    )
-    const members = await context.stores.memberStore.saveBulk(
-        [1, 2, 3, 4, 5, 6, 7].map(
-            (i) => new Member({ tribeId: tribe.id, userId: `user${i}.id` })
-        )
-    )
+    const {
+        members,
+        idea,
+        upvoters,
+        downvoters,
+    } = await context.testing.makeIdea([1, 3, 4, 6], [2, 5])
+
     const voting = new Voting(context)
     const [member1, member2] = members
-
-    const brainstorm = await context.stores.brainstormStore.save(
-        new Brainstorm({
-            tribeId: tribe.id,
-            state: 'voting',
-        })
-    )
-    const idea = await context.stores.ideaStore.save(
-        new QuestIdea({
-            brainstormId: brainstorm.id,
-            description: 'let us FOOO!',
-            meberId: member1.id,
-        })
-    )
-
-    const ups = [1, 3, 4, 6]
-    const downs = [2, 6]
-    ups.forEach((i) => idea.voteUp(members[i].id))
-    downs.forEach((i) => idea.voteDown(members[i].id))
-
     const quest = await context.stores.questStore.save(
         new Quest({
             ideaId: idea.id,
@@ -200,8 +173,8 @@ async function setUp() {
         defautlSpawnRequest,
         idea,
         voting,
-        upvoters: ups.map((i) => members[i].id),
-        downwoters: downs.map((i) => members[i].id),
+        upvoters,
+        downvoters,
         ...context.stores,
         getSpawnedQuest: async () => {
             return (

@@ -11,7 +11,7 @@ export function getBestFreeMember(
         .sort((a, b) => b[trait] - a[trait])
         .filter((m) => {
             if (exclude.includes(m.id)) return false
-            return (activeQuests[m.id] || 0) <= minQuests(activeQuests)
+            return (activeQuests[m.id] || 0) <= minQuests(activeQuests, exclude)
         })
     if (!freeMembersSorted.length) {
         throw new Error(
@@ -22,7 +22,13 @@ export function getBestFreeMember(
     const candidate = freeMembersSorted.find((m) => m[trait] >= m[counterpart])
     return candidate ? candidate : freeMembersSorted[0]
 }
-export function minQuests(activeQuests: { [id: string]: number }) {
-    const counts = Object.values(activeQuests)
+export function minQuests(
+    activeQuests: { [id: string]: number },
+    exclude: string[] = []
+) {
+    const counts = Object.entries(activeQuests).reduce<number[]>(
+        (res, [id, count]) => (exclude.includes(id) ? res : [...res, count]),
+        []
+    )
     return counts.length ? Math.min(...counts) || 0 : 0
 }

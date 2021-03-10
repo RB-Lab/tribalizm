@@ -73,7 +73,7 @@ export class QuestSource extends ContextUser {
         const memberIds = [...upvoterIds, idea.meberId]
         if (memberIds.length < 2) {
             throw new NotEnoughMembers(
-                `There is not enough members who liked idea ${idea.id}: ${memberIds} (2 min)`
+                `There is not enough members who liked idea ${idea.id}: ${memberIds.length} (2 min)`
             )
         }
         const members = await this.context.stores.memberStore.find({
@@ -89,12 +89,11 @@ export class QuestSource extends ContextUser {
             activeQuests,
             exclude
         )
-        exclude.push(first.id)
         const second = getBestFreeMember(
             members,
             first.charisma > first.wisdom ? 'wisdom' : 'charisma',
             activeQuests,
-            exclude
+            [...exclude, first.id]
         )
         return [first.id, second.id]
     }

@@ -1,6 +1,5 @@
 import { Gathering } from '../use-cases/entities/gathering'
 import { Member } from '../use-cases/entities/member'
-import { Tribe } from '../use-cases/entities/tribe'
 import {
     GateringAcknowledge,
     NotYourTribe,
@@ -10,10 +9,7 @@ import { createContext } from './test-context'
 describe('Gathering acknowledgement', () => {
     it('marks member as accepted', async () => {
         const world = await setUp()
-        await world.gatheringAck.accept({
-            memberId: world.members[0].id,
-            gatheringId: world.gathering.id,
-        })
+        await world.gatheringAck.accept(world.defaultReq)
         const gathering = await world.gatheringStore.getById(world.gathering.id)
         expect(gathering!.accepted).toContain(world.members[0].id)
     })
@@ -32,27 +28,35 @@ describe('Gathering acknowledgement', () => {
             })
         ).toBeRejectedWithError(NotYourTribe)
     })
-    it('FAILs to acknoledge if member is not listed in members')
-    it('marks member as declined')
-    it('FAILs to decline if member declared gathering')
-    it('removes declined from accepted (switch opinion)')
-    it('removes accepted from declined (switch opinion)')
+    it('marks member as declined', async () => {
+        const world = await setUp()
+        await world.gatheringAck.decline(world.defaultReq)
+        const gathering = await world.gatheringStore.getById(world.gathering.id)
+        expect(gathering!.declined).toContain(world.members[0].id)
+    })
+    it('removes declined from accepted (switch opinion)', async () => {
+        const world = await setUp()
+        await world.gatheringAck.decline(world.defaultReq)
+        await world.gatheringAck.accept(world.defaultReq)
+        const gathering = await world.gatheringStore.getById(world.gathering.id)
+        expect(gathering!.declined).not.toContain(world.members[0].id)
+        expect(gathering!.accepted).toContain(world.members[0].id)
+    })
+    it('removes accepted from declined (switch opinion)', async () => {
+        const world = await setUp()
+        await world.gatheringAck.accept(world.defaultReq)
+        await world.gatheringAck.decline(world.defaultReq)
+        const gathering = await world.gatheringStore.getById(world.gathering.id)
+        expect(gathering!.accepted).not.toContain(world.members[0].id)
+        expect(gathering!.declined).toContain(world.members[0].id)
+    })
 })
 
 async function setUp() {
     const context = createContext()
     const gatheringAck = new GateringAcknowledge(context)
 
-    const tribe = await context.stores.tribeStore.save(
-        new Tribe({
-            name: 'Foo tribe',
-        })
-    )
-    const members = await context.stores.memberStore.saveBulk(
-        [0, 1, 2, 3, 4, 5, 6].map(
-            (i) => new Member({ tribeId: tribe.id, userId: `user${i}.id` })
-        )
-    )
+    const { tribe, members } = await context.testing.makeTribe()
     const gathering = await context.stores.gatheringStore.save(
         new Gathering({
             tribeId: tribe.id,
@@ -62,11 +66,16 @@ async function setUp() {
             type: 'all',
         })
     )
+    const defaultReq = {
+        memberId: members[0].id,
+        gatheringId: gathering.id,
+    }
 
     return {
         ...context.stores,
         members,
         gathering,
         gatheringAck,
+        defaultReq,
     }
 }

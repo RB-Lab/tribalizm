@@ -60,6 +60,10 @@ export class InMemoryStore<T> implements Store<T> {
         })
         return Promise.resolve(results.map(this._instantiate))
     }
+
+    __show = () => {
+        console.table(Object.values(this._store))
+    }
 }
 
 export function isValidObjectKey<T>(
