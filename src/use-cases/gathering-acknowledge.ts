@@ -5,13 +5,13 @@ export class GateringAcknowledge extends ContextUser {
         const gathering = await this.getGathering(req.gatheringId)
         await this.checkTribe(req)
         gathering.accept(req.memberId)
-        this.context.stores.gatheringStore.save(gathering)
+        this.stores.gatheringStore.save(gathering)
     }
     decline = async (req: GatheringAcknowledgeRequest) => {
         const gathering = await this.getGathering(req.gatheringId)
         await this.checkTribe(req)
         gathering.decline(req.memberId)
-        this.context.stores.gatheringStore.save(gathering)
+        this.stores.gatheringStore.save(gathering)
     }
 
     private async checkTribe(req: GatheringAcknowledgeRequest) {

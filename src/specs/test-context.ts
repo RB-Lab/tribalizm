@@ -54,8 +54,12 @@ export function createContext() {
         )
         return { tribe, members }
     }
-    const makeIdea = async (ups = [1, 3, 4, 6], downs = [2, 5]) => {
-        const tribeSize = ups.length + downs.length + 1
+    const makeIdea = async (
+        ups = [1, 3, 4, 6],
+        downs = [2, 5],
+        neutrals: number[] = []
+    ) => {
+        const tribeSize = ups.length + downs.length + neutrals.length + 1
         const { tribe, members } = await makeTribe(tribeSize)
         const brainstorm = await brainstormStore.save(
             new Brainstorm({

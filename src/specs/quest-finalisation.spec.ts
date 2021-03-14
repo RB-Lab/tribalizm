@@ -7,7 +7,7 @@ import {
 } from '../use-cases/entities/quest'
 import { User } from '../use-cases/entities/user'
 import { EntityNotFound } from '../use-cases/not-found-error'
-import { QuestFinal } from '../use-cases/quest-final'
+import { QuestFinale } from '../use-cases/quest-finale'
 import { createContext, makeMessageSpy } from './test-context'
 
 describe('Non-execution quest finale', () => {
@@ -123,6 +123,7 @@ describe('Non-execution quest finale', () => {
             expect(member2?.votes.length).toEqual(1)
             const vote = member2!.votes[0]
             expect(vote).toEqual({
+                type: 'quest-vote',
                 charisma: 7,
                 wisdom: 7,
                 memberId: world.member1.id,
@@ -197,7 +198,7 @@ async function setUp() {
         new Quest({ memberIds: [member1.id, member2.id] })
     )
 
-    const questFinal = new QuestFinal(context)
+    const questFinal = new QuestFinale(context)
     const defaultFinalReq = {
         memberId: member1.id,
         questId: quest.id,

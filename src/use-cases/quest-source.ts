@@ -20,7 +20,7 @@ export class QuestSource extends ContextUser {
             memberIds: parentQuest.memberIds,
             parentQuestId: parentQuest.id,
         })
-        await this.context.stores.questStore.save(quest)
+        await this.stores.questStore.save(quest)
     }
     spawnQuest = async (req: SpawnRequest) => {
         const parentQuest = await this.getQuest(req.parentQuestId)
@@ -42,7 +42,7 @@ export class QuestSource extends ContextUser {
             parentQuest.memberIds
         )
 
-        const quest = await this.context.stores.questStore.save(
+        const quest = await this.stores.questStore.save(
             new Quest({
                 time: oneWeekAhead,
                 description: req.description,
@@ -76,10 +76,10 @@ export class QuestSource extends ContextUser {
                 `There is not enough members who liked idea ${idea.id}: ${memberIds.length} (2 min)`
             )
         }
-        const members = await this.context.stores.memberStore.find({
+        const members = await this.stores.memberStore.find({
             id: memberIds,
         })
-        const activeQuests = await this.context.stores.questStore.getActiveQuestsCount(
+        const activeQuests = await this.stores.questStore.getActiveQuestsCount(
             memberIds
         )
         const exclude = members.length < 4 ? [] : origMemberIds

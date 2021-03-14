@@ -60,6 +60,7 @@ async function setUp() {
     const gathering = await context.stores.gatheringStore.save(
         new Gathering({
             tribeId: tribe.id,
+            parentQuestId: 'quest-1',
             description: 'Lets OLOLO!',
             place: 'the Foo Bar',
             time: 100500500,

@@ -4,6 +4,7 @@ import {
     GatheringDeclare,
     GatheringMessage,
 } from '../use-cases/gathering-declare'
+import { EntityNotFound } from '../use-cases/not-found-error'
 import { QuestSource } from '../use-cases/quest-source'
 import { createContext } from './test-context'
 
@@ -55,6 +56,16 @@ describe('Gathering declaration', () => {
                 type: 'all',
             })
         )
+    })
+    it('FAILs on non-existing quest', async () => {
+        const world = await setUp()
+        await expectAsync(
+            world.gathering.declare({
+                ...world.defaultDeclare,
+                type: 'all',
+                parentQuestId: 'non-existing',
+            })
+        ).toBeRejectedWithError(EntityNotFound)
     })
 })
 

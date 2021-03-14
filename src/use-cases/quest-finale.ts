@@ -3,7 +3,7 @@ import { IQuest } from './entities/quest'
 import { Storable } from './entities/store'
 import { EntityNotFound } from './not-found-error'
 
-export class QuestFinal {
+export class QuestFinale {
     private context: Context
     constructor(context: Context) {
         this.context = context
@@ -52,6 +52,7 @@ export class QuestFinal {
             const member = await this.getMember(voteForId)
             const vote = quest.votedMembers[memberId][voteForId]
             member.castVote({
+                type: 'quest-vote',
                 casted: Date.now(),
                 charisma: vote.charisma,
                 wisdom: vote.wisdom,

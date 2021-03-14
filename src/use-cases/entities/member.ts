@@ -45,11 +45,41 @@ export class Member implements IMember {
     }
 
     castVote = (vote: MemberVote) => {
+        if (vote.memberId === this.id) {
+            return
+        }
         this.votes.push(vote)
+        if (vote.type === 'gathering-vote') {
+            if (vote.score < 0 || vote.score > 4) {
+                throw new OutOfRange(
+                    `Cannot set scroe ${vote.score}: must be between 0 and 4`
+                )
+            }
+            this.recaluclateScores()
+        }
+    }
+
+    private recaluclateScores = () => {
+        const gatheringVotes: Record<string, number[]> = {}
+        this.votes.forEach((vote) => {
+            if (vote.type === 'gathering-vote') {
+                const scores = gatheringVotes[vote.gatheringId] || []
+                gatheringVotes[vote.gatheringId] = [...scores, vote.score]
+            }
+        })
+        this.charisma = 0
+        this.wisdom = 0
+        Object.values(gatheringVotes).forEach((scores) => {
+            const meanScore = mean(scores)
+            this.charisma += meanScore / 2
+            this.wisdom += meanScore / 2
+        })
     }
 }
+export type MemberVote = QuestVote | GatheringVote
 
-export interface MemberVote {
+export interface QuestVote {
+    type: 'quest-vote'
     /** Member who voted */
     memberId: string
     /** Quest that was the reason for voting */
@@ -58,4 +88,24 @@ export interface MemberVote {
     wisdom: number
     /** Timestamp of voting moment */
     casted: number
+}
+export interface GatheringVote {
+    type: 'gathering-vote'
+    /** Member who voted */
+    memberId: string
+    /** Gethernin that was the reason for voting */
+    gatheringId: string
+    score: number
+    /** Timestamp of voting moment */
+    casted: number
+}
+
+export class OutOfRange extends Error {
+    constructor(msg: string) {
+        super(msg)
+    }
+}
+
+function mean(ns: number[]) {
+    return ns.reduce((s, n) => s + n, 0) / ns.length
 }

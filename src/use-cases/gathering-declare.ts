@@ -6,9 +6,12 @@ import { NoIdeaError } from './no-idea-error'
 export class GatheringDeclare extends ContextUser {
     declare = async (req: DeclarationRequest) => {
         const member = await this.getMember(req.memberId)
-        const gathering = await this.context.stores.gatheringStore.save(
+        // just to check that quests exists
+        const parentQuest = await this.getQuest(req.parentQuestId)
+        const gathering = await this.stores.gatheringStore.save(
             new Gathering({
                 type: req.type,
+                parentQuestId: parentQuest.id,
                 tribeId: member.tribeId,
                 description: req.description,
                 place: req.place,
@@ -33,7 +36,7 @@ export class GatheringDeclare extends ContextUser {
         const member = await this.getMember(req.memberId)
         if (req.type === 'all') {
             return (
-                await this.context.stores.memberStore.find({
+                await this.stores.memberStore.find({
                     tribeId: member.tribeId,
                 })
             )
