@@ -70,9 +70,9 @@
     -   NOTE: not all quests have execution qust at the end
 41. ❕ A _tribe cheif_ deligates their responsibilitis to any _member_ with _trust_
 42. ✅ A score for _gathering_ is applied to all organizing _members_ charisma immediately
-43. 🔜 A score casted by another _member_ ia applied to _member_ charisma & wisdom after each 5 votes
+43. ✅ A score casted by another _member_ ia applied to _member_ charisma & wisdom after each 5 votes
 44. ✅ A _member_ rejects _quest_ (except initiation)
-45. ❗ The _system_ reassigns rejected _quest_ to antoter member (see usecases 26 & 29)
+45. 🔜 The _system_ reassigns rejected _quest_ to antoter member (see usecases 26 & 29)
 46. ❗ The _system_ makes most charismatic member tribes _chief_
 47. ❗ The _system_ makes most wise member tribes _shaman_
 48. ❕ A _member_ wants to leave the game (inc. _chief_ and _shaman_)
@@ -80,7 +80,7 @@
 50. ❕ A _member_ wants to be notified about the quest the day before it appointed (or other time
     period? or add to calendar)
 
-Done: 16, In porgres: 1, Must: 19, Should: 14, total: 50
+Done: 18, In porgres: 1, Must: 17, Should: 14, total: 50
 
 ## Entities
 

@@ -14,6 +14,7 @@ import { Gathering } from '../use-cases/entities/gathering'
 import { Member } from '../use-cases/entities/member'
 import { Quest } from '../use-cases/entities/quest'
 import { Tribe } from '../use-cases/entities/tribe'
+import { User } from '../use-cases/entities/user'
 import { Message } from '../use-cases/message'
 import { NotificationBus } from '../use-cases/notification-bus'
 
@@ -33,7 +34,7 @@ export function createContext() {
     const memberStore = new InMemoryMemberStore()
     const questStore = new InMemoryQuestStore(Quest)
     const tribeStore = new InMemoryTribeStore()
-    const userStore = new InMemoryUserStore()
+    const userStore = new InMemoryUserStore(User)
     const taskStore = new InMemoryTaskStore()
     const gatheringStore = new InMemoryGatheringStore(Gathering)
 

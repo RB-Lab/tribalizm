@@ -55,16 +55,41 @@ export class Member implements IMember {
                     `Cannot set scroe ${vote.score}: must be between 0 and 4`
                 )
             }
-            this.recaluclateScores()
         }
+        this.recaluclateGatheringScores()
     }
 
-    private recaluclateScores = () => {
+    private recaluclateGatheringScores = () => {
         const gatheringVotes: Record<string, number[]> = {}
+        const memberVotes: Record<string, { c: number[]; w: number[] }> = {}
+        let buffer: Record<string, { c: number[]; w: number[] }> = {}
         this.votes.forEach((vote) => {
             if (vote.type === 'gathering-vote') {
                 const scores = gatheringVotes[vote.gatheringId] || []
                 gatheringVotes[vote.gatheringId] = [...scores, vote.score]
+            }
+            if (vote.type === 'quest-vote') {
+                if (!buffer[vote.memberId]) {
+                    buffer[vote.memberId] = { c: [], w: [] }
+                }
+                const cScores = buffer[vote.memberId].c
+                const wScores = buffer[vote.memberId].w
+                buffer[vote.memberId].c = [...cScores, vote.charisma]
+                buffer[vote.memberId].w = [...wScores, vote.wisdom]
+                const bufferLen = Object.values(buffer).reduce(
+                    (s, v) => (s += Math.min(v.c.length, v.w.length)),
+                    0
+                )
+                if (bufferLen >= 5) {
+                    Object.entries(buffer).forEach(([id, scores]) => {
+                        if (!memberVotes[id]) {
+                            memberVotes[id] = { c: [], w: [] }
+                        }
+                        memberVotes[id].c = [...memberVotes[id].c, ...scores.c]
+                        memberVotes[id].w = [...memberVotes[id].w, ...scores.w]
+                    })
+                    buffer = {}
+                }
             }
         })
         this.charisma = 0
@@ -73,6 +98,12 @@ export class Member implements IMember {
             const meanScore = mean(scores)
             this.charisma += meanScore / 2
             this.wisdom += meanScore / 2
+        })
+        Object.values(memberVotes).forEach((scores) => {
+            const meanCScore = mean(scores.c)
+            const meanWScore = mean(scores.w)
+            this.charisma += meanCScore
+            this.wisdom += meanWScore
         })
     }
 }

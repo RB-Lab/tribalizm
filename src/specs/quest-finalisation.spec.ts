@@ -8,7 +8,7 @@ import {
 import { User } from '../use-cases/entities/user'
 import { EntityNotFound } from '../use-cases/not-found-error'
 import { QuestFinale } from '../use-cases/quest-finale'
-import { createContext, makeMessageSpy } from './test-context'
+import { createContext } from './test-context'
 
 describe('Non-execution quest finale', () => {
     it('FAILs to finalyse by not quest assignee', async () => {
@@ -171,19 +171,52 @@ describe('Non-execution quest finale', () => {
             await world.questFinal.getNextVoteAction(world.defaultFinalReq)
         ).toBe(null)
     })
+
+    it('applies scores when 5 votes casted', async () => {
+        const world = await setUp()
+        let member2 = await world.memberStore.getById(world.member2.id)
+        expect(member2!.charisma).withContext('charisma').toEqual(0)
+        expect(member2!.wisdom).withContext('wisdom').toEqual(0)
+        await world.castVotes(world.member1.id, world.member2.id, [5, 5, 5])
+        await world.castVotes(world.member3.id, world.member2.id, [5, 5])
+        member2 = await world.memberStore.getById(world.member2.id)
+        expect(member2!.charisma).withContext('charisma').toEqual(10)
+        expect(member2!.wisdom).withContext('wisdom').toEqual(10)
+    })
+    it('does NOT count before 5 votes casted', async () => {
+        const world = await setUp()
+        await world.castVotes(world.member1.id, world.member2.id, [5, 5, 5])
+        await world.castVotes(world.member3.id, world.member2.id, [5, 5])
+        let member2 = await world.memberStore.getById(world.member2.id)
+        expect(member2!.charisma).withContext('charisma').toEqual(10)
+        expect(member2!.wisdom).withContext('wisdom').toEqual(10)
+        await world.castVotes(world.member1.id, world.member2.id, [2, 2])
+        await world.castVotes(world.member3.id, world.member2.id, [2, 2])
+        member2 = await world.memberStore.getById(world.member2.id)
+        expect(member2!.charisma).withContext('charisma').toEqual(10)
+        expect(member2!.wisdom).withContext('wisdom').toEqual(10)
+    })
+    it('assignes mean for one memeber votes', async () => {
+        const world = await setUp()
+        const votes = [1, 2, 3, 4, 5]
+        await world.castVotes(world.member1.id, world.member2.id, votes)
+        const member2 = await world.memberStore.getById(world.member2.id)
+        expect(member2!.charisma)
+            .withContext('charisma')
+            .toEqual((1 + 2 + 3 + 4 + 5) / 5)
+        expect(member2!.wisdom)
+            .withContext('wisdom')
+            .toEqual((1 + 2 + 3 + 4 + 5) / 5)
+    })
 })
 
 async function setUp() {
     const context = createContext()
-    const user1 = await context.stores.userStore.save(
-        new User({ name: 'User A' })
-    )
-    const user2 = await context.stores.userStore.save(
-        new User({ name: 'User B' })
-    )
-    const user3 = await context.stores.userStore.save(
-        new User({ name: 'User C' })
-    )
+    const [user1, user2, user3] = await context.stores.userStore.saveBulk([
+        new User({ name: 'User A' }),
+        new User({ name: 'User B' }),
+        new User({ name: 'User C' }),
+    ])
     const [
         member1,
         member2,
@@ -222,6 +255,30 @@ async function setUp() {
         quest,
         defaultFinalReq,
         defaultCastRequest,
-        spyOnMessage: makeMessageSpy(context.async.notififcationBus),
+        spyOnMessage: context.testing.spyOnMessage,
+        castVotes: async (
+            memberId: string,
+            voteForId: string,
+            votes: number[]
+        ) =>
+            Promise.all(
+                votes.map(async (v) => {
+                    const quest = await context.stores.questStore.save(
+                        new Quest({ memberIds: [memberId, voteForId] })
+                    )
+                    await questFinal.castCharisma({
+                        voteForId,
+                        memberId,
+                        questId: quest.id,
+                        charisma: v,
+                    })
+                    await questFinal.castWisdom({
+                        voteForId,
+                        memberId,
+                        questId: quest.id,
+                        wisdom: v,
+                    })
+                })
+            ),
     }
 }
