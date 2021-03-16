@@ -1,5 +1,4 @@
 import { Member } from '../use-cases/entities/member'
-import { Message } from '../use-cases/message'
 import {
     IndeclinableError,
     InvalidAcceptanceTime,
@@ -14,7 +13,8 @@ import {
     QuestChangeMessage,
     QuestNegotiation,
 } from '../use-cases/negotiate-quest'
-import { createContext, makeMessageSpy } from './test-context'
+import { QuestMessage } from '../use-cases/utils/quest-message'
+import { createContext } from './test-context'
 
 describe('Quest negotiation', () => {
     it('updates quest details on change proposal', async () => {
@@ -159,12 +159,43 @@ describe('Quest negotiation', () => {
             })
         )
     })
-    xit('notifes other parties on decline', async () => {
-        // add a field 'incomplete' to quests that has not enough members assigned?
-        // or just consider incomplete all quests with members < 2?
-        fail('to be determined')
+    it('re-assigns declined quest among upvoters', async () => {
+        const world = await setUp()
+        const onQuest = world.spyOnMessage<QuestMessage>('new-quest-message')
+        await world.questNegotiation.declineQuest({
+            memberId: world.member2.id,
+            questId: world.quest.id,
+        })
+        expect(onQuest).toHaveBeenCalledWith(
+            jasmine.objectContaining<QuestMessage>({
+                type: 'new-quest-message',
+                payload: jasmine.objectContaining<QuestMessage['payload']>({
+                    description: world.quest.description,
+                    targetMemberId: jasmine.any(String),
+                    questId: world.quest.id,
+                }),
+            })
+        )
+        const quest = await world.questStore.getById(world.quest.id)
+        const message = onQuest.calls.argsFor(0)[0] as QuestMessage
+        expect(world.upvoters).toContain(message.payload.targetMemberId)
+        expect(message.payload.targetMemberId).not.toBe(world.member2.id)
+        expect(message.payload.targetMemberId).not.toBe(world.member1.id)
+        expect(quest!.memberIds).toEqual([
+            world.member1.id,
+            message.payload.targetMemberId,
+        ])
+        expect(quest!.memberIds).not.toContain(world.member2.id)
     })
-    it('FAILs to decline first quest by original idea author')
+    it('FAILs to decline first quest by original idea author', async () => {
+        const world = await setUp()
+        await expectAsync(
+            world.questNegotiation.declineQuest({
+                memberId: world.member1.id,
+                questId: world.quest.id,
+            })
+        ).toBeRejectedWithError(IndeclinableError)
+    })
     it('FAILs to decline "initiation" quest', async () => {
         const world = await setUp()
         world.quest.type = QuestType.initiation
@@ -180,19 +211,11 @@ describe('Quest negotiation', () => {
 
 async function setUp() {
     const context = createContext()
-    const [member1, member2] = await context.stores.memberStore.saveBulk([
-        new Member({
-            tribeId: 'tribe.id',
-            userId: 'user-1',
-        }),
-        new Member({
-            tribeId: 'tribe.id',
-            userId: 'user-2',
-            isCandidate: false,
-        }),
-    ])
+    const { members, idea, upvoters } = await context.testing.makeIdea()
+    const [member1, member2] = members
     const quest = await context.stores.questStore.save(
         new Quest({
+            ideaId: idea.id,
             description: 'great quest!',
             memberIds: [member1.id, member2.id],
             time: Date.now() + 100_500_000,
@@ -212,9 +235,11 @@ async function setUp() {
         quest,
         member1,
         member2,
+        upvoters,
+
         defaultProposal,
         questNegotiation,
         ...context.stores,
-        spyOnMessage: makeMessageSpy(context.async.notififcationBus),
+        spyOnMessage: context.testing.spyOnMessage,
     }
 }

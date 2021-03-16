@@ -1,4 +1,4 @@
-import { SavedMember } from './entities/member'
+import { SavedMember } from '../entities/member'
 
 export function getBestFreeMember(
     members: SavedMember[],

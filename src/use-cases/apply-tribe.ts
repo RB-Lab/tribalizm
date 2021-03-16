@@ -1,57 +1,24 @@
-import {
-    Application,
-    ApplicationPhase,
-    ApplicationStore,
-} from './entities/application'
-import { Member, MemberStore } from './entities/member'
-import { Message } from './message'
-import { EntityNotFound } from './not-found-error'
-import { NotificationBus } from './notification-bus'
-import { Quest, QuestStore, QuestType } from './entities/quest'
-import { TribeStore } from './entities/tribe'
-import { UserStore } from './entities/user'
-import { Context } from './context'
+import { Application } from './entities/application'
+import { Member } from './entities/member'
+import { ContextUser } from './utils/context-user'
+import { Message } from './utils/message'
 
-export class TribeApplication {
-    private applicationStore: ApplicationStore
-    private notififcationBus: NotificationBus
-    private tribeStore: TribeStore
-    private memberStore: MemberStore
-    private userStore: UserStore
-    constructor(context: Context) {
-        this.notififcationBus = context.async.notififcationBus
-        this.applicationStore = context.stores.applicationStore
-        this.tribeStore = context.stores.tribeStore
-        this.memberStore = context.stores.memberStore
-        this.userStore = context.stores.userStore
-    }
-
+export class TribeApplication extends ContextUser {
     appyToTribe = async (
         userId: string,
         tribeId: string,
         coverLetter: string
     ) => {
-        const user = await this.userStore.getById(userId)
-        if (!user) {
-            throw new EntityNotFound(`User ${userId} not found`)
-        }
-        const tribe = await this.tribeStore.getById(tribeId)
-        if (!tribe) {
-            throw new EntityNotFound(`Tribe ${tribeId} not found`)
-        }
+        const user = await this.getUser(userId)
+        const tribe = await this.getTribe(tribeId)
         if (!tribe.chiefId) {
             throw new NoChiefTribeError(`Tribe ${tribeId} has no chief`)
         }
-        const chief = await this.memberStore.getById(tribe.chiefId)
-        if (!chief) {
-            throw new EntityNotFound(
-                `Tribe "${tribe.name}" cheief (${tribe.chiefId}) cannot be found`
-            )
-        }
-        const newMember = await this.memberStore.save(
+        const chief = await this.getMember(tribe.chiefId)
+        const newMember = await this.stores.memberStore.save(
             new Member({ userId: user.id, tribeId: tribe.id })
         )
-        const app = await this.applicationStore.save(
+        const app = await this.stores.applicationStore.save(
             new Application({
                 memberId: newMember.id,
                 tribeId,
@@ -59,7 +26,7 @@ export class TribeApplication {
                 chiefId: tribe.chiefId,
             })
         )
-        this.notififcationBus.notify<ApplicationMessage>({
+        this.notify<ApplicationMessage>({
             type: 'application-message',
             payload: {
                 elderId: chief.id,

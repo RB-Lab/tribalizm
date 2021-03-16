@@ -1,5 +1,5 @@
 import { Context } from './context'
-import { ITask } from './entities/task'
+import { ITask } from '../entities/task'
 import { EntityNotFound } from './not-found-error'
 
 export class Scheduler {

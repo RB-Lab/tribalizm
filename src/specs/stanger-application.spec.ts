@@ -9,7 +9,7 @@ import {
 } from '../use-cases/entities/application'
 import { Coordinates } from '../use-cases/entities/location'
 import { Member, SavedMember } from '../use-cases/entities/member'
-import { EntityNotFound } from '../use-cases/not-found-error'
+import { EntityNotFound } from '../use-cases/utils/not-found-error'
 import { Tribe } from '../use-cases/entities/tribe'
 import { User } from '../use-cases/entities/user'
 import { createContext } from './test-context'

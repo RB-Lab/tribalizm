@@ -1,19 +1,17 @@
-import { Context } from './context'
-import { Message } from './message'
-import { EntityNotFound } from './not-found-error'
+import { ContextUser } from './utils/context-user'
+import { IndeclinableError } from './entities/quest'
+import { getBestFreeMember } from './utils/get-best-free-member'
+import { getRootIdea, NoIdeaError } from './utils/get-root-idea'
+import { Message } from './utils/message'
+import { QuestMessage } from './utils/quest-message'
 
-export class QuestNegotiation {
-    private context: Context
-
-    constructor(context: Context) {
-        this.context = context
-    }
+export class QuestNegotiation extends ContextUser {
     proposeChange = async (req: QuestChangeRequest) => {
         const quest = await this.getQuest(req.questId)
         const targetMembers = quest.propose(req.time, req.place, req.memberId)
-        await this.context.stores.questStore.save(quest)
+        await this.stores.questStore.save(quest)
         targetMembers.forEach((targetMemberId) => {
-            this.context.async.notififcationBus.notify<QuestChangeMessage>({
+            this.notify<QuestChangeMessage>({
                 type: 'quest-change-proposed',
                 payload: {
                     ...quest,
@@ -27,9 +25,9 @@ export class QuestNegotiation {
     acceptQuest = async (req: QuestAcceptRequest) => {
         const quest = await this.getQuest(req.questId)
         const targetMembers = quest.accept(req.memberId)
-        await this.context.stores.questStore.save(quest)
+        await this.stores.questStore.save(quest)
         targetMembers.forEach((targetMemberId) => {
-            this.context.async.notififcationBus.notify<QuestAcceptedMessage>({
+            this.notify<QuestAcceptedMessage>({
                 type: 'quest-accepted',
                 payload: {
                     ...quest,
@@ -43,15 +41,59 @@ export class QuestNegotiation {
     declineQuest = async (req: QuestDeclineRequest) => {
         const quest = await this.getQuest(req.questId)
         quest.decline(req.memberId)
-        await this.context.stores.questStore.save(quest)
-    }
-
-    private async getQuest(questId: string) {
-        const quest = await this.context.stores.questStore.getById(questId)
-        if (!quest) {
-            throw new EntityNotFound(`Quest ${questId} not found`)
+        let ideaId: string
+        if (quest.parentQuestId) {
+            ideaId = await getRootIdea(
+                this.stores.questStore,
+                quest.parentQuestId
+            )
+        } else if (quest.ideaId) {
+            ideaId = quest.ideaId
+        } else {
+            throw new NoIdeaError(
+                `Quest ${req.questId} doesnt have the idea associated with it`
+            )
         }
-        return quest
+        const idea = await this.getIdea(ideaId)
+        if (idea.meberId === req.memberId && !quest.parentQuestId) {
+            throw new IndeclinableError(
+                'You cannot decline quest created from your own idea'
+            )
+        }
+        const upvoterIds = idea.votes
+            .filter((v) => v.vote === 'up')
+            .map((v) => v.memberId)
+        const memberIds = [...upvoterIds, idea.meberId]
+        const activeQuests = await this.stores.questStore.getActiveQuestsCount(
+            memberIds
+        )
+        const members = await this.stores.memberStore.find({
+            id: memberIds,
+        })
+        const first = members.find(
+            (m) => m.id != req.memberId && quest.memberIds.includes(m.id)
+        )
+        if (!first) {
+            throw new Error('Cannot find other members among upvoters')
+        }
+
+        const nextMember = getBestFreeMember(
+            members,
+            first.charisma > first.wisdom ? 'wisdom' : 'charisma',
+            activeQuests,
+            [first.id, req.memberId]
+        )
+        quest.addAssignee(nextMember.id)
+        await this.stores.questStore.save(quest)
+
+        this.notify<QuestMessage>({
+            type: 'new-quest-message',
+            payload: {
+                ...quest,
+                targetMemberId: nextMember.id,
+                questId: quest.id,
+            },
+        })
     }
 }
 

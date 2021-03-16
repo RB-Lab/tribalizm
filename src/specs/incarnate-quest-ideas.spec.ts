@@ -1,10 +1,10 @@
-import { Context } from '../use-cases/context'
+import { Context } from '../use-cases/utils/context'
 import { Brainstorm, QuestIdea } from '../use-cases/entities/brainstorm'
 import { Member } from '../use-cases/entities/member'
 import { Quest, QuestStatus, QuestType } from '../use-cases/entities/quest'
 import { Tribe } from '../use-cases/entities/tribe'
 import { IdeasIncarnation } from '../use-cases/incarnate-ideas'
-import { QuestMessage } from '../use-cases/quest-message'
+import { QuestMessage } from '../use-cases/utils/quest-message'
 import { createContext } from './test-context'
 
 describe('When brainstorm is over', () => {

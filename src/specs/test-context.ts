@@ -15,8 +15,8 @@ import { Member } from '../use-cases/entities/member'
 import { Quest } from '../use-cases/entities/quest'
 import { Tribe } from '../use-cases/entities/tribe'
 import { User } from '../use-cases/entities/user'
-import { Message } from '../use-cases/message'
-import { NotificationBus } from '../use-cases/notification-bus'
+import { Message } from '../use-cases/utils/message'
+import { NotificationBus } from '../use-cases/utils/notification-bus'
 
 export function assign<T extends object>(doc: T, update: Partial<T>) {
     const keys = getKeys(doc)

@@ -1,9 +1,9 @@
-import { ContextUser } from './context-user'
 import { SavedQuestIdea } from './entities/brainstorm'
 import { NotYourQuest, Quest } from './entities/quest'
-import { getBestFreeMember } from './get-best-free-member'
-import { NoIdeaError } from './no-idea-error'
-import { QuestMessage } from './quest-message'
+import { ContextUser } from './utils/context-user'
+import { getBestFreeMember } from './utils/get-best-free-member'
+import { getRootIdea } from './utils/get-root-idea'
+import { QuestMessage } from './utils/quest-message'
 
 export class QuestSource extends ContextUser {
     reQuest = async (req: ReQuestRequest) => {
@@ -24,18 +24,12 @@ export class QuestSource extends ContextUser {
     }
     spawnQuest = async (req: SpawnRequest) => {
         const parentQuest = await this.getQuest(req.parentQuestId)
-        let rootQuest = parentQuest
-        while (rootQuest.parentQuestId) {
-            rootQuest = await this.getQuest(rootQuest.parentQuestId)
-        }
-        if (!rootQuest.ideaId) {
-            throw new NoIdeaError(
-                `Root quest (${rootQuest.id}) for quest ${parentQuest.id} has no idea attached`
-            )
-        }
+        const ideaId = await getRootIdea(
+            this.stores.questStore,
+            req.parentQuestId
+        )
+        const idea = await this.getIdea(ideaId)
         const oneWeekAhead = Date.now() + 7 * 24 * 3_600_000
-
-        const idea = await this.getIdea(rootQuest.ideaId)
 
         const memberIds = await this.getQuestAssignees(
             idea,

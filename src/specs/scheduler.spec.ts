@@ -1,4 +1,4 @@
-import { Scheduler } from '../use-cases/scheduler'
+import { Scheduler } from '../use-cases/utils/scheduler'
 import { createContext } from './test-context'
 
 describe('Task scheduling', () => {

@@ -6,7 +6,7 @@ import {
     VoteRangeError,
 } from '../use-cases/entities/quest'
 import { User } from '../use-cases/entities/user'
-import { EntityNotFound } from '../use-cases/not-found-error'
+import { EntityNotFound } from '../use-cases/utils/not-found-error'
 import { QuestFinale } from '../use-cases/quest-finale'
 import { createContext } from './test-context'
 

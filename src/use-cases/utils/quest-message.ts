@@ -1,5 +1,5 @@
 import { Message } from './message'
-import { QuestType } from './entities/quest'
+import { QuestType } from '../entities/quest'
 
 export interface QuestMessage extends Message {
     type: 'new-quest-message'

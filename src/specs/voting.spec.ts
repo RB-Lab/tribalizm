@@ -9,7 +9,7 @@ import {
 } from '../use-cases/entities/brainstorm'
 import { Member } from '../use-cases/entities/member'
 import { Tribe } from '../use-cases/entities/tribe'
-import { EntityNotFound } from '../use-cases/not-found-error'
+import { EntityNotFound } from '../use-cases/utils/not-found-error'
 import {
     ExternalMemberVoteError,
     Voting,

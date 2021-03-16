@@ -32,7 +32,7 @@ export class ContextUser {
     protected async getMember(memberId: string) {
         const member = await this.stores.memberStore.getById(memberId)
         if (!member) {
-            throw new EntityNotFound(`Idea ${memberId} not found`)
+            throw new EntityNotFound(`Member ${memberId} not found`)
         }
         return member
     }
@@ -40,8 +40,41 @@ export class ContextUser {
     protected async getGathering(gatheringId: string) {
         const gathering = await this.stores.gatheringStore.getById(gatheringId)
         if (!gathering) {
-            throw new EntityNotFound(`Idea ${gatheringId} not found`)
+            throw new EntityNotFound(`Gathering ${gatheringId} not found`)
         }
         return gathering
+    }
+
+    protected async getBrainstorm(brainstormId: string) {
+        const brainstorm = await this.stores.brainstormStore.getById(
+            brainstormId
+        )
+        if (!brainstorm) {
+            throw new EntityNotFound(`Brainstorm ${brainstormId} not found`)
+        }
+        return brainstorm
+    }
+
+    protected async getUser(userId: string) {
+        const user = await this.stores.userStore.getById(userId)
+        if (!user) {
+            throw new EntityNotFound(`User ${userId} not found`)
+        }
+        return user
+    }
+
+    protected async getTribe(tribeId: string) {
+        const tribe = await this.stores.tribeStore.getById(tribeId)
+        if (!tribe) {
+            throw new EntityNotFound(`Tribe ${tribeId} not found`)
+        }
+        return tribe
+    }
+    protected async getApplication(applicationId: string) {
+        const app = await this.stores.applicationStore.getById(applicationId)
+        if (!app) {
+            throw new EntityNotFound(`Application ${applicationId} not found`)
+        }
+        return app
     }
 }

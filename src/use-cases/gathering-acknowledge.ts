@@ -1,4 +1,4 @@
-import { ContextUser } from './context-user'
+import { ContextUser } from './utils/context-user'
 
 export class GateringAcknowledge extends ContextUser {
     accept = async (req: GatheringAcknowledgeRequest) => {

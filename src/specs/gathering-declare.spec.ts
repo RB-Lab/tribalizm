@@ -4,7 +4,7 @@ import {
     GatheringDeclare,
     GatheringMessage,
 } from '../use-cases/gathering-declare'
-import { EntityNotFound } from '../use-cases/not-found-error'
+import { EntityNotFound } from '../use-cases/utils/not-found-error'
 import { QuestSource } from '../use-cases/quest-source'
 import { createContext } from './test-context'
 

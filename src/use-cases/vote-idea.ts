@@ -1,26 +1,13 @@
-import { Context } from './context'
-import { BrainstormStore, IdeaStore } from './entities/brainstorm'
-import { MemberStore } from './entities/member'
-import { EntityNotFound } from './not-found-error'
+import { ContextUser } from './utils/context-user'
 
-export class Voting {
-    private _ideasStore: IdeaStore
-    private _brainstormStore: BrainstormStore
-    private _memberStore: MemberStore
-
-    constructor(context: Context) {
-        this._ideasStore = context.stores.ideaStore
-        this._memberStore = context.stores.memberStore
-        this._brainstormStore = context.stores.brainstormStore
-    }
-
+export class Voting extends ContextUser {
     start = async (brainsormId: string) => {
         const brainstorm = await this.getBrainstorm(brainsormId)
         if (brainstorm.state === 'voting') {
             return
         }
         brainstorm.toVoting()
-        await this._brainstormStore.save(brainstorm)
+        await this.stores.brainstormStore.save(brainstorm)
     }
 
     private checkVotingAllowed = async (ideaId: string, memberId: string) => {
@@ -42,37 +29,13 @@ export class Voting {
     voteUp = async (ideaId: string, memberId: string) => {
         const idea = await this.checkVotingAllowed(ideaId, memberId)
         idea.voteUp(memberId)
-        this._ideasStore.save(idea)
+        this.stores.ideaStore.save(idea)
     }
 
     voteDown = async (ideaId: string, memberId: string) => {
         const idea = await this.checkVotingAllowed(ideaId, memberId)
         idea.voteDown(memberId)
-        this._ideasStore.save(idea)
-    }
-
-    private async getMember(memberId: string) {
-        const member = await this._memberStore.getById(memberId)
-        if (!member) {
-            throw new EntityNotFound(`Member ${memberId} not found`)
-        }
-        return member
-    }
-
-    private async getIdea(ideaId: string) {
-        const idea = await this._ideasStore.getById(ideaId)
-        if (!idea) {
-            throw new EntityNotFound(`Idea ${ideaId} not found`)
-        }
-        return idea
-    }
-
-    private async getBrainstorm(brainsormId: string) {
-        const brainstorm = await this._brainstormStore.getById(brainsormId)
-        if (!brainstorm) {
-            throw new EntityNotFound(`Brainstorm ${brainsormId} not found`)
-        }
-        return brainstorm
+        this.stores.ideaStore.save(idea)
     }
 }
 

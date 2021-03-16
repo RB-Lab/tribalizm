@@ -7,14 +7,13 @@ import {
     NoChiefSetError,
     WrongPhaseError,
 } from '../use-cases/initiation'
-import { QuestMessage } from '../use-cases/quest-message'
+import { QuestMessage } from '../use-cases/utils/quest-message'
 import {
     Application,
     ApplicationPhase,
 } from '../use-cases/entities/application'
 import { Coordinates } from '../use-cases/entities/location'
 import { Member } from '../use-cases/entities/member'
-import { Message } from '../use-cases/message'
 import { IQuest, QuestStatus, QuestType } from '../use-cases/entities/quest'
 import { Tribe } from '../use-cases/entities/tribe'
 import { User } from '../use-cases/entities/user'

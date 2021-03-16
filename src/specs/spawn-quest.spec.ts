@@ -5,8 +5,8 @@ import {
     QuestStatus,
     QuestType,
 } from '../use-cases/entities/quest'
-import { NoIdeaError } from '../use-cases/no-idea-error'
-import { QuestMessage } from '../use-cases/quest-message'
+import { NoIdeaError } from '../use-cases/utils/get-root-idea'
+import { QuestMessage } from '../use-cases/utils/quest-message'
 import { QuestSource } from '../use-cases/quest-source'
 import { Voting } from '../use-cases/vote-idea'
 import { createContext, makeMessageSpy } from './test-context'

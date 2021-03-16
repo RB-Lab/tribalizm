@@ -1,17 +1,12 @@
-import { Context } from './context'
 import { IQuest } from './entities/quest'
 import { Storable } from './entities/store'
-import { EntityNotFound } from './not-found-error'
+import { ContextUser } from './utils/context-user'
 
-export class QuestFinale {
-    private context: Context
-    constructor(context: Context) {
-        this.context = context
-    }
+export class QuestFinale extends ContextUser {
     imDone = async (req: ImDoneRequest) => {
         const quest = await this.getQuest(req.questId)
         quest.finish(req.memberId)
-        await this.context.stores.questStore.save(quest)
+        await this.stores.questStore.save(quest)
     }
     getNextVoteAction = async (req: NextMemberToVoteRequest) => {
         const quest = await this.getQuest(req.questId)
@@ -31,14 +26,14 @@ export class QuestFinale {
         const quest = await this.getQuest(req.questId)
         quest.castCharisma(req.memberId, req.voteForId, req.charisma)
 
-        this.context.stores.questStore.save(quest)
+        this.stores.questStore.save(quest)
         await this.maybeCastVote(quest, req.memberId, req.voteForId)
     }
     castWisdom = async (req: WisdomCastRequest) => {
         const quest = await this.getQuest(req.questId)
         quest.castWisdom(req.memberId, req.voteForId, req.wisdom)
 
-        this.context.stores.questStore.save(quest)
+        this.stores.questStore.save(quest)
         await this.maybeCastVote(quest, req.memberId, req.voteForId)
     }
 
@@ -59,32 +54,8 @@ export class QuestFinale {
                 memberId: memberId,
                 questId: quest.id,
             })
-            this.context.stores.memberStore.save(member)
+            this.stores.memberStore.save(member)
         }
-    }
-
-    private async getMember(memberId: string) {
-        const member = await this.context.stores.memberStore.getById(memberId)
-        if (!member) {
-            throw new EntityNotFound(`Member ${memberId} not found`)
-        }
-        return member
-    }
-
-    private async getUser(userId: string) {
-        const user = await this.context.stores.userStore.getById(userId)
-        if (!user) {
-            throw new EntityNotFound(`User ${userId} not found`)
-        }
-        return user
-    }
-
-    private async getQuest(questId: string) {
-        const quest = await this.context.stores.questStore.getById(questId)
-        if (!quest) {
-            throw new EntityNotFound(`Quest ${questId} not found`)
-        }
-        return quest
     }
 }
 

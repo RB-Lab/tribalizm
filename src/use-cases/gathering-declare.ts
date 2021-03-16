@@ -1,7 +1,7 @@
-import { ContextUser } from './context-user'
+import { ContextUser } from './utils/context-user'
 import { Gathering, GatheringType } from './entities/gathering'
-import { Message } from './message'
-import { NoIdeaError } from './no-idea-error'
+import { getRootIdea } from './utils/get-root-idea'
+import { Message } from './utils/message'
 
 export class GatheringDeclare extends ContextUser {
     declare = async (req: DeclarationRequest) => {
@@ -44,18 +44,11 @@ export class GatheringDeclare extends ContextUser {
                 .map((m) => m.id)
         }
 
-        const parentQuest = await this.getQuest(req.parentQuestId)
-        let rootQuest = parentQuest
-        while (rootQuest.parentQuestId) {
-            rootQuest = await this.getQuest(rootQuest.parentQuestId)
-        }
-        if (!rootQuest.ideaId) {
-            throw new NoIdeaError(
-                `Root quest (${rootQuest.id}) for quest ${parentQuest.id} has no idea attached`
-            )
-        }
-
-        const idea = await this.getIdea(rootQuest.ideaId)
+        const ideaId = await getRootIdea(
+            this.stores.questStore,
+            req.parentQuestId
+        )
+        const idea = await this.getIdea(ideaId)
         const upvoterIds = idea.votes
             .filter((v) => v.vote === 'up')
             .map((v) => v.memberId)

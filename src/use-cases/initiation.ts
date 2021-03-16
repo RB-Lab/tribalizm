@@ -1,37 +1,14 @@
-import {
-    ApplicationPhase,
-    ApplicationStore,
-    SavedApplication,
-} from './entities/application'
-import { MemberStore, SavedMember } from './entities/member'
-import { Message } from './message'
-import { EntityNotFound } from './not-found-error'
-import { NotificationBus } from './notification-bus'
-import { Quest, QuestStore, QuestType } from './entities/quest'
-import { TribeStore } from './entities/tribe'
-import { UserStore } from './entities/user'
-import { Context } from './context'
 import { ApplicationMessage } from './apply-tribe'
-import { QuestMessage } from './quest-message'
+import { ApplicationPhase, SavedApplication } from './entities/application'
+import { SavedMember } from './entities/member'
+import { Quest, QuestType } from './entities/quest'
+import { QuestMessage } from './utils/quest-message'
+import { ContextUser } from './utils/context-user'
+import { Message } from './utils/message'
 
-export class Initiation {
-    private applicationStore: ApplicationStore
-    private notififcationBus: NotificationBus
-    private tribeStore: TribeStore
-    private memberStore: MemberStore
-    private userStore: UserStore
-    private questStore: QuestStore
-    constructor(context: Context) {
-        this.notififcationBus = context.async.notififcationBus
-        this.applicationStore = context.stores.applicationStore
-        this.tribeStore = context.stores.tribeStore
-        this.memberStore = context.stores.memberStore
-        this.userStore = context.stores.userStore
-        this.questStore = context.stores.questStore
-    }
-
+export class Initiation extends ContextUser {
     startInitiation = async (req: InitiationRequest) => {
-        const app = await this.getApp(req.applicationId)
+        const app = await this.getApplication(req.applicationId)
         if (!app.chiefId) {
             throw new NoChiefSetError(
                 `Cannot initiate ${req.applicationId}: chief is not assigned`
@@ -49,8 +26,8 @@ export class Initiation {
             place: req.place,
             memberIds: [app.chiefId, app.memberId],
         })
-        const quest = await this.questStore.save(newQuest)
-        this.notififcationBus.notify<QuestMessage>({
+        const quest = await this.stores.questStore.save(newQuest)
+        this.notify<QuestMessage>({
             type: 'new-quest-message',
             payload: {
                 ...quest,
@@ -59,10 +36,10 @@ export class Initiation {
             },
         })
         app.nextPhase()
-        await this.applicationStore.save(app)
+        await this.stores.applicationStore.save(app)
     }
     approveByChief = async (req: ChiefApprovalRequest) => {
-        const app = await this.getApp(req.applicationId)
+        const app = await this.getApplication(req.applicationId)
         this.checkElder(app.chiefId, req.memberId, app.memberId)
 
         if (app.phase !== ApplicationPhase.chiefInitiation) {
@@ -79,8 +56,8 @@ export class Initiation {
         if (tribe.shamanId) {
             app.nextPhase()
             app.shamanId = tribe.shamanId
-            await this.applicationStore.save(app)
-            this.notififcationBus.notify<ApplicationMessage>({
+            await this.stores.applicationStore.save(app)
+            this.notify<ApplicationMessage>({
                 type: 'application-message',
                 payload: {
                     applicationId: app.id,
@@ -94,7 +71,7 @@ export class Initiation {
         }
     }
     startShamanInitiation = async (req: InitiationRequest) => {
-        const app = await this.getApp(req.applicationId)
+        const app = await this.getApplication(req.applicationId)
         if (app.phase !== ApplicationPhase.awaitingShaman) {
             throw new WrongPhaseError(
                 `Cannot startShamanInitiation when application is in "${app.phase}" phase`
@@ -115,8 +92,8 @@ export class Initiation {
             place: req.place,
             memberIds: [app.shamanId, app.memberId],
         })
-        const quest = await this.questStore.save(newQuest)
-        this.notififcationBus.notify<QuestMessage>({
+        const quest = await this.stores.questStore.save(newQuest)
+        this.notify<QuestMessage>({
             type: 'new-quest-message',
             payload: {
                 ...quest,
@@ -125,10 +102,10 @@ export class Initiation {
             },
         })
         app.nextPhase()
-        this.applicationStore.save(app)
+        this.stores.applicationStore.save(app)
     }
     approveByShaman = async (req: ShamanApprovalRequest) => {
-        const app = await this.getApp(req.applicationId)
+        const app = await this.getApplication(req.applicationId)
         if (app.phase !== ApplicationPhase.shamanInitiation) {
             throw new WrongPhaseError(
                 `Cannot approveByShaman when application is in "${app.phase}" phase`
@@ -142,7 +119,7 @@ export class Initiation {
         await this.approve(app, member)
     }
     decline = async (req: DeclineRequest) => {
-        const app = await this.getApp(req.applicationId)
+        const app = await this.getApplication(req.applicationId)
         if (app.chiefId === req.memberId) {
             if (app.phase !== ApplicationPhase.chiefInitiation) {
                 throw new WrongPhaseError(
@@ -161,8 +138,8 @@ export class Initiation {
             )
         }
         app.decline()
-        await this.applicationStore.save(app)
-        this.notififcationBus.notify<ApplicationDeclined>({
+        await this.stores.applicationStore.save(app)
+        this.notify<ApplicationDeclined>({
             type: 'application-declined',
             payload: {
                 targetMemberId: app.memberId,
@@ -185,46 +162,14 @@ export class Initiation {
     private async approve(app: SavedApplication, member: SavedMember) {
         app.approve()
         member.isCandidate = false
-        await this.memberStore.save(member)
-        await this.applicationStore.save(app)
-        this.notififcationBus.notify<ApplicationApproved>({
+        await this.stores.memberStore.save(member)
+        await this.stores.applicationStore.save(app)
+        this.notify<ApplicationApproved>({
             type: 'application-approved',
             payload: {
                 targetMemberId: member.id,
             },
         })
-    }
-
-    private async getUser(userId: string) {
-        const user = await this.userStore.getById(userId)
-        if (!user) {
-            throw new EntityNotFound(`User ${userId} not found`)
-        }
-        return user
-    }
-
-    private async getMember(memberId: string) {
-        const member = await this.memberStore.getById(memberId)
-        if (!member) {
-            throw new EntityNotFound(`Member ${memberId} not found`)
-        }
-        return member
-    }
-
-    private async getTribe(tribeId: string) {
-        const tribe = await this.tribeStore.getById(tribeId)
-        if (!tribe) {
-            throw new EntityNotFound(`Tribe ${tribeId} not found`)
-        }
-        return tribe
-    }
-
-    private async getApp(applicationId: string) {
-        const app = await this.applicationStore.getById(applicationId)
-        if (!app) {
-            throw new EntityNotFound(`Application ${applicationId} not found`)
-        }
-        return app
     }
 }
 

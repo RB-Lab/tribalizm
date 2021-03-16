@@ -1,5 +1,5 @@
-import { Message } from '../../use-cases/message'
-import { NotificationBus } from '../../use-cases/notification-bus'
+import { Message } from '../../use-cases/utils/message'
+import { NotificationBus } from '../../use-cases/utils/notification-bus'
 
 type Subscriber = <T extends Message>(message: T) => void
 

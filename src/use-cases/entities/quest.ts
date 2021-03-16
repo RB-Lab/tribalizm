@@ -27,6 +27,7 @@ export interface IQuest extends IQuestData {
     /** @returns members to notify */
     propose: (time: number, place: string, memberId: string) => string[]
     decline: (memberId: string) => void
+    addAssignee: (memberId: string) => void
     finish: (memberId: string) => void
     getNextVoteAction: (memberId: string) => VoteAction | null
     castCharisma: (
@@ -103,6 +104,9 @@ export class Quest implements IQuest {
         this.checkAssigned(memberId)
         this.memberIds = this.memberIds.filter((id) => id !== memberId)
         this.acceptedIds = this.acceptedIds.filter((id) => id !== memberId)
+    }
+    addAssignee = (memberId: string) => {
+        this.memberIds = [...this.memberIds, memberId]
     }
 
     finish = (memberId: string) => {
