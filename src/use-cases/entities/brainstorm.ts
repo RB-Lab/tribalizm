@@ -1,4 +1,4 @@
-import { Store } from './store'
+import { Storable, Store } from './store'
 
 export interface IdeaStore extends Store<IQuestIdea> {}
 
@@ -6,32 +6,29 @@ export interface BrainstormStore extends Store<IBrainstorm> {}
 
 export type BrainstormState = 'initiated' | 'generation' | 'voting' | 'finished'
 
-export interface IBrainstorm {
+export interface IBrainstormData {
     id: string | null
     tribeId: string
     state: BrainstormState
-    date: number
+    time: number
+}
+export interface IBrainstorm extends IBrainstormData {
     toVoting: () => void
+    start: () => void
     finish: () => void
 }
-export interface SavedBrainstorm extends IBrainstorm {
-    id: string
-}
+export type RequiredParams = Pick<IBrainstormData, 'tribeId' | 'time'>
+
 export class Brainstorm implements IBrainstorm {
     public id: string | null
     public tribeId: string
     public state: BrainstormState
-    public date: number
-    constructor(params: {
-        id?: string
-        tribeId: string
-        state?: BrainstormState
-        date?: number
-    }) {
+    public time: number
+    constructor(params: RequiredParams & Partial<IBrainstormData & Storable>) {
         this.id = params.id || null
         this.tribeId = params.tribeId
         this.state = params.state || 'initiated'
-        this.date = params.date || Date.now()
+        this.time = params.time
     }
 
     toVoting = () => {
@@ -41,6 +38,9 @@ export class Brainstorm implements IBrainstorm {
             )
         }
         this.state = 'voting'
+    }
+    start = () => {
+        this.state = 'generation'
     }
     finish = () => {
         this.state = 'finished'

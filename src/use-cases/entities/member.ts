@@ -1,15 +1,8 @@
-export interface MemberStore {
-    find: (params: {
-        tribeId?: string | string[]
-        id?: string | string[]
-        userId?: string | string[]
-    }) => Promise<SavedMember[]>
-    getById: (id: string) => Promise<SavedMember | null>
-    save: (member: IMember) => Promise<SavedMember>
-    saveBulk: (member: IMember[]) => Promise<SavedMember[]>
-}
+import { Storable, Store } from './store'
 
-export interface IMember {
+export interface MemberStore extends Store<IMember> {}
+
+export interface IMemberData {
     id: string | null
     userId: string
     tribeId: string
@@ -17,11 +10,12 @@ export interface IMember {
     wisdom: number
     isCandidate: boolean
     votes: MemberVote[]
+}
+
+export interface IMember extends IMemberData {
     castVote: (vote: MemberVote) => void
 }
-export interface SavedMember extends IMember {
-    id: string
-}
+export type SavedMember = IMember & Storable
 
 export class Member implements IMember {
     public id: string | null
@@ -32,7 +26,8 @@ export class Member implements IMember {
     public isCandidate: boolean
     public votes: MemberVote[]
     constructor(
-        params: Partial<SavedMember> & Pick<IMember, 'userId' | 'tribeId'>
+        params: Partial<IMemberData & Storable> &
+            Pick<IMember, 'userId' | 'tribeId'>
     ) {
         this.id = params.id || null
         this.userId = params.userId

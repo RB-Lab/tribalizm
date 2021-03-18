@@ -1,5 +1,5 @@
 import { ApplicationMessage } from './apply-tribe'
-import { ApplicationPhase, SavedApplication } from './entities/application'
+import { ApplicationPhase, IApplication } from './entities/application'
 import { SavedMember } from './entities/member'
 import { Quest, QuestType } from './entities/quest'
 import { QuestMessage } from './utils/quest-message'
@@ -159,7 +159,7 @@ export class Initiation extends ContextUser {
         }
     }
 
-    private async approve(app: SavedApplication, member: SavedMember) {
+    private async approve(app: IApplication, member: SavedMember) {
         app.approve()
         member.isCandidate = false
         await this.stores.memberStore.save(member)

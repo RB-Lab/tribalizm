@@ -1,23 +1,19 @@
 import { Coordinates } from './location'
+import { Storable, Store } from './store'
 
-export interface UserStore {
-    getById: (id: string) => Promise<SavedUser | null>
-}
+export interface UserStore extends Store<IUser> {}
 
 export interface IUser {
     id: string | null
     name: string
     coordinates: Coordinates | null
 }
-export interface SavedUser extends IUser {
-    id: string
-}
 
 export class User implements IUser {
     public id: string | null
     public name: string
     public coordinates: Coordinates | null
-    constructor(params: Pick<IUser, 'name'> & Partial<SavedUser>) {
+    constructor(params: Pick<IUser, 'name'> & Partial<IUser & Storable>) {
         this.id = params.id || null
         this.name = params.name
         this.coordinates = params.coordinates || null

@@ -272,6 +272,7 @@ async function setUp(settings: Settings = {}) {
     const brainstorm = await context.stores.brainstormStore.save(
         new Brainstorm({
             tribeId: tribe.id,
+            time: Date.now() + 100_500_000,
         })
     )
     const rawIdeas = range(settings.ideas || 1).map(

@@ -40,6 +40,7 @@ describe('Voting', () => {
                 id: world.brainstorm.id,
                 tribeId: world.brainstorm.tribeId,
                 state: 'finished',
+                time: Date.now() + 100_500_000,
             })
         )
         await expectAsync(
@@ -175,6 +176,7 @@ async function setUp() {
         new Brainstorm({
             tribeId: tribe.id,
             state: 'generation',
+            time: Date.now() + 100_500_000,
         })
     )
     const idea = await context.stores.ideaStore.save(

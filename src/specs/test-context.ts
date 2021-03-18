@@ -9,6 +9,7 @@ import { InMemoryQuestStore } from '../plugins/testing/quest-store'
 import { InMemoryTaskStore } from '../plugins/testing/task-store'
 import { InMemoryTribeStore } from '../plugins/testing/tribe-store'
 import { InMemoryUserStore } from '../plugins/testing/user-store'
+import { Application } from '../use-cases/entities/application'
 import { Brainstorm, QuestIdea } from '../use-cases/entities/brainstorm'
 import { Gathering } from '../use-cases/entities/gathering'
 import { Member } from '../use-cases/entities/member'
@@ -30,10 +31,10 @@ export function createContext() {
     const notififcationBus = new TestNotificationBus()
     const ideaStore = new InMemoryIdeaStore(QuestIdea)
     const brainstormStore = new InMemoryBrainstormStore(Brainstorm)
-    const applicationStore = new InMemoryApplicationStore()
-    const memberStore = new InMemoryMemberStore()
+    const applicationStore = new InMemoryApplicationStore(Application)
+    const memberStore = new InMemoryMemberStore(Member)
     const questStore = new InMemoryQuestStore(Quest)
-    const tribeStore = new InMemoryTribeStore()
+    const tribeStore = new InMemoryTribeStore(Tribe)
     const userStore = new InMemoryUserStore(User)
     const taskStore = new InMemoryTaskStore()
     const gatheringStore = new InMemoryGatheringStore(Gathering)
@@ -50,6 +51,7 @@ export function createContext() {
                     new Member({
                         tribeId: tribe.id,
                         userId: `user${i}.id`,
+                        isCandidate: false,
                     })
             )
         )
@@ -66,6 +68,7 @@ export function createContext() {
             new Brainstorm({
                 tribeId: tribe.id,
                 state: 'voting',
+                time: Date.now() + 100_500_000,
             })
         )
         const idea = await ideaStore.save(

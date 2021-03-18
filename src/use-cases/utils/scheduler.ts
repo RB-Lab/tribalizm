@@ -1,28 +1,70 @@
-import { Context } from './context'
-import { ITask } from '../entities/task'
 import { EntityNotFound } from './not-found-error'
+import { Storable, Store } from '../entities/store'
+
+export interface TaskStore extends Store<ITask> {
+    getAwaitingTasks: (time: number) => Promise<Array<ITask & Storable>>
+}
+
+export interface ITask {
+    time: number
+    done: boolean
+    type: string
+    payload: object | null
+}
 
 export class Scheduler {
-    private context: Context
-    constructor(context: Context) {
-        this.context = context
+    private taskStore: TaskStore
+    constructor(taskStore: TaskStore) {
+        this.taskStore = taskStore
     }
-    schedule = async (task: ITask) => {
-        this.context.stores.taskStore.save(task)
+    schedule = async <T extends ITask>(task: T) => {
+        this.taskStore.save(task)
     }
     getTasks = async () => {
-        return await this.context.stores.taskStore.getAwaitingTasks(Date.now())
+        return await this.taskStore.getAwaitingTasks(Date.now())
     }
     markDone = async (taskId: string) => {
         const task = await this.getTask(taskId)
         task.done = true
-        this.context.stores.taskStore.save(task)
+        this.taskStore.save(task)
     }
     private async getTask(taskId: string) {
-        const task = await this.context.stores.taskStore.getById(taskId)
+        const task = await this.taskStore.getById(taskId)
         if (!task) {
             throw new EntityNotFound(`Task ${taskId} not found`)
         }
         return task
     }
+}
+
+export interface StormNotify extends ITask {
+    time: number
+    done: boolean
+    type: 'notfy-brainstorm'
+    payload: {
+        brainstormId: string
+    }
+}
+export function isStormNotify(task: ITask): task is StormNotify {
+    return (
+        task.type === 'notfy-brainstorm' &&
+        task.payload !== null &&
+        'brainstormId' in task.payload
+    )
+}
+
+export interface StormStart extends ITask {
+    time: number
+    done: boolean
+    type: 'start-brainstorm'
+    payload: {
+        brainstormId: string
+    }
+}
+export function isStormStart(task: ITask): task is StormStart {
+    return (
+        task.type === 'start-brainstorm' &&
+        task.payload !== null &&
+        'brainstormId' in task.payload
+    )
 }

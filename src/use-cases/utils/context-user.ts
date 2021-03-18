@@ -1,13 +1,16 @@
 import { Context } from './context'
 import { Message } from './message'
 import { EntityNotFound } from './not-found-error'
+import { Scheduler } from './scheduler'
 
 export class ContextUser {
     protected stores: Context['stores']
     protected bus: Context['async']['notififcationBus']
+    protected scheduler: Scheduler
     constructor(context: Context) {
         this.stores = context.stores
         this.bus = context.async.notififcationBus
+        this.scheduler = new Scheduler(context.stores.taskStore)
     }
     protected notify<T extends Message>(message: T) {
         return this.bus.notify<T>(message)

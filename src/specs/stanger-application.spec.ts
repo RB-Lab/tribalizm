@@ -5,7 +5,7 @@ import {
 } from '../use-cases/apply-tribe'
 import {
     ApplicationPhase,
-    SavedApplication,
+    IApplication,
 } from '../use-cases/entities/application'
 import { Coordinates } from '../use-cases/entities/location'
 import { Member, SavedMember } from '../use-cases/entities/member'
@@ -52,7 +52,7 @@ describe('Stranger application', () => {
         )
         const savedApp = await world.applicationStore.getById(app.id)
         expect(savedApp).toEqual(
-            jasmine.objectContaining<SavedApplication>({
+            jasmine.objectContaining<IApplication>({
                 coverLetter,
                 tribeId: world.tribe.id,
                 chiefId: world.tribe.chiefId,

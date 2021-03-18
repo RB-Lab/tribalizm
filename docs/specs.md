@@ -34,13 +34,13 @@
 19. ❗ An _admin_ notifies a _cheif_ that it is time to gather a _brainstorm_
 20. ❕ The _system_ notifies a _cheif_ that it is time to gather a _brainstorm_ when there is not very
     much ongoing quests left (e.g. < 20% members)
-21. 🔜 A _tribe cheif_ declares a _brainstorm_ date
-22. ❗ A _member_ gets notification about declared _brainstorm_ (note: skip candidates)
-23. ❗ A _member_ gets invite to just started _brainstorm_
+21. ✅ A _tribe cheif_ declares a _brainstorm_ date
+22. ✅ A _member_ gets notification about declared _brainstorm_ (note: skip candidates)
+23. ✅ A _member_ gets invite to just started _brainstorm_
 24. ❗ A _member_ adds a _quest idea_
-25. ❗ The _system_ transitions _brainstorm_ to voting state
+25. 🔜 The _system_ transitions _brainstorm_ to voting state
 26. ✅ A _member_ vote for a _quest idea_
-27. ❗ The _system_ transitions _brainstorm_ to finished state
+27. 🔜 The _system_ transitions _brainstorm_ to finished state
 28. ✅ The _system_ makes a coordintation _quest_ from popular _quest ideas_ and assigns it to entry
     starter and most charismatic or most wise up-voted _member_; it balances amount of assigned
     quests; 😕❓ it uses random noise; it assign quest without date and place
@@ -81,7 +81,7 @@
 52. ❕ A _member_ wants to be notified about the quest the day before it appointed (or other time
     period? or add to calendar)
 
-Done: 20, In porgres: 1, Must: 16, Should: 15, total: 52
+Done: 23, In porgres: 2, Must: 12, Should: 15, total: 52
 
 ## Entities
 
