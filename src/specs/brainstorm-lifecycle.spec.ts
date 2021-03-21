@@ -2,15 +2,19 @@ import {
     BrainstormDeclarationMessage,
     BrainstormNoticeMessage,
     BrainstormStartedMessage,
-    DeclareBrainstorm,
+    BrainstormLifecycle,
     NotAChiefError,
-} from '../use-cases/declare-brainstorm'
+    VotingStartedMessage,
+} from '../use-cases/brainstorm-lifecycle'
 import { Brainstorm, IBrainstormData } from '../use-cases/entities/brainstorm'
 import {
     isStormNotify,
     isStormStart,
+    isStormToVoting,
+    StormFinalyze,
     StormNotify,
     StormStart,
+    StormToVoting,
 } from '../use-cases/utils/scheduler'
 import { createContext } from './test-context'
 
@@ -20,7 +24,7 @@ describe('Brainstorm declaration', () => {
         const onDeclare = world.spyOnMessage<BrainstormDeclarationMessage>(
             'new-brainstorm'
         )
-        await world.stromDeclaration.declare(world.defReq)
+        await world.stromCycle.declare(world.defReq)
         expect(onDeclare).toHaveBeenCalledTimes(world.members.length - 2)
         expect(onDeclare).toHaveBeenCalledWith(
             jasmine.objectContaining<BrainstormDeclarationMessage>({
@@ -45,7 +49,7 @@ describe('Brainstorm declaration', () => {
         const onDeclare = world.spyOnMessage<BrainstormDeclarationMessage>(
             'new-brainstorm'
         )
-        await world.stromDeclaration.declare(world.defReq)
+        await world.stromCycle.declare(world.defReq)
         const notified = onDeclare.calls
             .allArgs()
             .map((args) => args[0].payload.targetMemberId)
@@ -53,7 +57,7 @@ describe('Brainstorm declaration', () => {
     })
     it('creates a brainstorm', async () => {
         const world = await setUp()
-        await world.stromDeclaration.declare(world.defReq)
+        await world.stromCycle.declare(world.defReq)
         const storms = await world.brainstormStore.find({})
         expect(storms.length).toBe(1)
         expect(storms[0]).toEqual(
@@ -66,7 +70,7 @@ describe('Brainstorm declaration', () => {
     })
     it('alocates two tasks to notify about storm', async () => {
         const world = await setUp()
-        await world.stromDeclaration.declare(world.defReq)
+        await world.stromCycle.declare(world.defReq)
         const tasks = await world.taskStore.find({ type: 'notfy-brainstorm' })
         const storms = await world.brainstormStore.find({})
         expect(tasks.length).toEqual(2)
@@ -93,7 +97,7 @@ describe('Brainstorm declaration', () => {
     })
     it('alocates a task to start brainstorm', async () => {
         const world = await setUp()
-        await world.stromDeclaration.declare(world.defReq)
+        await world.stromCycle.declare(world.defReq)
         const tasks = await world.taskStore.find({ type: 'start-brainstorm' })
         const storms = await world.brainstormStore.find({})
         expect(tasks.length).toEqual(1)
@@ -111,7 +115,7 @@ describe('Brainstorm declaration', () => {
     it('FAILs to declare not by chief', async () => {
         const world = await setUp()
         await expectAsync(
-            world.stromDeclaration.declare({
+            world.stromCycle.declare({
                 memberId: world.members[3].id,
                 time: Date.now(),
             })
@@ -136,7 +140,7 @@ describe('Brainstorm declaration', () => {
             payload: { brainstormId: brainstorm.id },
         })
         if (isStormNotify(task)) {
-            await world.stromDeclaration.notifyMembers(task)
+            await world.stromCycle.notifyMembers(task)
         }
         expect(onNotify).toHaveBeenCalledTimes(world.members.length - 1)
         expect(onNotify).toHaveBeenCalledWith(
@@ -157,21 +161,7 @@ describe('Brainstorm declaration', () => {
         const onStart = world.spyOnMessage<BrainstormStartedMessage>(
             'brainstorm-started'
         )
-        const brainstorm = await world.brainstormStore.save(
-            new Brainstorm({
-                time: Date.now() + 100_500_000,
-                tribeId: world.tribe.id,
-            })
-        )
-        const task = await world.taskStore.save({
-            type: 'start-brainstorm',
-            done: false,
-            time: Date.now(),
-            payload: { brainstormId: brainstorm.id },
-        })
-        if (isStormStart(task)) {
-            await world.stromDeclaration.startStorm(task)
-        }
+        const { brainstorm, task } = await world.startStorm()
 
         expect(onStart).toHaveBeenCalledTimes(world.members.length - 1)
         expect(onStart).toHaveBeenCalledWith(
@@ -183,30 +173,87 @@ describe('Brainstorm declaration', () => {
                 },
             })
         )
-        const doneTask = await world.taskStore.getById(task.id)
-        expect(doneTask!.done).toBe(true)
     })
     it('starts the storm', async () => {
         const world = await setUp()
-        const brainstorm = await world.brainstormStore.save(
-            new Brainstorm({
-                time: Date.now() + 100_500_000,
-                tribeId: world.tribe.id,
-            })
-        )
-        const task = await world.taskStore.save({
-            type: 'start-brainstorm',
-            done: false,
-            time: Date.now(),
-            payload: { brainstormId: brainstorm.id },
-        })
-        if (isStormStart(task)) {
-            await world.stromDeclaration.startStorm(task)
-        }
-        const startedBrainstor = await world.brainstormStore.getById(
+        const { brainstorm } = await world.startStorm()
+        const startedBrainstorm = await world.brainstormStore.getById(
             brainstorm.id
         )
-        expect(startedBrainstor?.state).toEqual('generation')
+        expect(startedBrainstorm?.state).toEqual('generation')
+    })
+    it('marks StormStart done', async () => {
+        const world = await setUp()
+        const { task } = await world.startStorm()
+        const taskAfter = await world.taskStore.getById(task.id)
+        expect(task.done).withContext('task before').toBe(false)
+        expect(taskAfter!.done).withContext('task after').toBe(true)
+    })
+    it('allocates a task for strom transition', async () => {
+        const world = await setUp()
+        const { brainstorm } = await world.startStorm()
+        const tasks = await world.taskStore.find({
+            type: 'brainstorm-to-voting',
+        })
+        expect(tasks.length).toEqual(1)
+        expect(tasks[0]).toEqual(
+            jasmine.objectContaining<StormToVoting>({
+                done: false,
+                time: jasmine.any(Number),
+                type: 'brainstorm-to-voting',
+                payload: { brainstormId: brainstorm.id },
+            })
+        )
+        expect(tasks[0].time).toBeGreaterThan(Date.now() + 10 * 60_000 - 1000)
+        expect(tasks[0].time).toBeLessThan(Date.now() + 10 * 60_000 + 1000)
+    })
+    it('transitions strom to voting', async () => {
+        const world = await setUp()
+        const { brainstorm } = await world.stormToVoting()
+        const storm = await world.brainstormStore.getById(brainstorm.id)
+        expect(storm?.state).toEqual('voting')
+    })
+    it('marks StormToVoting task as done', async () => {
+        const world = await setUp()
+        const { task } = await world.stormToVoting()
+        const taskAfter = await world.taskStore.getById(task.id)
+        expect(task.done).withContext('task before').toBe(false)
+        expect(taskAfter!.done).withContext('task after').toBe(true)
+    })
+    it('Notifies all members on start voting', async () => {
+        const world = await setUp()
+        const onVoting = world.spyOnMessage<VotingStartedMessage>(
+            'voting-started'
+        )
+        const { brainstorm } = await world.stormToVoting()
+        expect(onVoting).toHaveBeenCalledTimes(world.members.length - 1)
+        expect(onVoting).toHaveBeenCalledWith(
+            jasmine.objectContaining<VotingStartedMessage>({
+                type: 'voting-started',
+                payload: {
+                    brainstormId: brainstorm.id,
+                    targetMemberId: world.members[1].id,
+                },
+            })
+        )
+    })
+    it('Alocates a taks for storm to end', async () => {
+        const world = await setUp()
+        const { brainstorm } = await world.stormToVoting()
+        const tasks = await world.taskStore.find({
+            type: 'brainstorm-to-finalyze',
+        })
+        expect(tasks.length).toEqual(1)
+        expect(tasks[0]).toEqual(
+            jasmine.objectContaining<StormFinalyze>({
+                done: false,
+                time: jasmine.any(Number),
+                type: 'brainstorm-to-finalyze',
+                payload: { brainstormId: brainstorm.id },
+            })
+        )
+        expect(tasks[0].time).toBeGreaterThan(Date.now() + 5 * 60_000 - 1000)
+        expect(tasks[0].time).toBeLessThan(Date.now() + 5 * 60_000 + 1000)
     })
 })
 
@@ -218,19 +265,49 @@ async function setUp() {
     candidate.isCandidate = true
     await context.stores.memberStore.save(candidate)
     await context.stores.tribeStore.save(tribe)
-    const stromDeclaration = new DeclareBrainstorm(context)
+    const stromCycle = new BrainstormLifecycle(context)
     const time = Date.now() + 5 * 24 * 3600000
     const defReq = {
         memberId: tribe.chiefId!,
         time: time,
     }
+
+    const startStorm = async () => {
+        const brainstorm = await context.stores.brainstormStore.save(
+            new Brainstorm({ time: Date.now(), tribeId: tribe.id })
+        )
+        const task = await context.stores.taskStore.save({
+            type: 'start-brainstorm',
+            done: false,
+            time: Date.now(),
+            payload: { brainstormId: brainstorm.id },
+        })
+        if (isStormStart(task)) {
+            await stromCycle.startStorm(task)
+        }
+        return { task, brainstorm }
+    }
+    const stormToVoting = async () => {
+        const { brainstorm } = await startStorm()
+        const task = (
+            await context.stores.taskStore.find({
+                type: 'brainstorm-to-voting',
+            })
+        )[0]
+        if (isStormToVoting(task)) {
+            await stromCycle.toVoting(task)
+        }
+        return { task, brainstorm }
+    }
     return {
         ...context.stores,
         candidate,
-        stromDeclaration,
+        stromCycle,
         tribe,
         members,
         defReq,
         spyOnMessage: context.testing.spyOnMessage,
+        startStorm,
+        stormToVoting,
     }
 }

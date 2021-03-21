@@ -68,3 +68,33 @@ export function isStormStart(task: ITask): task is StormStart {
         'brainstormId' in task.payload
     )
 }
+export interface StormToVoting extends ITask {
+    time: number
+    done: boolean
+    type: 'brainstorm-to-voting'
+    payload: {
+        brainstormId: string
+    }
+}
+export function isStormToVoting(task: ITask): task is StormToVoting {
+    return (
+        task.type === 'brainstorm-to-voting' &&
+        task.payload !== null &&
+        'brainstormId' in task.payload
+    )
+}
+export interface StormFinalyze extends ITask {
+    time: number
+    done: boolean
+    type: 'brainstorm-to-finalyze'
+    payload: {
+        brainstormId: string
+    }
+}
+export function isStormFinalyze(task: ITask): task is StormFinalyze {
+    return (
+        task.type === 'brainstorm-to-finalyze' &&
+        task.payload !== null &&
+        'brainstormId' in task.payload
+    )
+}

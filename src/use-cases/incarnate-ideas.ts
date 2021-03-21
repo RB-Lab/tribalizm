@@ -3,12 +3,14 @@ import { Quest } from './entities/quest'
 import { QuestMessage } from './utils/quest-message'
 import { ContextUser } from './utils/context-user'
 import { getBestFreeMember, minQuests } from './utils/get-best-free-member'
+import { StormFinalyze } from './utils/scheduler'
+import { Storable } from './entities/store'
 
 export class IdeasIncarnation extends ContextUser {
-    incarnateIdeas = async (brainstormId: string) => {
-        const brainstorm = await this.getBrainstorm(brainstormId)
+    incarnateIdeas = async (task: StormFinalyze & Storable) => {
+        const brainstorm = await this.getBrainstorm(task.payload.brainstormId)
         const ideas = await this.stores.ideaStore.find({
-            brainstormId,
+            brainstormId: brainstorm.id,
         })
         const members = await this.stores.memberStore.find({
             tribeId: brainstorm.tribeId,
@@ -40,6 +42,7 @@ export class IdeasIncarnation extends ContextUser {
                 })
             })
         })
+        await this.scheduler.markDone(task.id)
     }
 
     private incarnate = async (idea: SavedQuestIdea) => {

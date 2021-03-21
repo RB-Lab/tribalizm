@@ -37,10 +37,10 @@
 21. ✅ A _tribe cheif_ declares a _brainstorm_ date
 22. ✅ A _member_ gets notification about declared _brainstorm_ (note: skip candidates)
 23. ✅ A _member_ gets invite to just started _brainstorm_
-24. ❗ A _member_ adds a _quest idea_
-25. 🔜 The _system_ transitions _brainstorm_ to voting state
+24. 🔜 A _member_ adds a _quest idea_
+25. ✅ The _system_ transitions _brainstorm_ to voting state
 26. ✅ A _member_ vote for a _quest idea_
-27. 🔜 The _system_ transitions _brainstorm_ to finished state
+27. ✅ The _system_ transitions _brainstorm_ to finished state
 28. ✅ The _system_ makes a coordintation _quest_ from popular _quest ideas_ and assigns it to entry
     starter and most charismatic or most wise up-voted _member_; it balances amount of assigned
     quests; 😕❓ it uses random noise; it assign quest without date and place
@@ -77,11 +77,10 @@
 48. ❗ The _system_ makes most charismatic member tribes _chief_
 49. ❗ The _system_ makes most wise member tribes _shaman_
 50. ❕ A _member_ wants to leave the game (inc. _chief_ and _shaman_)
-51. ❕ TODO When a user logs-in with new coordinates...
-52. ❕ A _member_ wants to be notified about the quest the day before it appointed (or other time
+51. ❕ A _member_ wants to be notified about the quest the day before it appointed (or other time
     period? or add to calendar)
 
-Done: 23, In porgres: 2, Must: 12, Should: 15, total: 52
+Done: 25, In porgres: 1, Must: 11, Should: 15, total: 51
 
 ## Entities
 
@@ -103,6 +102,15 @@ Done: 23, In porgres: 2, Must: 12, Should: 15, total: 52
     -   Charisma score (caster, member, score)
     -   Wisdome score (caster, member, score)
 
-## TODO design
+## TODO
+
+### Design
 
 -   Fault tolerance: resurect system from persisted state
+-   Reliability: use transactions in when update stores
+
+### UX
+
+1.  What to do when a user logs-in with new coordinates...
+2.  What if several tribes have a brainstorm at the same time (for one user)
+3.  How to list user's own tribes?

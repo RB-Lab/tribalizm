@@ -6,6 +6,8 @@ import { Tribe } from '../use-cases/entities/tribe'
 import { IdeasIncarnation } from '../use-cases/incarnate-ideas'
 import { QuestMessage } from '../use-cases/utils/quest-message'
 import { createContext } from './test-context'
+import { StormFinalyze } from '../use-cases/utils/scheduler'
+import { Storable } from '../use-cases/entities/store'
 
 describe('When brainstorm is over', () => {
     describe('Ideas to quests incarnation', () => {
@@ -21,7 +23,7 @@ describe('When brainstorm is over', () => {
             const ideas = await world.getIdeas()
             await Promise.all(ideas.map((i, n) => world.vote(n, votes)))
 
-            await world.incarnation.incarnateIdeas(world.brainstorm.id)
+            await world.incarnation.incarnateIdeas(world.task)
             const quests = await world.questStore.find({
                 ideaId: ideas.map((i) => i.id),
             })
@@ -36,7 +38,7 @@ describe('When brainstorm is over', () => {
             world.vote(4, { up: 0, down: 3 }) // -3 no
             world.vote(5, { up: 3, down: 0 }) // +3 yes
 
-            await world.incarnation.incarnateIdeas(world.brainstorm.id)
+            await world.incarnation.incarnateIdeas(world.task)
 
             expect(await world.getQuestByIdeaN(0))
                 .withContext('idea 0')
@@ -77,7 +79,7 @@ describe('When brainstorm is over', () => {
         })
         it('finalises containing ideas', async () => {
             const world = await setUp({ ideas: 3 })
-            await world.incarnation.incarnateIdeas(world.brainstorm.id)
+            await world.incarnation.incarnateIdeas(world.task)
             const ideas = await world.getIdeas()
             expect(ideas.length).toEqual(3)
             ideas.forEach((idea) => {
@@ -86,11 +88,18 @@ describe('When brainstorm is over', () => {
         })
         it('finalises itself', async () => {
             const world = await setUp()
-            await world.incarnation.incarnateIdeas(world.brainstorm.id)
+            await world.incarnation.incarnateIdeas(world.task)
             const brainstorm = await world.brainstormStore.getById(
                 world.brainstorm.id
             )
             expect(brainstorm?.state).toEqual('finished')
+        })
+        it('makrs StormFinalyze task as done', async () => {
+            const world = await setUp()
+            await world.incarnation.incarnateIdeas(world.task)
+            const taskAfter = await world.taskStore.getById(world.task.id)
+            expect(world.task.done).withContext('task before').toBe(false)
+            expect(taskAfter!.done).withContext('task after').toBe(true)
         })
     })
     describe('Quests assignment', () => {
@@ -124,7 +133,7 @@ describe('When brainstorm is over', () => {
             idea.voteDown(world.members[4].id)
             idea.voteUp(world.members[5].id)
             idea.voteUp(world.members[6].id)
-            await world.incarnation.incarnateIdeas(world.brainstorm.id)
+            await world.incarnation.incarnateIdeas(world.task)
             const quest = await world.getQuestByIdeaN(0)
             expect(quest.memberIds).not.toContain(world.members[1].id)
             expect(quest.memberIds).not.toContain(world.members[4].id)
@@ -284,6 +293,14 @@ async function setUp(settings: Settings = {}) {
             })
     )
     const ideas = await context.stores.ideaStore.saveBulk(rawIdeas)
+    const task = (await context.stores.taskStore.save({
+        time: Date.now(),
+        done: false,
+        type: 'brainstorm-to-finalyze',
+        payload: {
+            brainstormId: brainstorm.id,
+        },
+    })) as StormFinalyze & Storable
 
     const maxVotes = members.length - 1
     async function vote(ideaN: number, votes = { up: maxVotes, down: 0 }) {
@@ -327,6 +344,7 @@ async function setUp(settings: Settings = {}) {
         brainstorm,
         members,
         tribe,
+        task,
         getIdeas: async () => {
             return await context.stores.ideaStore.find({
                 brainstormId: brainstorm.id,
@@ -334,7 +352,7 @@ async function setUp(settings: Settings = {}) {
         },
         incarnateOneIdea: async () => {
             await vote(0, { up: members.length - 1, down: 0 })
-            await incarnation.incarnateIdeas(brainstorm.id)
+            await incarnation.incarnateIdeas(task)
             return { quest: await getQuestByIdeaN(0), idea: getIdeaByN(0) }
         },
         addQuests: async (memberId: string, amount: number = 1) => {
