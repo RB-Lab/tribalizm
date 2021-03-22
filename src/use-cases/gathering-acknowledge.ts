@@ -1,3 +1,4 @@
+import { NotYourTribe } from './utils/not-your-tribe'
 import { ContextUser } from './utils/context-user'
 
 export class GateringAcknowledge extends ContextUser {
@@ -28,10 +29,4 @@ export class GateringAcknowledge extends ContextUser {
 export interface GatheringAcknowledgeRequest {
     memberId: string
     gatheringId: string
-}
-
-export class NotYourTribe extends Error {
-    constructor(msg: string) {
-        super(msg)
-    }
 }

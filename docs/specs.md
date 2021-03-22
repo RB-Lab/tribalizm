@@ -10,7 +10,7 @@
 
 ## Use Cases
 
-1.  ❕ A _stranger_ looks through the list of available _tribes_ to find one to join
+1.  ❗ A _stranger_ looks through the list of available _tribes_ to find one to join
 2.  ❕ A _stranger_ gets request to set their city whne they don't want to share coordinates
 3.  ❕ A _stranger_ searches available _tribes_ to find one to join
 4.  ❗ A _stranger_ views a _tribe_ info to decide if they want join
@@ -29,7 +29,7 @@
     second _initiation quest_ with proposed date and place
 15. ❗ An _admin_ adds a new tribe
 16. ❗ An _admin_ adds member to a tribe and set their charisma and wisdom scores
-17. ❗ An _admin_ adds a _union_ and associate some _tribes_ with it
+17. ❕ An _admin_ adds a _union_ and associate some _tribes_ with it
 18. ❕ A trusted _user_ starts their own tribe
 19. ❗ An _admin_ notifies a _cheif_ that it is time to gather a _brainstorm_
 20. ❕ The _system_ notifies a _cheif_ that it is time to gather a _brainstorm_ when there is not very
@@ -37,7 +37,7 @@
 21. ✅ A _tribe cheif_ declares a _brainstorm_ date
 22. ✅ A _member_ gets notification about declared _brainstorm_ (note: skip candidates)
 23. ✅ A _member_ gets invite to just started _brainstorm_
-24. 🔜 A _member_ adds a _quest idea_
+24. ✅ A _member_ adds a _quest idea_
 25. ✅ The _system_ transitions _brainstorm_ to voting state
 26. ✅ A _member_ vote for a _quest idea_
 27. ✅ The _system_ transitions _brainstorm_ to finished state
@@ -51,7 +51,7 @@
 32. ✅ A _member_ declares _gathering_; all memebers of the tribe or all upwoters are notified about
     time, place and theme of the gathering
 33. ✅ A _member_ creates a re-quest (repeat of the same quest)
-34. ❗ The _system_ makes an introduction _quest_ and assigns it to those pair of members that never
+34. 🔜 The _system_ makes an introduction _quest_ and assigns it to those pair of members that never
     had one
 35. ❕ A _member_ who made a coordination _sub-quest_ may request a report on its completion
 36. ❕ The _system_ makes a report _quest_ when coordination _sub-quest_ is over
@@ -74,13 +74,13 @@
 45. ✅ A score casted by another _member_ ia applied to _member_ charisma & wisdom after each 5 votes
 46. ✅ A _member_ rejects _quest_ (except initiation)
 47. ✅ The _system_ reassigns rejected _quest_ to antoter member (see usecases 26 & 29)
-48. ❗ The _system_ makes most charismatic member tribes _chief_
-49. ❗ The _system_ makes most wise member tribes _shaman_
+48. ❗ The _system_ makes most charismatic member tribe _chief_
+49. ❗ The _system_ makes most wise member tribe _shaman_
 50. ❕ A _member_ wants to leave the game (inc. _chief_ and _shaman_)
 51. ❕ A _member_ wants to be notified about the quest the day before it appointed (or other time
     period? or add to calendar)
 
-Done: 25, In porgres: 1, Must: 11, Should: 15, total: 51
+Done: 26, In porgres: 1, Must: 10, Should: 14, total: 51
 
 ## Entities
 

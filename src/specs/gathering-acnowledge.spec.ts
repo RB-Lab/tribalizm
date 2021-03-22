@@ -1,9 +1,7 @@
 import { Gathering } from '../use-cases/entities/gathering'
 import { Member } from '../use-cases/entities/member'
-import {
-    GateringAcknowledge,
-    NotYourTribe,
-} from '../use-cases/gathering-acknowledge'
+import { GateringAcknowledge } from '../use-cases/gathering-acknowledge'
+import { NotYourTribe } from '../use-cases/utils/not-your-tribe'
 import { createContext } from './test-context'
 
 describe('Gathering acknowledgement', () => {
