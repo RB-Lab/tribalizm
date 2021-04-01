@@ -1,9 +1,10 @@
 import { ContextUser } from './utils/context-user'
-import { IndeclinableError } from './entities/quest'
+import { IndeclinableError, QuestStatus } from './entities/quest'
 import { getBestFreeMember } from './utils/get-best-free-member'
 import { getRootIdea, NoIdeaError } from './utils/get-root-idea'
 import { Message } from './utils/message'
 import { QuestMessage } from './utils/quest-message'
+import { HowWasQuestTask } from './utils/scheduler'
 
 export class QuestNegotiation extends ContextUser {
     proposeChange = async (req: QuestChangeRequest) => {
@@ -26,16 +27,24 @@ export class QuestNegotiation extends ContextUser {
         const quest = await this.getQuest(req.questId)
         const targetMembers = quest.accept(req.memberId)
         await this.stores.questStore.save(quest)
-        targetMembers.forEach((targetMemberId) => {
-            this.notify<QuestAcceptedMessage>({
-                type: 'quest-accepted',
-                payload: {
-                    ...quest,
-                    questId: quest.id,
-                    targetMemberId,
-                },
+        if (quest.status === QuestStatus.accepted) {
+            targetMembers.forEach((targetMemberId) => {
+                this.notify<QuestAcceptedMessage>({
+                    type: 'quest-accepted',
+                    payload: {
+                        ...quest,
+                        questId: quest.id,
+                        targetMemberId,
+                    },
+                })
             })
-        })
+            this.scheduler.schedule<HowWasQuestTask>({
+                type: 'how-was-it-task',
+                done: false,
+                time: quest.time + 2 * 3_600_000,
+                payload: { questId: quest.id },
+            })
+        }
     }
 
     declineQuest = async (req: QuestDeclineRequest) => {

@@ -1,4 +1,5 @@
-import { IQuest, QuestStore } from '../../use-cases/entities/quest'
+import { IQuest, QuestStore, QuestType } from '../../use-cases/entities/quest'
+import { Storable } from '../../use-cases/entities/store'
 import { InMemoryStore } from './in-memory-store'
 
 export class InMemoryQuestStore extends InMemoryStore<IQuest>
@@ -12,5 +13,13 @@ export class InMemoryQuestStore extends InMemoryStore<IQuest>
             })
         })
         return res
+    }
+    getAllIntorQuests = async (memberId: string) => {
+        return Object.values(this._store).filter(
+            (q: IQuest) =>
+                (q.type === QuestType.introduction ||
+                    q.type === QuestType.initiation) &&
+                q.memberIds.includes(memberId)
+        )
     }
 }

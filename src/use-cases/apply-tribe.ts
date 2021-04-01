@@ -3,16 +3,18 @@ import { Member } from './entities/member'
 import { ContextUser } from './utils/context-user'
 import { Message } from './utils/message'
 
+interface ApplicationRequest {
+    userId: string
+    tribeId: string
+    coverLetter: string
+}
+
 export class TribeApplication extends ContextUser {
-    appyToTribe = async (
-        userId: string,
-        tribeId: string,
-        coverLetter: string
-    ) => {
-        const user = await this.getUser(userId)
-        const tribe = await this.getTribe(tribeId)
+    appyToTribe = async (req: ApplicationRequest) => {
+        const user = await this.getUser(req.userId)
+        const tribe = await this.getTribe(req.tribeId)
         if (!tribe.chiefId) {
-            throw new NoChiefTribeError(`Tribe ${tribeId} has no chief`)
+            throw new NoChiefTribeError(`Tribe ${req.tribeId} has no chief`)
         }
         const chief = await this.getMember(tribe.chiefId)
         const newMember = await this.stores.memberStore.save(
@@ -21,8 +23,8 @@ export class TribeApplication extends ContextUser {
         const app = await this.stores.applicationStore.save(
             new Application({
                 memberId: newMember.id,
-                tribeId,
-                coverLetter,
+                tribeId: req.tribeId,
+                coverLetter: req.coverLetter,
                 chiefId: tribe.chiefId,
             })
         )

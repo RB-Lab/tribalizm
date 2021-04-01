@@ -98,3 +98,37 @@ export function isStormFinalyze(task: ITask): task is StormFinalyze {
         'brainstormId' in task.payload
     )
 }
+
+export interface IntroductionTask extends ITask {
+    time: number
+    done: boolean
+    type: 'intorduction-quest'
+    payload: {
+        newMemberId: string
+        oldMemberId: string
+    }
+}
+export function isIntroductionTask(task: ITask): task is IntroductionTask {
+    return (
+        task.type === 'intorduction-quest' &&
+        task.payload !== null &&
+        'newMemberId' in task.payload &&
+        'oldMemberId' in task.payload
+    )
+}
+
+export interface HowWasQuestTask extends ITask {
+    time: number
+    done: boolean
+    type: 'how-was-it-task'
+    payload: {
+        questId: string
+    }
+}
+export function isHowWasQuestTask(task: ITask): task is HowWasQuestTask {
+    return (
+        task.type === 'how-was-it-task' &&
+        task.payload !== null &&
+        'questId' in task.payload
+    )
+}

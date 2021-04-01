@@ -8,33 +8,27 @@ import {
     IApplication,
 } from '../use-cases/entities/application'
 import { Coordinates } from '../use-cases/entities/location'
-import { Member, SavedMember } from '../use-cases/entities/member'
-import { EntityNotFound } from '../use-cases/utils/not-found-error'
+import { SavedMember } from '../use-cases/entities/member'
 import { Tribe } from '../use-cases/entities/tribe'
 import { User } from '../use-cases/entities/user'
 import { createContext } from './test-context'
 
-const coverLetter = 'I want to FOO!'
 describe('Stranger application', () => {
-    it('must notify target tribe chief', async () => {
+    it('notifies target tribe chief', async () => {
         const world = await setUp()
         const onApplication = jasmine.createSpy('onApplication')
         world.notififcationBus.subscribe<ApplicationMessage>(
             'application-message',
             onApplication
         )
-        const app = await world.tribeApplication.appyToTribe(
-            world.user.id,
-            world.tribe.id,
-            coverLetter
-        )
+        const app = await world.tribeApplication.appyToTribe(world.defReq)
 
         expect(onApplication).toHaveBeenCalledTimes(1)
         expect(onApplication).toHaveBeenCalledWith(
             jasmine.objectContaining<ApplicationMessage>({
                 type: 'application-message',
                 payload: {
-                    coverLetter,
+                    coverLetter: world.defReq.coverLetter,
                     elderId: world.tribe.chiefId!,
                     applicationId: app.id,
                     userName: world.user.name,
@@ -42,18 +36,13 @@ describe('Stranger application', () => {
             })
         )
     })
-    it('should store properly initialized application', async () => {
+    it('stores properly initialized application', async () => {
         const world = await setUp()
-        const coverLetter = 'I want to FOO!'
-        const app = await world.tribeApplication.appyToTribe(
-            world.user.id,
-            world.tribe.id,
-            coverLetter
-        )
+        const app = await world.tribeApplication.appyToTribe(world.defReq)
         const savedApp = await world.applicationStore.getById(app.id)
         expect(savedApp).toEqual(
             jasmine.objectContaining<IApplication>({
-                coverLetter,
+                coverLetter: world.defReq.coverLetter,
                 tribeId: world.tribe.id,
                 chiefId: world.tribe.chiefId,
                 phase: ApplicationPhase.initial,
@@ -61,60 +50,21 @@ describe('Stranger application', () => {
         )
     })
 
-    it('FAILs if user not found', async () => {
-        const world = await setUp()
-        await expectAsync(
-            world.tribeApplication.appyToTribe(
-                'boobooboo',
-                world.tribe.id,
-                coverLetter
-            )
-        ).toBeRejectedWithError(EntityNotFound)
-    })
-
-    it('FAILs if tribe not found', async () => {
-        const world = await setUp()
-        await expectAsync(
-            world.tribeApplication.appyToTribe(
-                world.user.id,
-                'boobooboo',
-                coverLetter
-            )
-        ).toBeRejectedWithError(EntityNotFound)
-    })
     it('FAILs if tribe have no chief', async () => {
         const world = await setUp()
         const tribe = await world.tribeStore.save(new Tribe({ name: 'tribe' }))
         await expectAsync(
-            world.tribeApplication.appyToTribe(
-                world.user.id,
-                tribe.id,
-                coverLetter
-            )
+            world.tribeApplication.appyToTribe({
+                ...world.defReq,
+                tribeId: tribe.id,
+            })
         ).toBeRejectedWithError(NoChiefTribeError)
     })
-    it('FAILs if tribe chief not found', async () => {
-        const world = await setUp()
-        const tribe = await world.tribeStore.save(
-            new Tribe({ name: 'tribe', chiefId: 'non-existing' })
-        )
-        await expectAsync(
-            world.tribeApplication.appyToTribe(
-                world.user.id,
-                tribe.id,
-                coverLetter
-            )
-        ).toBeRejectedWithError(EntityNotFound)
-    })
-
+    // TODO 🤔 make a common test on not found errors?
     it('creates a new member candidate', async () => {
         const world = await setUp()
 
-        const app = await world.tribeApplication.appyToTribe(
-            world.user.id,
-            world.tribe.id,
-            coverLetter
-        )
+        const app = await world.tribeApplication.appyToTribe(world.defReq)
         const members = await world.memberStore.find({
             tribeId: world.tribe.id,
             userId: world.user.id,
@@ -133,25 +83,7 @@ describe('Stranger application', () => {
 
 async function setUp() {
     const context = createContext()
-    const tribeId = 'whatever-tribe-id'
-    const [chief, shaman] = await context.stores.memberStore.saveBulk([
-        new Member({
-            tribeId: tribeId,
-            userId: 'non-existing',
-        }),
-        new Member({
-            tribeId: tribeId,
-            userId: 'non-existing-2',
-        }),
-    ])
-    const tribe = await context.stores.tribeStore.save(
-        new Tribe({
-            id: tribeId,
-            name: 'FooTribe',
-            chiefId: chief.id,
-            shamanId: shaman.id,
-        })
-    )
+    const { tribe } = await context.testing.makeTribe()
 
     const user = await context.stores.userStore.save(
         new User({
@@ -159,11 +91,17 @@ async function setUp() {
             coordinates: {} as Coordinates,
         })
     )
+    const defReq = {
+        userId: user.id,
+        tribeId: tribe.id,
+        coverLetter: 'I want to FOO!',
+    }
 
     const tribeApplication = new TribeApplication(context)
     return {
-        tribe: tribe,
-        user: user,
+        tribe,
+        user,
+        defReq,
         ...context.stores,
         ...context.async,
         tribeApplication,

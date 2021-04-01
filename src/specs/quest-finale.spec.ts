@@ -14,7 +14,7 @@ describe('Non-execution quest finale', () => {
     it('FAILs to finalyse by not quest assignee', async () => {
         const world = await setUp()
         await expectAsync(
-            world.questFinal.imDone({
+            world.questFinale.imDone({
                 questId: world.quest.id,
                 memberId: 'not-assigned',
             })
@@ -23,7 +23,7 @@ describe('Non-execution quest finale', () => {
     it('FAILs to finalyse non-existing quest', async () => {
         const world = await setUp()
         await expectAsync(
-            world.questFinal.imDone({
+            world.questFinale.imDone({
                 questId: 'non-existing',
                 memberId: world.member2.id,
             })
@@ -31,14 +31,14 @@ describe('Non-execution quest finale', () => {
     })
     it('marks quest as done for the memeber', async () => {
         const world = await setUp()
-        await world.questFinal.imDone(world.defaultFinalReq)
+        await world.questFinale.imDone(world.defaultFinalReq)
         const quest = await world.questStore.getById(world.quest.id)
         expect(quest!.finishedIds).toEqual([world.member1.id])
     })
     it('gives next member to vote on', async () => {
         const world = await setUp()
-        await world.questFinal.imDone(world.defaultFinalReq)
-        const action = await world.questFinal.getNextVoteAction(
+        await world.questFinale.imDone(world.defaultFinalReq)
+        const action = await world.questFinale.getNextVoteAction(
             world.defaultFinalReq
         )
         expect(action).toEqual({
@@ -56,7 +56,7 @@ describe('Non-execution quest finale', () => {
         it('FAILs to cast by not quest assignee', async () => {
             const world = await setUp()
             await expectAsync(
-                world.questFinal[method]({
+                world.questFinale[method]({
                     ...world.defaultCastRequest,
                     memberId: 'not-a-member',
                 })
@@ -65,7 +65,7 @@ describe('Non-execution quest finale', () => {
         it('FAILs to cast for self', async () => {
             const world = await setUp()
             await expectAsync(
-                world.questFinal[method]({
+                world.questFinale[method]({
                     ...world.defaultCastRequest,
                     voteForId: world.defaultCastRequest.memberId,
                     charisma: 7,
@@ -75,14 +75,14 @@ describe('Non-execution quest finale', () => {
         it('FAILs to cast more than 10 or less than 1', async () => {
             const world = await setUp()
             await expectAsync(
-                world.questFinal[method]({
+                world.questFinale[method]({
                     ...world.defaultCastRequest,
                     charisma: 132,
                     wisdom: 132,
                 })
             ).toBeRejectedWithError(VoteRangeError)
             await expectAsync(
-                world.questFinal[method]({
+                world.questFinale[method]({
                     ...world.defaultCastRequest,
                     charisma: -1,
                     wisdom: -1,
@@ -91,10 +91,10 @@ describe('Non-execution quest finale', () => {
         })
         it(`requires vote for ${otherTrait} when done`, async () => {
             const world = await setUp()
-            await world.questFinal[method]({
+            await world.questFinale[method]({
                 ...world.defaultCastRequest,
             })
-            const action = await world.questFinal.getNextVoteAction(
+            const action = await world.questFinale.getNextVoteAction(
                 world.defaultCastRequest
             )
             expect(action).toEqual({
@@ -105,7 +105,7 @@ describe('Non-execution quest finale', () => {
         })
         it(`should not cast vote when ${otherTrait} is not casted yet`, async () => {
             const world = await setUp()
-            await world.questFinal[method]({
+            await world.questFinale[method]({
                 ...world.defaultCastRequest,
             })
             const member2 = await world.memberStore.getById(world.member2.id)
@@ -113,10 +113,10 @@ describe('Non-execution quest finale', () => {
         })
         it(`casts vote, if ${otherTrait} already set`, async () => {
             const world = await setUp()
-            await world.questFinal[otherMethod]({
+            await world.questFinale[otherMethod]({
                 ...world.defaultCastRequest,
             })
-            await world.questFinal[method]({
+            await world.questFinale[method]({
                 ...world.defaultCastRequest,
             })
             const member2 = await world.memberStore.getById(world.member2.id)
@@ -144,31 +144,31 @@ describe('Non-execution quest finale', () => {
         const world = await setUp()
         world.quest.memberIds.push(world.member3.id)
         await world.questStore.save(world.quest)
-        await world.questFinal.castCharisma({
+        await world.questFinale.castCharisma({
             ...world.defaultFinalReq,
             charisma: 7,
         })
-        await world.questFinal.castWisdom({
+        await world.questFinale.castWisdom({
             ...world.defaultFinalReq,
             wisdom: 7,
         })
-        const nextAction = await world.questFinal.getNextVoteAction(
+        const nextAction = await world.questFinale.getNextVoteAction(
             world.defaultFinalReq
         )
         expect(nextAction?.memberId).toEqual(world.member3.id)
     })
     it('gives no member when done', async () => {
         const world = await setUp()
-        await world.questFinal.castCharisma({
+        await world.questFinale.castCharisma({
             ...world.defaultFinalReq,
             charisma: 7,
         })
-        await world.questFinal.castWisdom({
+        await world.questFinale.castWisdom({
             ...world.defaultFinalReq,
             wisdom: 7,
         })
         expect(
-            await world.questFinal.getNextVoteAction(world.defaultFinalReq)
+            await world.questFinale.getNextVoteAction(world.defaultFinalReq)
         ).toBe(null)
     })
 
@@ -231,7 +231,7 @@ async function setUp() {
         new Quest({ memberIds: [member1.id, member2.id] })
     )
 
-    const questFinal = new QuestFinale(context)
+    const questFinale = new QuestFinale(context)
     const defaultFinalReq = {
         memberId: member1.id,
         questId: quest.id,
@@ -245,7 +245,7 @@ async function setUp() {
 
     return {
         ...context.stores,
-        questFinal,
+        questFinale,
         member1,
         member2,
         member3,
@@ -266,13 +266,13 @@ async function setUp() {
                     const quest = await context.stores.questStore.save(
                         new Quest({ memberIds: [memberId, voteForId] })
                     )
-                    await questFinal.castCharisma({
+                    await questFinale.castCharisma({
                         voteForId,
                         memberId,
                         questId: quest.id,
                         charisma: v,
                     })
-                    await questFinal.castWisdom({
+                    await questFinale.castWisdom({
                         voteForId,
                         memberId,
                         questId: quest.id,

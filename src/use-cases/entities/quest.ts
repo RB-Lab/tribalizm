@@ -4,6 +4,7 @@ export interface QuestStore extends Store<IQuest> {
     getActiveQuestsCount: (
         memberIds: string[]
     ) => Promise<{ [id: string]: number }>
+    getAllIntorQuests: (memberId: string) => Promise<Array<IQuest & Storable>>
 }
 
 export interface IQuestData {

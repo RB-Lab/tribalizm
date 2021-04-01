@@ -6,10 +6,16 @@ export interface QuestMessage extends Message {
     payload: {
         targetMemberId: string
         questId: string
-        description: string
+        description?: string
         type: QuestType
         time: number
         place?: string
         memberIds: string[]
     }
 }
+
+interface IntorductionPayload {
+    type: QuestType.introduction
+    userName: string
+}
+interface InitiationPaylaod {}

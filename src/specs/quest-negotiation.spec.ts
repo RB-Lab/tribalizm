@@ -14,6 +14,7 @@ import {
     QuestNegotiation,
 } from '../use-cases/negotiate-quest'
 import { QuestMessage } from '../use-cases/utils/quest-message'
+import { HowWasQuestTask } from '../use-cases/utils/scheduler'
 import { createContext } from './test-context'
 
 describe('Quest negotiation', () => {
@@ -81,6 +82,46 @@ describe('Quest negotiation', () => {
         const quest = await world.questStore.getById(world.quest.id)
         expect(quest!.status).toEqual(QuestStatus.accepted)
     })
+    it('notifes other party on acceptance', async () => {
+        const world = await setUp()
+        const onQuestAccepted = world.spyOnMessage<QuestAcceptedMessage>(
+            'quest-accepted'
+        )
+        await world.questNegotiation.proposeChange(world.defaultProposal)
+        await world.questNegotiation.acceptQuest({
+            questId: world.quest.id,
+            memberId: world.member2.id,
+        })
+        const quest = await world.questStore.getById(world.quest.id)
+        expect(onQuestAccepted).toHaveBeenCalledWith(
+            jasmine.objectContaining<QuestAcceptedMessage>({
+                type: 'quest-accepted',
+                payload: jasmine.objectContaining<
+                    QuestAcceptedMessage['payload']
+                >({
+                    description: quest!.description,
+                    place: quest!.place,
+                    questId: quest!.id,
+                    time: quest!.time,
+                    targetMemberId: world.member1.id,
+                }),
+            })
+        )
+    })
+    it('allocates "how was it" task two hours after accepted quest time', async () => {
+        const world = await setUp()
+        await world.questNegotiation.proposeChange(world.defaultProposal)
+        await world.questNegotiation.acceptQuest({
+            questId: world.quest.id,
+            memberId: world.member2.id,
+        })
+        const tasks = (await world.taskStore.find({
+            type: 'how-was-it-task',
+        })) as HowWasQuestTask[]
+        expect(tasks.length).toBe(1)
+        expect(tasks[0].done).toBe(false)
+        expect(tasks[0].payload.questId).toEqual(world.quest!.id)
+    })
     it('needs all parties to accept proposal', async () => {
         const world = await setUp()
         const onQuestAccepted = world.spyOnMessage<QuestAcceptedMessage>(
@@ -100,8 +141,12 @@ describe('Quest negotiation', () => {
             questId: world.quest.id,
         })
         const quest = await world.questStore.getById(world.quest.id)
+        const tasks = (await world.taskStore.find({
+            type: 'how-was-it-task',
+        })) as HowWasQuestTask[]
         expect(quest!.status).toEqual(QuestStatus.proposed)
         expect(onQuestAccepted).not.toHaveBeenCalled()
+        expect(tasks.length).toBe(0)
     })
     it('FAILs to accept outdated proposal', async () => {
         const world = await setUp()
@@ -132,32 +177,6 @@ describe('Quest negotiation', () => {
                 memberId: 'other-id',
             })
         ).toBeRejectedWithError(NotYourQuest)
-    })
-    it('notifes other party on acceptance', async () => {
-        const world = await setUp()
-        const onQuestAccepted = world.spyOnMessage<QuestAcceptedMessage>(
-            'quest-accepted'
-        )
-        await world.questNegotiation.proposeChange(world.defaultProposal)
-        await world.questNegotiation.acceptQuest({
-            questId: world.quest.id,
-            memberId: world.member2.id,
-        })
-        const quest = await world.questStore.getById(world.quest.id)
-        expect(onQuestAccepted).toHaveBeenCalledWith(
-            jasmine.objectContaining<QuestAcceptedMessage>({
-                type: 'quest-accepted',
-                payload: jasmine.objectContaining<
-                    QuestAcceptedMessage['payload']
-                >({
-                    description: quest!.description,
-                    place: quest!.place,
-                    questId: quest!.id,
-                    time: quest!.time,
-                    targetMemberId: world.member1.id,
-                }),
-            })
-        )
     })
     it('re-assigns declined quest among upvoters', async () => {
         const world = await setUp()

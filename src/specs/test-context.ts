@@ -40,22 +40,35 @@ export function createContext() {
     const gatheringStore = new InMemoryGatheringStore(Gathering)
 
     const makeTribe = async (n = 6) => {
-        const tribe = await tribeStore.save(
+        let tribe = await tribeStore.save(
             new Tribe({
                 name: 'Foo tribe',
             })
         )
-        const members = await memberStore.saveBulk(
+        const users = await userStore.saveBulk(
             new Array(n).fill(0).map(
                 (_, i) =>
+                    new User({
+                        name: `User ${n}`,
+                    })
+            )
+        )
+        const members = await memberStore.saveBulk(
+            users.map(
+                (user) =>
                     new Member({
                         tribeId: tribe.id,
-                        userId: `user${i}.id`,
+                        userId: user.id,
                         isCandidate: false,
                     })
             )
         )
-        return { tribe, members }
+        tribe = await tribeStore.save({
+            ...tribe,
+            chiefId: members[0].id,
+            shamanId: members[1] ? members[1].id : null,
+        })
+        return { tribe, members, users }
     }
     const makeIdea = async (
         ups = [1, 3, 4, 6],

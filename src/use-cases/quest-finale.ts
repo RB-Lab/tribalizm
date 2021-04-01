@@ -1,11 +1,39 @@
-import { IQuest } from './entities/quest'
+import { IQuest, QuestType } from './entities/quest'
 import { Storable } from './entities/store'
 import { ContextUser } from './utils/context-user'
+import { IntroductionTask } from './utils/scheduler'
 
 export class QuestFinale extends ContextUser {
     imDone = async (req: ImDoneRequest) => {
         const quest = await this.getQuest(req.questId)
         quest.finish(req.memberId)
+        // TODO 🤔 this looks like it doesn't belong here...
+        if (quest.type === QuestType.introduction) {
+            const member = await this.getMember(req.memberId)
+            const allMembers = await this.stores.memberStore.find({
+                tribeId: member.tribeId,
+            })
+            const allIntroQuests = await this.stores.questStore.getAllIntorQuests(
+                req.memberId
+            )
+            const nextOldMember = allMembers
+                .sort(() => Math.random() - 1)
+                .find(
+                    (m) =>
+                        !allIntroQuests.some((q) => q.memberIds.includes(m.id))
+                )
+            if (nextOldMember) {
+                this.scheduler.schedule<IntroductionTask>({
+                    type: 'intorduction-quest',
+                    done: false,
+                    time: Date.now() + 48 * 3_600_000,
+                    payload: {
+                        newMemberId: member.id,
+                        oldMemberId: nextOldMember.id,
+                    },
+                })
+            }
+        }
         await this.stores.questStore.save(quest)
     }
     getNextVoteAction = async (req: NextMemberToVoteRequest) => {

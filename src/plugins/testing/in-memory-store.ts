@@ -60,9 +60,24 @@ export class InMemoryStore<T> implements Store<T> {
         })
         return Promise.resolve(results.map(this._instantiate))
     }
+    _last = async () => {
+        const values = Object.values(this._store)
+        return values.length
+            ? (values[values.length - 1] as T & Storable)
+            : null
+    }
 
-    __show = () => {
-        console.table(Object.values(this._store))
+    __show = (keys?: Array<keyof T>) => {
+        console.log('\n')
+        if (keys) {
+            const toShow = Object.values(this._store).map((o: T) =>
+                keys.reduce((r, k) => ({ ...r, [k]: o[k] }), {})
+            )
+            console.table(toShow)
+        } else {
+            console.table(Object.values(this._store))
+        }
+        console.log('\n')
     }
 }
 

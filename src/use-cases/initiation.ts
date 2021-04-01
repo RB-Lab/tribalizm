@@ -5,6 +5,7 @@ import { Quest, QuestType } from './entities/quest'
 import { QuestMessage } from './utils/quest-message'
 import { ContextUser } from './utils/context-user'
 import { Message } from './utils/message'
+import { IntroductionTask } from './utils/scheduler'
 
 export class Initiation extends ContextUser {
     startInitiation = async (req: InitiationRequest) => {
@@ -20,13 +21,15 @@ export class Initiation extends ContextUser {
                 `Cannot startInitiation when application is in "${app.phase}" phase`
             )
         }
-        const newQuest = new Quest({
-            type: QuestType.initiation,
-            time: req.time,
-            place: req.place,
-            memberIds: [app.chiefId, app.memberId],
-        })
-        const quest = await this.stores.questStore.save(newQuest)
+        const quest = await this.stores.questStore.save(
+            new Quest({
+                type: QuestType.initiation,
+                time: req.time,
+                place: req.place,
+                memberIds: [app.chiefId, app.memberId],
+                acceptedIds: [app.chiefId],
+            })
+        )
         this.notify<QuestMessage>({
             type: 'new-quest-message',
             payload: {
@@ -86,13 +89,15 @@ export class Initiation extends ContextUser {
 
         // TODO mustn't quest and next phase be wrapped in transaction?
         //      and notification kinda as well.. must be assured.
-        const newQuest = new Quest({
-            type: QuestType.initiation,
-            time: req.time,
-            place: req.place,
-            memberIds: [app.shamanId, app.memberId],
-        })
-        const quest = await this.stores.questStore.save(newQuest)
+        const quest = await this.stores.questStore.save(
+            new Quest({
+                type: QuestType.initiation,
+                time: req.time,
+                place: req.place,
+                memberIds: [app.shamanId, app.memberId],
+                acceptedIds: [app.shamanId],
+            })
+        )
         this.notify<QuestMessage>({
             type: 'new-quest-message',
             payload: {
@@ -168,6 +173,29 @@ export class Initiation extends ContextUser {
             type: 'application-approved',
             payload: {
                 targetMemberId: member.id,
+            },
+        })
+        const members = (
+            await this.stores.memberStore.find({
+                tribeId: app.tribeId,
+            })
+        ).filter(
+            (m) =>
+                m.id !== app.chiefId &&
+                m.id !== app.shamanId &&
+                m.id !== member.id
+        )
+        if (members.length < 1) {
+            return
+        }
+        const n = Math.floor(Math.random() * members.length)
+        this.scheduler.schedule<IntroductionTask>({
+            type: 'intorduction-quest',
+            done: false,
+            time: Date.now() + 20 * 3_600_000,
+            payload: {
+                newMemberId: member.id,
+                oldMemberId: members[n].id,
             },
         })
     }
