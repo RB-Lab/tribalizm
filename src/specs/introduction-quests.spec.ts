@@ -10,7 +10,7 @@ import {
 import { QuestNegotiation } from '../use-cases/negotiate-quest'
 import { QuestFinale } from '../use-cases/quest-finale'
 import { QuestMessage } from '../use-cases/utils/quest-message'
-import { HowWasQuestTask, IntroductionTask } from '../use-cases/utils/scheduler'
+import { IntroductionTask } from '../use-cases/utils/scheduler'
 import { createContext } from './test-context'
 
 describe('Introduction quests', () => {
@@ -111,7 +111,6 @@ describe('Introduction quests', () => {
         const quest = await world.questStore._last()
         expect(quest!.acceptedIds).toEqual([oldMember!.id])
     })
-
     it('alocates next intro when "how was it" done', async () => {
         const world = await setUp()
         const { next } = await world.makeIntroTask()

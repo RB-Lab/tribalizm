@@ -120,15 +120,36 @@ export function isIntroductionTask(task: ITask): task is IntroductionTask {
 export interface HowWasQuestTask extends ITask {
     time: number
     done: boolean
-    type: 'how-was-it-task'
+    type: 'how-was-quest'
     payload: {
         questId: string
     }
 }
+// NOTE HowWasQuestTask should be handled differently depentding on quest type:
+//      - cast votes for intro and coordination and init for new member
+//      - accept or decline application for init for chief/shaman
 export function isHowWasQuestTask(task: ITask): task is HowWasQuestTask {
     return (
-        task.type === 'how-was-it-task' &&
+        task.type === 'how-was-quest' &&
         task.payload !== null &&
         'questId' in task.payload
+    )
+}
+
+export interface HowWasGatheringTask extends ITask {
+    time: number
+    done: boolean
+    type: 'how-was-gathering'
+    payload: {
+        gatheringId: string
+    }
+}
+export function isHowWasGatheringTask(
+    task: ITask
+): task is HowWasGatheringTask {
+    return (
+        task.type === 'how-was-gathering' &&
+        task.payload !== null &&
+        'gatheringId' in task.payload
     )
 }

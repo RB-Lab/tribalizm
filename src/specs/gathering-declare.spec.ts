@@ -7,6 +7,7 @@ import {
 import { EntityNotFound } from '../use-cases/utils/not-found-error'
 import { QuestSource } from '../use-cases/quest-source'
 import { createContext } from './test-context'
+import { HowWasGatheringTask } from '../use-cases/utils/scheduler'
 
 describe('Gathering declaration', () => {
     it('notifies all tribe memebers', async () => {
@@ -39,6 +40,25 @@ describe('Gathering declaration', () => {
         expect(actualMembers).toEqual(
             jasmine.arrayWithExactContents(world.upvoters)
         )
+    })
+    it('allocates "how was it" task next morning', async () => {
+        const world = await setUp()
+        await world.gathering.declare({
+            ...world.defaultDeclare,
+            type: 'upvoters',
+        })
+        const gathering = await world.gatheringStore._last()
+        const task = (await world.taskStore._last()) as HowWasGatheringTask
+        expect(task).toBeTruthy()
+        expect(task!.type).toEqual('how-was-gathering')
+        expect(task?.done).toBe(false)
+        expect(task!.payload.gatheringId).toEqual(gathering!.id)
+        const taskDate = new Date(task!.time)
+        const gatheringDateNextDay = new Date(
+            world.defaultDeclare.time + 24 * 3_600_000
+        )
+        expect(taskDate.getDate()).toEqual(gatheringDateNextDay.getDate())
+        expect(taskDate.getHours()).toEqual(10)
     })
     it('creates gathering', async () => {
         const world = await setUp()
@@ -96,7 +116,7 @@ async function setUp() {
         description: 'lets OLOLO!!!',
         parentQuestId: quest2.id,
         place: 'The Foo Bar',
-        time: 100500100500,
+        time: Date.now() + 100_500_000,
     }
     return {
         gathering,

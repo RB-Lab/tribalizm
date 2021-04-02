@@ -1,5 +1,5 @@
 import { ContextUser } from './utils/context-user'
-import { IndeclinableError, QuestStatus } from './entities/quest'
+import { IndeclinableError, QuestStatus, QuestType } from './entities/quest'
 import { getBestFreeMember } from './utils/get-best-free-member'
 import { getRootIdea, NoIdeaError } from './utils/get-root-idea'
 import { Message } from './utils/message'
@@ -38,10 +38,11 @@ export class QuestNegotiation extends ContextUser {
                     },
                 })
             })
+            const after = quest.type === QuestType.coordination ? 5 : 2
             this.scheduler.schedule<HowWasQuestTask>({
-                type: 'how-was-it-task',
+                type: 'how-was-quest',
                 done: false,
-                time: quest.time + 2 * 3_600_000,
+                time: quest.time + after * 3_600_000,
                 payload: { questId: quest.id },
             })
         }

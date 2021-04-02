@@ -42,7 +42,7 @@
 26. ✅ The _system_ transitions _brainstorm_ to finished state
 27. ✅ The _system_ makes a coordintation _quest_ from popular _quest ideas_ and assigns it to entry
     starter and most charismatic or most wise up-voted _member_; it balances amount of assigned
-    quests; 😕❓ it uses random noise; it assign quest without date and place
+    quests; ~~it uses random noise;~~ it assign quest without date and place
 28. ❕ The _system_ notifies a _cheif_ that it is time to divide a tribe in two (when there is more
     than 200 memebers)
 29. ✅ A _member_ creates a sub-quest, edits its description
@@ -54,10 +54,10 @@
     had one
 34. ❕ A _member_ who made a coordination _sub-quest_ may request a report on its completion
 35. ❕ The _system_ makes a report _quest_ when coordination _sub-quest_ is over
-36. 🔜 The _system_ asks on "how was the quest"
-    -   ➕ two hours after initiation/introduction quests
-    -   ➖ five hours after coordination quest (or next morning, if after 21)
-    -   ➖ next day morning after _gathering_
+36. ✅ The _system_ asks on "how was the quest"
+    -   two hours after initiation/introduction quests
+    -   five hours after coordination quest ~~(or next morning, if after 21)~~
+    -   next day morning after _gathering_
 37. ❕ A _member_ fucks up a _quest_ (i.e. quest is not done) and want to re-negotiate it
 38. ✅ A _member_ casts scores for _gathering_
 39. ✅ A _member_ casts scores for introduction and coordination quests: charisma and wisdom of the
@@ -73,14 +73,14 @@
 44. ✅ A score casted by another _member_ ia applied to _member_ charisma & wisdom after each 5 votes
 45. ✅ A _member_ rejects _quest_ (except initiation)
 46. ✅ The _system_ reassigns rejected _quest_ to antoter member (see usecases 26 & 29)
-47. ❗ The _system_ makes most charismatic member tribe _chief_
-48. ❗ The _system_ makes most wise member tribe _shaman_
+47. 🔜 The _system_ makes most charismatic member tribe _chief_
+48. 🔜 The _system_ makes most wise member tribe _shaman_
 49. ❕ A _member_ wants to leave the game (inc. _chief_ and _shaman_)
 50. ❕ A _member_ wants to be notified about the quest the day before it appointed (or other
     timeperiod? or add to calendar)
 51. ❕ A _tribe cheif_ wants to rename tribe and change description
 
-Done: 27, In porgres: 1, Must: 8, Should: 15, total: 51
+Done: 28, In porgres: 2, Must: 6, Should: 15, total: 51
 
 ## Entities
 
@@ -108,6 +108,7 @@ Done: 27, In porgres: 1, Must: 8, Should: 15, total: 51
 
 -   Fault tolerance: resurect system from persisted state
 -   Reliability: use transactions in when update stores
+-   Take time zones into account...
 
 ### UX
 

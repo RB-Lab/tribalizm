@@ -2,6 +2,7 @@ import { ContextUser } from './utils/context-user'
 import { Gathering, GatheringType } from './entities/gathering'
 import { getRootIdea } from './utils/get-root-idea'
 import { Message } from './utils/message'
+import { HowWasGatheringTask } from './utils/scheduler'
 
 export class GatheringDeclare extends ContextUser {
     declare = async (req: DeclarationRequest) => {
@@ -29,6 +30,16 @@ export class GatheringDeclare extends ContextUser {
                     targetMemberId: targetMember,
                 },
             })
+        })
+        const taskDate = new Date(gathering.time + 24 * 3_600_000)
+        taskDate.setHours(10)
+        this.scheduler.schedule<HowWasGatheringTask>({
+            type: 'how-was-gathering',
+            done: false,
+            time: taskDate.getTime(),
+            payload: {
+                gatheringId: gathering.id,
+            },
         })
     }
 

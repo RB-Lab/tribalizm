@@ -108,19 +108,45 @@ describe('Quest negotiation', () => {
             })
         )
     })
-    it('allocates "how was it" task two hours after accepted quest time', async () => {
-        const world = await setUp()
-        await world.questNegotiation.proposeChange(world.defaultProposal)
-        await world.questNegotiation.acceptQuest({
-            questId: world.quest.id,
-            memberId: world.member2.id,
+    describe('allocates "how was it" task ', () => {
+        it('five hours after accepted quest time for coordination quests', async () => {
+            const world = await setUp()
+            await world.questNegotiation.proposeChange(world.defaultProposal)
+            await world.questNegotiation.acceptQuest({
+                questId: world.quest.id,
+                memberId: world.member2.id,
+            })
+            const tasks = (await world.taskStore.find({
+                type: 'how-was-quest',
+            })) as HowWasQuestTask[]
+            expect(tasks.length).toBe(1)
+            expect(tasks[0].done).toBe(false)
+            expect(tasks[0].time).toBe(
+                world.defaultProposal.time + 5 * 3_600_000
+            )
+            expect(tasks[0].payload.questId).toEqual(world.quest!.id)
         })
-        const tasks = (await world.taskStore.find({
-            type: 'how-was-it-task',
-        })) as HowWasQuestTask[]
-        expect(tasks.length).toBe(1)
-        expect(tasks[0].done).toBe(false)
-        expect(tasks[0].payload.questId).toEqual(world.quest!.id)
+        it('two hours after accepted quest time for init/intro', async () => {
+            const world = await setUp()
+            await world.questStore.save({
+                ...world.quest,
+                type: QuestType.introduction,
+            })
+            await world.questNegotiation.proposeChange(world.defaultProposal)
+            await world.questNegotiation.acceptQuest({
+                questId: world.quest.id,
+                memberId: world.member2.id,
+            })
+            const tasks = (await world.taskStore.find({
+                type: 'how-was-quest',
+            })) as HowWasQuestTask[]
+            expect(tasks.length).toBe(1)
+            expect(tasks[0].done).toBe(false)
+            expect(tasks[0].time).toBe(
+                world.defaultProposal.time + 2 * 3_600_000
+            )
+            expect(tasks[0].payload.questId).toEqual(world.quest!.id)
+        })
     })
     it('needs all parties to accept proposal', async () => {
         const world = await setUp()
@@ -142,7 +168,7 @@ describe('Quest negotiation', () => {
         })
         const quest = await world.questStore.getById(world.quest.id)
         const tasks = (await world.taskStore.find({
-            type: 'how-was-it-task',
+            type: 'how-was-quest',
         })) as HowWasQuestTask[]
         expect(quest!.status).toEqual(QuestStatus.proposed)
         expect(onQuestAccepted).not.toHaveBeenCalled()
