@@ -10,7 +10,7 @@ import { EntityNotFound } from '../use-cases/utils/not-found-error'
 import { QuestFinale } from '../use-cases/quest-finale'
 import { createContext } from './test-context'
 
-describe('Non-execution quest finale', () => {
+describe('Quest finale', () => {
     it('FAILs to finalyse by not quest assignee', async () => {
         const world = await setUp()
         await expectAsync(
@@ -174,14 +174,14 @@ describe('Non-execution quest finale', () => {
 
     it('applies scores when 5 votes casted', async () => {
         const world = await setUp()
-        let member2 = await world.memberStore.getById(world.member2.id)
-        expect(member2!.charisma).withContext('charisma').toEqual(0)
-        expect(member2!.wisdom).withContext('wisdom').toEqual(0)
-        await world.castVotes(world.member1.id, world.member2.id, [5, 5, 5])
-        await world.castVotes(world.member3.id, world.member2.id, [5, 5])
-        member2 = await world.memberStore.getById(world.member2.id)
-        expect(member2!.charisma).withContext('charisma').toEqual(10)
-        expect(member2!.wisdom).withContext('wisdom').toEqual(10)
+        let member3 = await world.memberStore.getById(world.member3.id)
+        expect(member3!.charisma).withContext('charisma').toEqual(0)
+        expect(member3!.wisdom).withContext('wisdom').toEqual(0)
+        await world.castVotes(world.member1.id, world.member3.id, [5, 5, 5])
+        await world.castVotes(world.member2.id, world.member3.id, [5, 5])
+        member3 = await world.memberStore.getById(world.member3.id)
+        expect(member3!.charisma).withContext('charisma').toEqual(10)
+        expect(member3!.wisdom).withContext('wisdom').toEqual(10)
     })
     it('does NOT count before 5 votes casted', async () => {
         const world = await setUp()
@@ -198,35 +198,55 @@ describe('Non-execution quest finale', () => {
     })
     it('assignes mean for one memeber votes', async () => {
         const world = await setUp()
-        const votes = [1, 2, 3, 4, 5]
-        await world.castVotes(world.member1.id, world.member2.id, votes)
+        const ch1 = [1, 2, 3, 4, 5]
+        const w1 = [2, 2, 3, 4, 4]
+        const ch2 = [3, 2, 3, 3, 2]
+        const w2 = [2, 5, 3, 4, 5]
+        await world.castVotes(world.member1.id, world.member2.id, ch1, w1)
+        await world.castVotes(world.member3.id, world.member2.id, ch2, w2)
         const member2 = await world.memberStore.getById(world.member2.id)
         expect(member2!.charisma)
             .withContext('charisma')
-            .toEqual((1 + 2 + 3 + 4 + 5) / 5)
+            .toEqual(mean(ch1) + mean(ch2))
         expect(member2!.wisdom)
             .withContext('wisdom')
-            .toEqual((1 + 2 + 3 + 4 + 5) / 5)
+            .toEqual(mean(w1) + mean(w2))
+    })
+
+    it('makes a new most charismatic member chief', async () => {
+        const world = await setUp()
+        const oldChief = await world.memberStore.getById(world.tribe.chiefId!)
+        const arr = new Array(5).fill(0)
+        const votes = arr.map((_) => oldChief!.charisma + 1)
+        await world.castVotes(world.member1.id, world.member3.id, votes, arr)
+        const member3 = await world.memberStore.getById(world.member3.id)
+        expect(member3!.charisma).toBeGreaterThan(oldChief!.charisma)
+        const tribe = await world.tribeStore.getById(world.tribe.id)
+        expect(tribe!.chiefId).toEqual(member3!.id)
+    })
+    it('makes a new most wise member shaman', async () => {
+        const world = await setUp()
+        const oldShaman = await world.memberStore.getById(world.tribe.shamanId!)
+        const arr = new Array(5).fill(0)
+        const votes = arr.map((_) => oldShaman!.wisdom + 1)
+        await world.castVotes(world.member1.id, world.member3.id, arr, votes)
+        const member3 = await world.memberStore.getById(world.member3.id)
+        expect(member3!.wisdom).toBeGreaterThan(oldShaman!.wisdom)
+        const tribe = await world.tribeStore.getById(world.tribe.id)
+        expect(tribe!.shamanId).toEqual(member3!.id)
     })
 })
 
+function mean(arr: number[]) {
+    return arr.reduce((s, n) => s + n, 0) / arr.length
+}
+
 async function setUp() {
     const context = createContext()
-    const [user1, user2, user3] = await context.stores.userStore.saveBulk([
-        new User({ name: 'User A' }),
-        new User({ name: 'User B' }),
-        new User({ name: 'User C' }),
-    ])
-    const [
-        member1,
-        member2,
-        member3,
-    ] = await context.stores.memberStore.saveBulk([
-        new Member({ tribeId: 'tribe', userId: user1.id }),
-        new Member({ tribeId: 'tribe', userId: user2.id }),
-        new Member({ tribeId: 'tribe', userId: user2.id }),
-    ])
+    const { members, users, tribe } = await context.testing.makeTribe()
 
+    const [member1, member2, member3] = members
+    const [user1, user2, user3] = users
     const quest = await context.stores.questStore.save(
         new Quest({ memberIds: [member1.id, member2.id] })
     )
@@ -253,16 +273,18 @@ async function setUp() {
         user2,
         user3,
         quest,
+        tribe,
         defaultFinalReq,
         defaultCastRequest,
         spyOnMessage: context.testing.spyOnMessage,
         castVotes: async (
             memberId: string,
             voteForId: string,
-            votes: number[]
+            votesCharisma: number[],
+            votesWisdom?: number[]
         ) =>
             Promise.all(
-                votes.map(async (v) => {
+                votesCharisma.map(async (v, i) => {
                     const quest = await context.stores.questStore.save(
                         new Quest({ memberIds: [memberId, voteForId] })
                     )
@@ -276,7 +298,7 @@ async function setUp() {
                         voteForId,
                         memberId,
                         questId: quest.id,
-                        wisdom: v,
+                        wisdom: votesWisdom ? votesWisdom[i] : v,
                     })
                 })
             ),

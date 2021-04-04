@@ -1,6 +1,6 @@
 import { ContextUser } from './utils/context-user'
 import { IndeclinableError, QuestStatus, QuestType } from './entities/quest'
-import { getBestFreeMember } from './utils/get-best-free-member'
+import { getBestFreeMember } from './utils/members-utils'
 import { getRootIdea, NoIdeaError } from './utils/get-root-idea'
 import { Message } from './utils/message'
 import { QuestMessage } from './utils/quest-message'

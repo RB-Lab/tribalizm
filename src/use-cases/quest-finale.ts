@@ -1,6 +1,7 @@
 import { IQuest, QuestType } from './entities/quest'
 import { Storable } from './entities/store'
 import { ContextUser } from './utils/context-user'
+import { findMaxTrait } from './utils/members-utils'
 import { IntroductionTask } from './utils/scheduler'
 
 export class QuestFinale extends ContextUser {
@@ -82,7 +83,18 @@ export class QuestFinale extends ContextUser {
                 memberId: memberId,
                 questId: quest.id,
             })
-            this.stores.memberStore.save(member)
+            await this.stores.memberStore.save(member)
+            const members = await this.stores.memberStore.find({
+                tribeId: member.tribeId,
+            })
+            const mostCharismatic = findMaxTrait(members, 'charisma')
+            const mostWise = findMaxTrait(members, 'wisdom')
+            const tribe = await this.getTribe(member.tribeId)
+            await this.stores.tribeStore.save({
+                ...tribe,
+                chiefId: mostCharismatic.id,
+                shamanId: mostWise.id,
+            })
         }
     }
 }

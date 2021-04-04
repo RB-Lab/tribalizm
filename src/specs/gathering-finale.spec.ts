@@ -80,7 +80,7 @@ describe('Gathering finale', () => {
         it('stores vote', async () => {
             const world = await setUp()
             await world.gatheringFinale.finalize(world.defautlRequest)
-            const member = await world.memberStore.getById(world.members[0].id)
+            const member = await world.memberStore.getById(world.members[2].id)
 
             expect(member!.votes[0]).toEqual(
                 jasmine.objectContaining<GatheringVote>({
@@ -93,7 +93,7 @@ describe('Gathering finale', () => {
             const world = await setUp()
             await world.gatheringFinale.finalize({
                 gatheringId: world.gathering.id,
-                memberId: world.members[2].id,
+                memberId: world.members[6].id,
                 score: 4,
             })
             await world.gatheringFinale.finalize({
@@ -101,18 +101,66 @@ describe('Gathering finale', () => {
                 memberId: world.members[5].id,
                 score: 2,
             })
-            const member = await world.memberStore.getById(world.members[0].id)
+            const member = await world.memberStore.getById(world.members[2].id)
             expect(member!.charisma).toEqual(1.5)
             expect(member!.wisdom).toEqual(1.5)
         })
+    })
+
+    it('makes a new most charismatic member chief', async () => {
+        const world = await setUp()
+        const chief = await world.memberStore.getById(world.tribe.chiefId!)
+        const gathering1 = world.gathering
+        const gathering2 = await world.makeGathering()
+        await world.gatheringFinale.finalize({
+            gatheringId: gathering1.id,
+            memberId: world.members[5].id,
+            score: 3,
+        })
+        await world.gatheringFinale.finalize({
+            gatheringId: gathering2.id,
+            memberId: world.members[6].id,
+            score: 4,
+        })
+        const members = await world.memberStore.find({
+            tribeId: world.tribe.id,
+        })
+        const newLeaders = members.filter((m) => m.charisma > chief!.charisma)
+        expect(newLeaders.length).toBeGreaterThan(0)
+        const tribe = await world.tribeStore.getById(world.tribe.id)
+        expect(newLeaders.map((m) => m.id)).toContain(tribe!.chiefId!)
+    })
+    it('makes a new most wise member shaman', async () => {
+        const world = await setUp()
+        const shaman = await world.memberStore.getById(world.tribe.shamanId!)
+        const gathering1 = world.gathering
+        const gathering2 = await world.makeGathering()
+        await world.gatheringFinale.finalize({
+            gatheringId: gathering1.id,
+            memberId: world.members[5].id,
+            score: 3,
+        })
+        await world.gatheringFinale.finalize({
+            gatheringId: gathering2.id,
+            memberId: world.members[6].id,
+            score: 4,
+        })
+        const members = await world.memberStore.find({
+            tribeId: world.tribe.id,
+        })
+        const newLeaders = members.filter((m) => m.wisdom > shaman!.wisdom)
+        expect(newLeaders.length).toBeGreaterThan(0)
+        const tribe = await world.tribeStore.getById(world.tribe.id)
+        expect(newLeaders.map((m) => m.id)).toContain(tribe!.shamanId!)
     })
 })
 async function setUp() {
     const context = createContext()
     const { members, tribe, idea } = await context.testing.makeIdea(
-        [2, 5, 6, 9, 7],
-        [1, 3, 10],
-        [4, 8]
+        [5, 6, 9, 7, 8, 10],
+        [0, 1, 3],
+        [2, 4],
+        2
     )
     const incarnation = new IdeasIncarnation(context)
     const task = (await context.stores.taskStore.save({
@@ -124,12 +172,12 @@ async function setUp() {
         },
     })) as StormFinalyze & Storable
     await incarnation.incarnateIdeas(task)
-    const quest0 = (await context.stores.questStore.find({}))[0]
+    const quest0 = await context.stores.questStore._last()
     const source = new QuestSource(context)
     const quest1 = await source.spawnQuest({
         description: 'spawn 1',
-        memberId: quest0.memberIds[0],
-        parentQuestId: quest0.id,
+        memberId: quest0!.memberIds[0],
+        parentQuestId: quest0!.id,
     })
     const quest2 = await source.spawnQuest({
         description: 'spawn 2',
@@ -137,33 +185,50 @@ async function setUp() {
         parentQuestId: quest1.id,
     })
 
-    const gathering = await context.stores.gatheringStore.save(
-        new Gathering({
-            description: 'lets OLOLO together!',
-            place: 'the Foo Bar',
-            time: 100_500_200_500,
-            tribeId: tribe.id,
-            type: 'all',
-            parentQuestId: quest2.id,
-            accepted: [members[0].id, members[2].id, members[5].id],
-            declined: [members[1].id, members[3].id],
-        })
-    )
+    const gathering = await makeGathering()
     const defautlRequest = {
-        memberId: members[2].id,
+        memberId: members[6].id,
         gatheringId: gathering.id,
         score: 4,
     }
     const affectedMembers = Array.from(
-        new Set([...quest0.memberIds, ...quest1.memberIds, ...quest2.memberIds])
+        new Set([
+            ...quest0!.memberIds,
+            ...quest1.memberIds,
+            ...quest2.memberIds,
+        ])
     ).filter((id) => id !== defautlRequest.memberId)
 
     const gatheringFinale = new GatheringFinale(context)
+
+    async function makeGathering() {
+        return await context.stores.gatheringStore.save(
+            new Gathering({
+                description: 'lets OLOLO together!',
+                place: 'the Foo Bar',
+                time: 100500200500,
+                tribeId: tribe.id,
+                type: 'all',
+                parentQuestId: quest2.id,
+                // 2; [5, 6, 9, 7, 8, 10],
+                accepted: [
+                    members[5].id,
+                    members[6].id,
+                    members[9].id,
+                    members[2].id,
+                ],
+                declined: [members[10].id, members[7].id],
+            })
+        )
+    }
     return {
         ...context.stores,
+        ...context.testing,
         affectedMembers,
         members,
+        tribe,
         gathering,
+        makeGathering,
         gatheringFinale,
         defautlRequest,
     }

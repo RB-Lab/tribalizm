@@ -2,7 +2,7 @@ import { SavedMember } from '../entities/member'
 
 export function getBestFreeMember(
     members: SavedMember[],
-    trait: 'charisma' | 'wisdom',
+    trait: Trait,
     activeQuests: Record<string, number>,
     exclude: string[]
 ) {
@@ -31,4 +31,16 @@ export function minQuests(
         []
     )
     return counts.length ? Math.min(...counts) || 0 : 0
+}
+
+type Trait = 'charisma' | 'wisdom'
+
+export function findMaxTrait(members: SavedMember[], trait: Trait) {
+    let member = members[0]
+    members.forEach((m) => {
+        if (member[trait] < m[trait]) {
+            member = m
+        }
+    })
+    return member
 }

@@ -68,12 +68,17 @@ export function createContext() {
             chiefId: members[0].id,
             shamanId: members[1] ? members[1].id : null,
         })
+        await memberStore.save({ ...members[0], charisma: 3 })
+        if (members[1]) {
+            await memberStore.save({ ...members[1], wisdom: 3 })
+        }
         return { tribe, members, users }
     }
     const makeIdea = async (
         ups = [1, 3, 4, 6],
         downs = [2, 5],
-        neutrals: number[] = []
+        neutrals: number[] = [],
+        ideaCater = 0
     ) => {
         const tribeSize = ups.length + downs.length + neutrals.length + 1
         const { tribe, members } = await makeTribe(tribeSize)
@@ -88,7 +93,7 @@ export function createContext() {
             new QuestIdea({
                 brainstormId: brainstorm.id,
                 description: 'let us FOOO!',
-                meberId: members[0].id,
+                meberId: members[ideaCater].id,
             })
         )
         ups.forEach((i) => idea.voteUp(members[i].id))

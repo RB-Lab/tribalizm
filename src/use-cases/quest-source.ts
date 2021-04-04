@@ -1,7 +1,7 @@
 import { SavedQuestIdea } from './entities/brainstorm'
 import { NotYourQuest, Quest } from './entities/quest'
 import { ContextUser } from './utils/context-user'
-import { getBestFreeMember } from './utils/get-best-free-member'
+import { getBestFreeMember } from './utils/members-utils'
 import { getRootIdea } from './utils/get-root-idea'
 import { QuestMessage } from './utils/quest-message'
 

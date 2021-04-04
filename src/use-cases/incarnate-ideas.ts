@@ -2,7 +2,7 @@ import { SavedQuestIdea } from './entities/brainstorm'
 import { Quest } from './entities/quest'
 import { QuestMessage } from './utils/quest-message'
 import { ContextUser } from './utils/context-user'
-import { getBestFreeMember, minQuests } from './utils/get-best-free-member'
+import { getBestFreeMember, minQuests } from './utils/members-utils'
 import { StormFinalyze } from './utils/scheduler'
 import { Storable } from './entities/store'
 

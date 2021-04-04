@@ -1,4 +1,5 @@
 import { ContextUser } from './utils/context-user'
+import { findMaxTrait } from './utils/members-utils'
 
 export class GatheringFinale extends ContextUser {
     finalize = async (req: FinalizeGatheringRequest) => {
@@ -26,6 +27,17 @@ export class GatheringFinale extends ContextUser {
             })
         })
         await this.stores.memberStore.saveBulk(members)
+        const tribeMembers = await this.stores.memberStore.find({
+            tribeId: gathering.tribeId,
+        })
+        const mostCharismatic = findMaxTrait(tribeMembers, 'charisma')
+        const mostWise = findMaxTrait(tribeMembers, 'wisdom')
+        const tribe = await this.getTribe(gathering.tribeId)
+        await this.stores.tribeStore.save({
+            ...tribe,
+            chiefId: mostCharismatic.id,
+            shamanId: mostWise.id,
+        })
         await this.stores.gatheringStore.save(gathering)
     }
 }
