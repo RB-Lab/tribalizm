@@ -19,14 +19,6 @@ import { User } from '../use-cases/entities/user'
 import { Message } from '../use-cases/utils/message'
 import { NotificationBus } from '../use-cases/utils/notification-bus'
 
-export function assign<T extends object>(doc: T, update: Partial<T>) {
-    const keys = getKeys(doc)
-    return keys.reduce((res, key) => {
-        if (!isValidObjectKey(key, doc)) return res
-        return { ...res, [key]: key in update ? update[key] : doc[key] }
-    }, {} as T)
-}
-
 export function createContext() {
     const notififcationBus = new TestNotificationBus()
     const ideaStore = new InMemoryIdeaStore(QuestIdea)
@@ -43,6 +35,7 @@ export function createContext() {
         let tribe = await tribeStore.save(
             new Tribe({
                 name: 'Foo tribe',
+                cityId: 'city',
             })
         )
         const users = await userStore.saveBulk(

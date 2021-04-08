@@ -157,6 +157,7 @@ async function setUp() {
     const tribe = await context.stores.tribeStore.save(
         new Tribe({
             name: 'Foo tribe',
+            cityId: 'city-42',
         })
     )
     const [

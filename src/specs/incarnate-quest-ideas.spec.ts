@@ -371,7 +371,9 @@ async function setUp(settings: Settings = {}) {
 
 function makeTribeFactory({ memberStore, tribeStore }: Context['stores']) {
     return async function makeTribe(ms: MemberFake[]) {
-        const tribe = await tribeStore.save(new Tribe({ name: 'Foo Tribe' }))
+        const tribe = await tribeStore.save(
+            new Tribe({ name: 'Foo Tribe', cityId: 'city-42' })
+        )
         const members = await memberStore.saveBulk(
             ms.map(
                 (m, i) =>

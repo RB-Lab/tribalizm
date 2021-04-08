@@ -26,11 +26,11 @@
 12. ✅ A _tribe cheif or shaman_ approves or declines _application_,
 13. ✅ A _tribe shaman_ gets _users_ _application_ accepted by the _cheif_ and requests the
     second _initiation quest_ with proposed date and place
-14. 🔜 An _admin_ adds a new tribe
-15. ❗ An _admin_ adds member to a tribe and set their charisma and wisdom scores
+14. ✅ An _admin_ adds a new tribe
+15. ✅ An _admin_ adds member to a tribe and set their charisma and wisdom scores
 16. ❕ An _admin_ adds a _union_ and associate some _tribes_ with it
 17. ❕ A trusted _user_ starts their own tribe
-18. ❗ An _admin_ notifies a _cheif_ that it is time to gather a _brainstorm_
+18. 🔜 An _admin_ notifies a _cheif_ that it is time to gather a _brainstorm_
 19. ❕ The _system_ notifies a _cheif_ that it is time to gather a _brainstorm_ when there is not very
     much ongoing quests left (e.g. < 20% members)
 20. ✅ A _tribe cheif_ declares a _brainstorm_ date
@@ -75,12 +75,13 @@
 46. ✅ The _system_ reassigns rejected _quest_ to antoter member (see usecases 26 & 29)
 47. ✅ The _system_ makes most charismatic member tribe _chief_
 48. ✅ The _system_ makes most wise member tribe _shaman_
-49. ❕ A _member_ wants to leave the game (inc. _chief_ and _shaman_)
-50. ❕ A _member_ wants to be notified about the quest the day before it appointed (or other
+49. ❕ The _system_ notifies tribe members that tribe have new _chief_ or _shaman_
+50. ❕ A _member_ wants to leave the game (inc. _chief_ and _shaman_)
+51. ❕ A _member_ wants to be notified about the quest the day before it appointed (or other
     timeperiod? or add to calendar)
-51. ❕ A _tribe cheif_ wants to rename tribe and change description
+52. ❕ A _tribe cheif_ wants to rename tribe and change description
 
-Done: 30, In porgres: 1, Must: 5, Should: 15, total: 51
+Done: 32, In porgres: 1, Must: 3, Should: 16, total: 52
 
 ## Entities
 

@@ -52,7 +52,9 @@ describe('Stranger application', () => {
 
     it('FAILs if tribe have no chief', async () => {
         const world = await setUp()
-        const tribe = await world.tribeStore.save(new Tribe({ name: 'tribe' }))
+        const tribe = await world.tribeStore.save(
+            new Tribe({ name: 'tribe', cityId: 'city-42' })
+        )
         await expectAsync(
             world.tribeApplication.appyToTribe({
                 ...world.defReq,

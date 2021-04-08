@@ -56,7 +56,7 @@ export class Initiation extends ContextUser {
 
         const user = await this.getUser(member.userId)
 
-        if (tribe.shamanId) {
+        if (tribe.shamanId && tribe.shamanId !== tribe.chiefId) {
             app.nextPhase()
             app.shamanId = tribe.shamanId
             await this.stores.applicationStore.save(app)

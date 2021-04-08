@@ -14,7 +14,7 @@ import {
     WrongPhaseError,
 } from '../use-cases/initiation'
 import { QuestMessage } from '../use-cases/utils/quest-message'
-import { assign, createContext, makeMessageSpy } from './test-context'
+import { createContext, makeMessageSpy } from './test-context'
 
 describe('Initiation quests:', () => {
     describe('Chief initiation', () => {
@@ -119,11 +119,10 @@ describe('Initiation quests:', () => {
         })
         it('FAILs to approve by wrong chief', async () => {
             const world = await setUp()
-            await world.applicationStore.save(
-                assign(world.application, {
-                    phase: ApplicationPhase.chiefInitiation,
-                })
-            )
+            await world.applicationStore.save({
+                ...world.application,
+                phase: ApplicationPhase.chiefInitiation,
+            })
             await expectAsync(
                 world.initiation.approveByChief({
                     applicationId: world.application.id,
@@ -167,7 +166,27 @@ describe('Initiation quests:', () => {
         })
         it('approves the memeber, if tribe has no shaman', async () => {
             const world = await toChiefAproval()
-            await world.tribeStore.save(assign(world.tribe, { shamanId: null }))
+            await world.tribeStore.save({ ...world.tribe, shamanId: null })
+            await world.initiation.approveByChief({
+                applicationId: world.application.id,
+                memberId: world.chief.id,
+            })
+            const app = await world.applicationStore.getById(
+                world.initReq.applicationId
+            )
+            const member = await world.memberStore.getById(world.newMember.id)
+            expect(app?.phase).toEqual(ApplicationPhase.finished)
+            expect(app?.status).toEqual('approved')
+            expect(member?.isCandidate)
+                .withContext('member.isCandidate')
+                .toEqual(false)
+        })
+        it('approves member if the chief is also a shaman', async () => {
+            const world = await toChiefAproval()
+            await world.tribeStore.save({
+                ...world.tribe,
+                shamanId: world.tribe.chiefId,
+            })
             await world.initiation.approveByChief({
                 applicationId: world.application.id,
                 memberId: world.chief.id,
@@ -184,7 +203,7 @@ describe('Initiation quests:', () => {
         })
         it('notifies member on (express) approval', async () => {
             const world = await toChiefAproval()
-            await world.tribeStore.save(assign(world.tribe, { shamanId: null }))
+            await world.tribeStore.save({ ...world.tribe, shamanId: null })
             const onApprove = world.spyOnMessage<ApplicationApproved>(
                 'application-approved'
             )
@@ -419,9 +438,11 @@ async function setUp() {
     const context = createContext()
     const { members, tribe } = await context.testing.makeTribe()
     const [chief, shaman, newMember] = members
-    await context.stores.tribeStore.save(
-        assign(tribe, { chiefId: chief.id, shamanId: shaman.id })
-    )
+    await context.stores.tribeStore.save({
+        ...tribe,
+        chiefId: chief.id,
+        shamanId: shaman.id,
+    })
     await context.stores.memberStore.save({ ...newMember, isCandidate: true })
     const user = await context.stores.userStore.getById(newMember.userId)
     const application = await context.stores.applicationStore.save(
@@ -495,9 +516,11 @@ async function failOnWrongPhase(
                 return Promise.resolve()
             }
             const world = await setUp()
-            await world.applicationStore.save(
-                assign(world.application, { phase, shamanId: world.shaman.id })
-            )
+            await world.applicationStore.save({
+                ...world.application,
+                phase,
+                shamanId: world.shaman.id,
+            })
             await expectAsync(
                 world.initiation[metod]({
                     ...world.initReq,
