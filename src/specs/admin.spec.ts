@@ -1,4 +1,4 @@
-import { Admin, AlreadyHaveChief } from '../use-cases/admin'
+import { Admin, AlreadyHaveChief, TimeToStormMessage } from '../use-cases/admin'
 import { Tribe, TribeType } from '../use-cases/entities/tribe'
 import { User } from '../use-cases/entities/user'
 import { createContext } from './test-context'
@@ -54,6 +54,21 @@ describe('Admin', () => {
             })
         ).toBeRejectedWithError(AlreadyHaveChief)
     })
+    it('notifies chief about a brainstorm', async () => {
+        const world = await setUp()
+        const onMessage = world.spyOnMessage<TimeToStormMessage>(
+            'time-to-storm'
+        )
+        await world.admin.notifyBrainstorm({ memberId: 'member' })
+        expect(onMessage).toHaveBeenCalledOnceWith(
+            jasmine.objectContaining<TimeToStormMessage>({
+                type: 'time-to-storm',
+                payload: {
+                    targetMemberId: 'member',
+                },
+            })
+        )
+    })
 })
 
 async function setUp() {
@@ -79,5 +94,6 @@ async function setUp() {
         admin,
         makeUserAndTribe,
         ...context.stores,
+        spyOnMessage: context.testing.spyOnMessage,
     }
 }

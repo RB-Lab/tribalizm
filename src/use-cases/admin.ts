@@ -1,8 +1,17 @@
 import { Member } from './entities/member'
 import { Tribe, TribeType } from './entities/tribe'
 import { ContextUser } from './utils/context-user'
+import { Message } from './utils/message'
 
 export class Admin extends ContextUser {
+    notifyBrainstorm = async (req: { memberId: string }) => {
+        this.notify<TimeToStormMessage>({
+            type: 'time-to-storm',
+            payload: {
+                targetMemberId: req.memberId,
+            },
+        })
+    }
     addTribeMemer = async (req: AddMemberRequest) => {
         const tribe = await this.getTribe(req.tribeId)
         if (tribe.chiefId !== null) {
@@ -55,5 +64,12 @@ interface AddMemberRequest {
 export class AlreadyHaveChief extends Error {
     constructor(msg: string) {
         super(msg)
+    }
+}
+
+export interface TimeToStormMessage extends Message {
+    type: 'time-to-storm'
+    payload: {
+        targetMemberId: string
     }
 }

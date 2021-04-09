@@ -10,13 +10,13 @@
 
 ## Use Cases
 
-1.  ❗ A _stranger_ looks through the list of available _tribes_ to find one to join
+1.  🔜 A _stranger_ looks through the list of available _tribes_ to find one to join
 2.  ❕ A _stranger_ gets request to set their city whne they don't want to share coordinates
 3.  ❕ A _stranger_ searches available _tribes_ to find one to join
 4.  ❗ A _stranger_ views a _tribe_ info to decide if they want to join
 5.  ❕ A _stranger_ gets proposal to start a _tribe chapter_ when they open link to the tribe not in
     their area
-6.  ❗ A _stranger_ becames _user_
+6.  🤔 A _stranger_ becames _user_
 7.  ✅ A _user_ fills an _application_ to join a _tribe_
 8.  ✅ A _tribe cheif_ gets _users_ _application_ and requests the _initiation quest_ with
     proposed date and place
@@ -30,7 +30,7 @@
 15. ✅ An _admin_ adds member to a tribe and set their charisma and wisdom scores
 16. ❕ An _admin_ adds a _union_ and associate some _tribes_ with it
 17. ❕ A trusted _user_ starts their own tribe
-18. 🔜 An _admin_ notifies a _cheif_ that it is time to gather a _brainstorm_
+18. ✅ An _admin_ notifies a _cheif_ that it is time to gather a _brainstorm_
 19. ❕ The _system_ notifies a _cheif_ that it is time to gather a _brainstorm_ when there is not very
     much ongoing quests left (e.g. < 20% members)
 20. ✅ A _tribe cheif_ declares a _brainstorm_ date
@@ -81,7 +81,7 @@
     timeperiod? or add to calendar)
 52. ❕ A _tribe cheif_ wants to rename tribe and change description
 
-Done: 32, In porgres: 1, Must: 3, Should: 16, total: 52
+Done: 33, In porgres: 1, Must: 1, Should: 16, total: 52
 
 ## Entities
 
