@@ -1,6 +1,9 @@
 import { Storable, Store } from './store'
 
-export interface MemberStore extends Store<IMember> {}
+export interface MemberStore extends Store<IMember> {
+    countTribeMembers(memberId: string): Promise<number>
+    countTribeMembers(memberIds: string[]): Promise<Record<string, number>>
+}
 
 export interface IMemberData {
     id: string | null

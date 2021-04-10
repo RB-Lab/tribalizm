@@ -1,8 +1,8 @@
 import { InMemoryApplicationStore } from '../plugins/testing/application-store'
 import { InMemoryBrainstormStore } from '../plugins/testing/brainstorm-store'
+import { InMemoryCityStore } from '../plugins/testing/city-store'
 import { InMemoryGatheringStore } from '../plugins/testing/gathering-stroe'
 import { InMemoryIdeaStore } from '../plugins/testing/idea-store'
-import { getKeys, isValidObjectKey } from '../plugins/testing/in-memory-store'
 import { InMemoryMemberStore } from '../plugins/testing/member-store'
 import { TestNotificationBus } from '../plugins/testing/notification-bus'
 import { InMemoryQuestStore } from '../plugins/testing/quest-store'
@@ -11,6 +11,7 @@ import { InMemoryTribeStore } from '../plugins/testing/tribe-store'
 import { InMemoryUserStore } from '../plugins/testing/user-store'
 import { Application } from '../use-cases/entities/application'
 import { Brainstorm, QuestIdea } from '../use-cases/entities/brainstorm'
+import { City } from '../use-cases/entities/city'
 import { Gathering } from '../use-cases/entities/gathering'
 import { Member } from '../use-cases/entities/member'
 import { Quest } from '../use-cases/entities/quest'
@@ -30,6 +31,7 @@ export function createContext() {
     const userStore = new InMemoryUserStore(User)
     const taskStore = new InMemoryTaskStore()
     const gatheringStore = new InMemoryGatheringStore(Gathering)
+    const cityStore = new InMemoryCityStore(City)
 
     const makeTribe = async (n = 6) => {
         let tribe = await tribeStore.save(
@@ -114,6 +116,7 @@ export function createContext() {
             userStore,
             taskStore,
             gatheringStore,
+            cityStore,
         },
         async: {
             notififcationBus,

@@ -8,7 +8,7 @@ export class InMemoryStore<T> implements Store<T> {
     protected _store: Record<string, any> = {}
     private _getId = () => Math.random().toString().slice(2)
     private _class?: new (record: any) => T
-    private _instantiate = (record: any) => {
+    protected _instantiate = (record: any) => {
         const instance = this._class ? new this._class(record) : { ...record }
         return instance as T & Storable
     }
