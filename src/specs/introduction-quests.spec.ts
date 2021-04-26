@@ -45,14 +45,16 @@ describe('Introduction quests', () => {
     })
     it('marks an introduction task done', async () => {
         const world = await setUp()
-        const { task } = await world.makeIntroTask()
+        const newMember = await world.getApproval()
+        const { task } = await world.makeIntroTask(newMember.id)
         await world.introQuests.notifyOldMember(task)
         const taskAfter = await world.taskStore.getById(task.id)
         expect(taskAfter?.done).toBe(true)
     })
     it('notifies old member when it`s time for intro', async () => {
         const world = await setUp()
-        const { task, newMember, oldMember } = await world.makeIntroTask()
+        const newMember = await world.getApproval()
+        const { task, oldMember } = await world.makeIntroTask(newMember.id)
         const onQuest = world.spyOnMessage<IntroMessage>(
             'intro-request-message'
         )
@@ -70,7 +72,8 @@ describe('Introduction quests', () => {
     })
     it('creates an introduction quest', async () => {
         const world = await setUp()
-        const { newMember, oldMember, questReq } = await world.makeIntroTask()
+        const newMember = await world.getApproval()
+        const { oldMember, questReq } = await world.makeIntroTask(newMember.id)
         await world.introQuests.createIntroQuest(questReq)
         const quests = await world.questStore.find({
             type: QuestType.introduction,
@@ -85,7 +88,8 @@ describe('Introduction quests', () => {
     })
     it('notifies a new member about the quest', async () => {
         const world = await setUp()
-        const { newMember, oldMember, questReq } = await world.makeIntroTask()
+        const newMember = await world.getApproval()
+        const { oldMember, questReq } = await world.makeIntroTask(newMember.id)
         const onQuest = world.spyOnMessage<QuestMessage>('new-quest-message')
         await world.introQuests.createIntroQuest(questReq)
         expect(onQuest).toHaveBeenCalledOnceWith(
@@ -106,27 +110,31 @@ describe('Introduction quests', () => {
     })
     it('mark porposed quest as accepted by old member', async () => {
         const world = await setUp()
-        const { oldMember, questReq } = await world.makeIntroTask()
+        const newMember = await world.getApproval()
+        const { oldMember, questReq } = await world.makeIntroTask(newMember.id)
         await world.introQuests.createIntroQuest(questReq)
         const quest = await world.questStore._last()
         expect(quest!.acceptedIds).toEqual([oldMember!.id])
     })
     it('alocates next intro when "how was it" done', async () => {
         const world = await setUp()
-        const { next } = await world.makeIntroTask()
+        const newMember = await world.getApproval()
+        const { next } = await world.makeIntroTask(newMember.id)
         const { task } = (await next())!
         expect(task).toBeTruthy()
     })
     it('allocates next intro with a new member', async () => {
         const world = await setUp()
-        const { next, newMember, oldMember } = await world.makeIntroTask()
+        const newMember = await world.getApproval()
+        const { next, oldMember } = await world.makeIntroTask(newMember.id)
         const { task } = (await next())!
         expect(task!.payload.newMemberId).toEqual(newMember.id)
         expect(task!.payload.oldMemberId).not.toEqual(oldMember.id)
     })
     it('does NOT allocate intro with self', async () => {
         const world = await setUp()
-        const allTasks = await world.getAllTasks()
+        const newMember = await world.getApproval()
+        const allTasks = await world.getAllTasks(newMember.id)
         expect(allTasks.length).toBeGreaterThan(1)
         const allNewMembers = allTasks.map((t) => t.payload.newMemberId)
         const allOldMembers = allTasks.map((t) => t.payload.oldMemberId)
@@ -135,14 +143,16 @@ describe('Introduction quests', () => {
     })
     it('does NOT allocate intro with shaman & chief', async () => {
         const world = await setUp()
-        const allTasks = await world.getAllTasks()
+        const newMember = await world.getApproval()
+        const allTasks = await world.getAllTasks(newMember.id)
         const allOldMembers = allTasks.map((t) => t.payload.oldMemberId)
         expect(allOldMembers).not.toContain(world.tribe.chiefId!)
         expect(allOldMembers).not.toContain(world.tribe.shamanId!)
     })
     it('allocates task for ALL regular members', async () => {
         const world = await setUp()
-        const allTasks = await world.getAllTasks()
+        const newMember = await world.getApproval()
+        const allTasks = await world.getAllTasks(newMember.id)
         const allOldRegularMembers = allTasks.map((t) => t.payload.oldMemberId)
         const allOldMembers = [
             ...allOldRegularMembers,
@@ -153,7 +163,15 @@ describe('Introduction quests', () => {
         expect(allOldMembers.sort()).toEqual(allMembers.sort())
     })
     it('allocates intro with a NEW chief', async () => {
-        pending('awaiting new chief assignment mechanism')
+        const world = await setUp()
+        const newMember = await world.getApproval()
+        await world.tribeStore.save({
+            ...world.tribe,
+            chiefId: world.members[4].id,
+        })
+        const allTasks = await world.getAllTasks(newMember.id)
+        const allOldRegularMembers = allTasks.map((t) => t.payload.oldMemberId)
+        expect(allOldRegularMembers).toContain(world.members[4].id)
     })
 })
 
@@ -178,11 +196,11 @@ async function setUp(size?: number) {
         })
         const initReq = {
             applicationId: application.id,
-            memberId: tribe.chiefId!,
+            memberId: application.chiefId!,
             place: 'The Foo Bar',
             time: 1_700_100_500_000,
         }
-        const shamanReq = { ...initReq, memberId: tribe.shamanId! }
+        const shamanReq = { ...initReq, memberId: application.shamanId! }
         await initiation.startInitiation(initReq)
         await initiation.approveByChief(initReq)
         await initiation.startShamanInitiation(shamanReq)
@@ -210,8 +228,7 @@ async function setUp(size?: number) {
             ? members.find((m) => m.id === task.payload.oldMemberId)
             : undefined
     }
-    const makeIntroTask = async () => {
-        const newMember = await getApproval()
+    const makeIntroTask = async (newMemberId: string) => {
         let task = (await getNewItroTask())!
         const next = async () => {
             await introQuests.notifyOldMember(task)
@@ -219,7 +236,7 @@ async function setUp(size?: number) {
             await introQuests.createIntroQuest(questReq)
             const quest = await context.stores.questStore._last()
             await questFinale.imDone({
-                memberId: newMember.id,
+                memberId: newMemberId,
                 questId: quest!.id,
             })
             const newTask = await getNewItroTask()
@@ -227,7 +244,6 @@ async function setUp(size?: number) {
                 task = newTask
                 return {
                     questReq,
-                    newMember,
                     oldMember: getOldMember(task)!,
                     task,
                     next,
@@ -237,15 +253,14 @@ async function setUp(size?: number) {
         }
         return {
             questReq: makeQuestReq(task),
-            newMember,
             oldMember: getOldMember(task)!,
             task: task,
             next,
         }
     }
 
-    const getAllTasks = async () => {
-        let { task, next } = await makeIntroTask()
+    const getAllTasks = async (newMemberId: string) => {
+        let { task, next } = await makeIntroTask(newMemberId)
         const allTasks = [task]
         while (true) {
             const res = await next()

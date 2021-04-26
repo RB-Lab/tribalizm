@@ -26,6 +26,7 @@ export class TribeApplication extends ContextUser {
                 tribeId: req.tribeId,
                 coverLetter: req.coverLetter,
                 chiefId: tribe.chiefId,
+                shamanId: tribe.shamanId,
             })
         )
         this.notify<ApplicationMessage>({
