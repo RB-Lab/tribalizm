@@ -2,6 +2,7 @@ import { EntityNotFound } from './not-found-error'
 import { Storable, Store } from '../entities/store'
 
 export interface TaskStore extends Store<ITask> {
+    // TODO: add pagination
     getAwaitingTasks: (time: number) => Promise<Array<ITask & Storable>>
 }
 

@@ -47,6 +47,7 @@ describe('Voting', () => {
             world.voting.start(world.brainstorm.id)
         ).toBeRejectedWithError(UpdateFinishedBrainstormError)
     })
+    // FLICK
     describe('for ideas', () => {
         it('should store current idea with votes', async () => {
             const world = await setUp()
@@ -151,7 +152,7 @@ describe('Voting', () => {
 })
 
 async function setUp() {
-    const context = createContext()
+    const context = await createContext()
     const voting = new Voting(context)
 
     const tribe = await context.stores.tribeStore.save(
@@ -196,6 +197,6 @@ async function setUp() {
         tribe,
         ideaMember,
         votingMember,
-        getIdea: async () => context.stores.ideaStore.getById(idea.id),
+        getIdea: async () => await context.stores.ideaStore.getById(idea.id),
     }
 }

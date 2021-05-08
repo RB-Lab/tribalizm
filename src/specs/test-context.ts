@@ -4,11 +4,23 @@ import { InMemoryCityStore } from '../plugins/testing/city-store'
 import { InMemoryGatheringStore } from '../plugins/testing/gathering-stroe'
 import { InMemoryIdeaStore } from '../plugins/testing/idea-store'
 import { InMemoryMemberStore } from '../plugins/testing/member-store'
-import { TestNotificationBus } from '../plugins/testing/notification-bus'
 import { InMemoryQuestStore } from '../plugins/testing/quest-store'
 import { InMemoryTaskStore } from '../plugins/testing/task-store'
 import { InMemoryTribeStore } from '../plugins/testing/tribe-store'
 import { InMemoryUserStore } from '../plugins/testing/user-store'
+
+import { MongoApplicationStore } from '../plugins/mongo-store/application-store'
+import { MongoBrainstormStore } from '../plugins/mongo-store/brainstorm-store'
+import { MongoCityStore } from '../plugins/mongo-store/city-store'
+import { MongoGatheringStore } from '../plugins/mongo-store/gathering-stroe'
+import { MongoIdeaStore } from '../plugins/mongo-store/idea-store'
+import { MongoMemberStore } from '../plugins/mongo-store/member-store'
+import { MongoQuestStore } from '../plugins/mongo-store/quest-store'
+import { MongoTaskStore } from '../plugins/mongo-store/task-store'
+import { MongoTribeStore } from '../plugins/mongo-store/tribe-store'
+import { MongoUserStore } from '../plugins/mongo-store/user-store'
+
+import { TestNotificationBus } from '../plugins/testing/notification-bus'
 import { Application } from '../use-cases/entities/application'
 import { Brainstorm, QuestIdea } from '../use-cases/entities/brainstorm'
 import { City } from '../use-cases/entities/city'
@@ -19,9 +31,10 @@ import { Tribe } from '../use-cases/entities/tribe'
 import { User } from '../use-cases/entities/user'
 import { Message } from '../use-cases/utils/message'
 import { NotificationBus } from '../use-cases/utils/notification-bus'
+import { MongoMemoryServer } from 'mongodb-memory-server'
+import { MongoClient } from 'mongodb'
 
-export function createContext() {
-    const notififcationBus = new TestNotificationBus()
+function createInmemroyStores() {
     const ideaStore = new InMemoryIdeaStore(QuestIdea)
     const brainstormStore = new InMemoryBrainstormStore(Brainstorm)
     const applicationStore = new InMemoryApplicationStore(Application)
@@ -32,15 +45,88 @@ export function createContext() {
     const taskStore = new InMemoryTaskStore()
     const gatheringStore = new InMemoryGatheringStore(Gathering)
     const cityStore = new InMemoryCityStore(City)
+    return {
+        ideaStore,
+        brainstormStore,
+        applicationStore,
+        memberStore,
+        questStore,
+        tribeStore,
+        userStore,
+        taskStore,
+        gatheringStore,
+        cityStore,
+    }
+}
+
+async function createMongoStores() {
+    const mongod = new MongoMemoryServer()
+    const client = new MongoClient(await mongod.getUri(), {
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+    })
+
+    await client.connect()
+    const database = client.db('test_db-1')
+
+    const ideasCollection = await database.createCollection('idea')
+    const ideaStore = new MongoIdeaStore(ideasCollection, QuestIdea)
+    const brainstormsCollection = await database.createCollection('brainstorm')
+    const brainstormStore = new MongoBrainstormStore(
+        brainstormsCollection,
+        Brainstorm
+    )
+    const applicationsCollection = await database.createCollection(
+        'applications'
+    )
+    const applicationStore = new MongoApplicationStore(
+        applicationsCollection,
+        Application
+    )
+    const membersCollection = await database.createCollection('members')
+    const memberStore = new MongoMemberStore(membersCollection, Member)
+    const questsCollection = await database.createCollection('quests')
+    const questStore = new MongoQuestStore(questsCollection, Quest)
+    const tribesCollection = await database.createCollection('tribes')
+    const tribeStore = new MongoTribeStore(tribesCollection, Tribe)
+    const usersCollection = await database.createCollection('users')
+    const userStore = new MongoUserStore(usersCollection, User)
+    const tasksCollection = await database.createCollection('tasks')
+    const taskStore = new MongoTaskStore(tasksCollection)
+    const gatheringsCollection = await database.createCollection('gatherings')
+    const gatheringStore = new MongoGatheringStore(
+        gatheringsCollection,
+        Gathering
+    )
+    const citiesCollection = await database.createCollection('cities')
+    const cityStore = new MongoCityStore(citiesCollection, City)
+    return {
+        ideaStore,
+        brainstormStore,
+        applicationStore,
+        memberStore,
+        questStore,
+        tribeStore,
+        userStore,
+        taskStore,
+        gatheringStore,
+        cityStore,
+    }
+}
+
+export async function createContext() {
+    const notififcationBus = new TestNotificationBus()
+    // const stores = await createMongoStores()
+    const stores = createInmemroyStores()
 
     const makeTribe = async (n = 6) => {
-        let tribe = await tribeStore.save(
+        let tribe = await stores.tribeStore.save(
             new Tribe({
                 name: 'Foo tribe',
                 cityId: 'city',
             })
         )
-        const users = await userStore.saveBulk(
+        const users = await stores.userStore.saveBulk(
             new Array(n).fill(0).map(
                 (_, i) =>
                     new User({
@@ -48,7 +134,7 @@ export function createContext() {
                     })
             )
         )
-        const members = await memberStore.saveBulk(
+        const members = await stores.memberStore.saveBulk(
             users.map(
                 (user) =>
                     new Member({
@@ -58,14 +144,14 @@ export function createContext() {
                     })
             )
         )
-        tribe = await tribeStore.save({
+        tribe = await stores.tribeStore.save({
             ...tribe,
             chiefId: members[0].id,
             shamanId: members[1] ? members[1].id : null,
         })
-        await memberStore.save({ ...members[0], charisma: 3 })
+        await stores.memberStore.save({ ...members[0], charisma: 3 })
         if (members[1]) {
-            await memberStore.save({ ...members[1], wisdom: 3 })
+            await stores.memberStore.save({ ...members[1], wisdom: 3 })
         }
         return { tribe, members, users }
     }
@@ -77,14 +163,14 @@ export function createContext() {
     ) => {
         const tribeSize = ups.length + downs.length + neutrals.length + 1
         const { tribe, members } = await makeTribe(tribeSize)
-        const brainstorm = await brainstormStore.save(
+        const brainstorm = await stores.brainstormStore.save(
             new Brainstorm({
                 tribeId: tribe.id,
                 state: 'voting',
                 time: Date.now() + 100_500_000,
             })
         )
-        const idea = await ideaStore.save(
+        const idea = await stores.ideaStore.save(
             new QuestIdea({
                 brainstormId: brainstorm.id,
                 description: 'let us FOOO!',
@@ -96,6 +182,7 @@ export function createContext() {
         const upvoters = ups.map((i) => members[i].id)
         const downvoters = downs.map((i) => members[i].id)
         const allTribe = members.map((m) => m.id)
+        await stores.ideaStore.save(idea)
 
         return { tribe, members, idea, upvoters, downvoters, allTribe }
     }
@@ -106,18 +193,7 @@ export function createContext() {
     }
 
     return {
-        stores: {
-            ideaStore,
-            brainstormStore,
-            applicationStore,
-            memberStore,
-            questStore,
-            tribeStore,
-            userStore,
-            taskStore,
-            gatheringStore,
-            cityStore,
-        },
+        stores,
         async: {
             notififcationBus,
         },

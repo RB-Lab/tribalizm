@@ -10,10 +10,10 @@
 
 ## Use Cases
 
-1.  🔜 A _stranger_ looks through the list of available _tribes_ to find one to join
+1.  ✅ A _stranger_ looks through the list of available _tribes_ to find one to join
 2.  ❕ A _stranger_ gets request to set their city whne they don't want to share coordinates
 3.  ❕ A _stranger_ searches available _tribes_ to find one to join
-4.  ❗ A _stranger_ views a _tribe_ info to decide if they want to join
+4.  ✅ A _stranger_ views a _tribe_ info to decide if they want to join
 5.  ❕ A _stranger_ gets proposal to start a _tribe chapter_ when they open link to the tribe not in
     their area
 6.  🤔 A _stranger_ becames _user_

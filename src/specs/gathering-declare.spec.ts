@@ -90,7 +90,7 @@ describe('Gathering declaration', () => {
 })
 
 async function setUp() {
-    const context = createContext()
+    const context = await createContext()
     const gathering = new GatheringDeclare(context)
     const { tribe, members, idea, upvoters } = await context.testing.makeIdea()
 

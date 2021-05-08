@@ -6,7 +6,7 @@ describe('Show tribe(s)', () => {
     it('list tribes for coordinates', async () => {
         const world = await setUp()
         const tribes = await world.tribeShow.getLocalTribes({
-            coordinates: { latitude: 12, longitude: 22 },
+            coordinates: { latitude: 59.9, longitude: 10.8 },
         })
         expect(tribes.length).toBe(2)
         expect(tribes).toEqual(
@@ -51,7 +51,7 @@ describe('Show tribe(s)', () => {
 })
 
 async function setUp() {
-    const context = createContext()
+    const context = await createContext()
 
     const city = await context.stores.cityStore.save(new City({ name: 'Oslo' }))
     const { tribe, members, users } = await context.testing.makeTribe()

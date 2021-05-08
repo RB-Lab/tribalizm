@@ -22,7 +22,7 @@ export class InMemoryStore<T> implements Store<T> {
         }, {})
     }
     protected _log = (...args: any[]) => {
-        const name = console.log(`${this.constructor.name}: `, ...args)
+        console.log(`${this.constructor.name}: `, ...args)
     }
 
     constructor(_class?: new (record: any) => T) {
@@ -67,10 +67,10 @@ export class InMemoryStore<T> implements Store<T> {
             : null
     }
 
-    __show = (keys?: Array<keyof T>) => {
-        console.log('\n')
+    __show = (keys?: Array<keyof T | 'id'>) => {
+        console.log(`\n${this.constructor.name}:`)
         if (keys) {
-            const toShow = Object.values(this._store).map((o: T) =>
+            const toShow = Object.values(this._store).map((o: T & Storable) =>
                 keys.reduce((r, k) => ({ ...r, [k]: o[k] }), {})
             )
             console.table(toShow)

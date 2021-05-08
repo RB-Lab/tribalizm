@@ -133,6 +133,7 @@ describe('When brainstorm is over', () => {
             idea.voteDown(world.members[4].id)
             idea.voteUp(world.members[5].id)
             idea.voteUp(world.members[6].id)
+            await world.ideaStore.save(idea)
             await world.incarnation.incarnateIdeas(world.task)
             const quest = await world.getQuestByIdeaN(0)
             expect(quest.memberIds).not.toContain(world.members[1].id)
@@ -271,7 +272,7 @@ interface Settings {
     ideas?: number
 }
 async function setUp(settings: Settings = {}) {
-    const context = createContext()
+    const context = await createContext()
 
     const makeTribe = makeTribeFactory(context.stores)
     const incarnation = new IdeasIncarnation(context)

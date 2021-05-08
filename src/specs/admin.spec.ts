@@ -72,7 +72,7 @@ describe('Admin', () => {
 })
 
 async function setUp() {
-    const context = createContext()
+    const context = await createContext()
 
     const admin = new Admin(context)
     const makeUserAndTribe = async () => {

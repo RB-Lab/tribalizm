@@ -66,7 +66,7 @@ describe('Add idea', () => {
 })
 
 async function setUp() {
-    const context = createContext()
+    const context = await createContext()
     const { tribe, members } = await context.testing.makeTribe()
     const brainstorm = await context.stores.brainstormStore.save(
         new Brainstorm({

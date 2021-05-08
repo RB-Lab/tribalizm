@@ -155,7 +155,7 @@ describe('Gathering finale', () => {
     })
 })
 async function setUp() {
-    const context = createContext()
+    const context = await createContext()
     const { members, tribe, idea } = await context.testing.makeIdea(
         [5, 6, 9, 7, 8, 10],
         [0, 1, 3],

@@ -60,7 +60,7 @@ describe('Task marking', () => {
 })
 
 async function setUp() {
-    const context = createContext()
+    const context = await createContext()
 
     const scheduler = new Scheduler(context.stores.taskStore)
     return {

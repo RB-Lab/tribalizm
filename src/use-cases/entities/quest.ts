@@ -4,6 +4,7 @@ export interface QuestStore extends Store<IQuest> {
     getActiveQuestsCount: (
         memberIds: string[]
     ) => Promise<{ [id: string]: number }>
+    // TODO: add pagination
     getAllIntorQuests: (memberId: string) => Promise<Array<IQuest & Storable>>
 }
 
@@ -30,6 +31,9 @@ export interface IQuest extends IQuestData {
     decline: (memberId: string) => void
     addAssignee: (memberId: string) => void
     finish: (memberId: string) => void
+    // TODO this must be removed. Votes in domain model are both for charisma & wisdom
+    //      this thing is purely techincal, e.g. it is not need in case of web form
+    //      Telegram UI module must take care of this async stuff.
     getNextVoteAction: (memberId: string) => VoteAction | null
     castCharisma: (
         memberId: string,

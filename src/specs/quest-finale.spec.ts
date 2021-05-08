@@ -1,13 +1,11 @@
-import { Member } from '../use-cases/entities/member'
 import {
     NotYourQuest,
     Quest,
     SelfVotingError,
     VoteRangeError,
 } from '../use-cases/entities/quest'
-import { User } from '../use-cases/entities/user'
-import { EntityNotFound } from '../use-cases/utils/not-found-error'
 import { QuestFinale } from '../use-cases/quest-finale'
+import { EntityNotFound } from '../use-cases/utils/not-found-error'
 import { createContext } from './test-context'
 
 describe('Quest finale', () => {
@@ -172,6 +170,7 @@ describe('Quest finale', () => {
         ).toBe(null)
     })
 
+    // FLICK
     it('applies scores when 5 votes casted', async () => {
         const world = await setUp()
         let member3 = await world.memberStore.getById(world.member3.id)
@@ -183,6 +182,7 @@ describe('Quest finale', () => {
         expect(member3!.charisma).withContext('charisma').toEqual(10)
         expect(member3!.wisdom).withContext('wisdom').toEqual(10)
     })
+    // FLICK
     it('does NOT count before 5 votes casted', async () => {
         const world = await setUp()
         await world.castVotes(world.member1.id, world.member2.id, [5, 5, 5])
@@ -196,6 +196,7 @@ describe('Quest finale', () => {
         expect(member2!.charisma).withContext('charisma').toEqual(10)
         expect(member2!.wisdom).withContext('wisdom').toEqual(10)
     })
+    // FLICK
     it('assignes mean for one memeber votes', async () => {
         const world = await setUp()
         const ch1 = [1, 2, 3, 4, 5]
@@ -213,6 +214,7 @@ describe('Quest finale', () => {
             .toEqual(mean(w1) + mean(w2))
     })
 
+    // FLICK
     it('makes a new most charismatic member chief', async () => {
         const world = await setUp()
         const oldChief = await world.memberStore.getById(world.tribe.chiefId!)
@@ -224,6 +226,7 @@ describe('Quest finale', () => {
         const tribe = await world.tribeStore.getById(world.tribe.id)
         expect(tribe!.chiefId).toEqual(member3!.id)
     })
+    // FLICK
     it('makes a new most wise member shaman', async () => {
         const world = await setUp()
         const oldShaman = await world.memberStore.getById(world.tribe.shamanId!)
@@ -242,7 +245,7 @@ function mean(arr: number[]) {
 }
 
 async function setUp() {
-    const context = createContext()
+    const context = await createContext()
     const { members, users, tribe } = await context.testing.makeTribe()
 
     const [member1, member2, member3] = members
@@ -282,25 +285,24 @@ async function setUp() {
             voteForId: string,
             votesCharisma: number[],
             votesWisdom?: number[]
-        ) =>
-            Promise.all(
-                votesCharisma.map(async (v, i) => {
-                    const quest = await context.stores.questStore.save(
-                        new Quest({ memberIds: [memberId, voteForId] })
-                    )
-                    await questFinale.castCharisma({
-                        voteForId,
-                        memberId,
-                        questId: quest.id,
-                        charisma: v,
-                    })
-                    await questFinale.castWisdom({
-                        voteForId,
-                        memberId,
-                        questId: quest.id,
-                        wisdom: votesWisdom ? votesWisdom[i] : v,
-                    })
+        ) => {
+            for (let i in votesCharisma) {
+                const quest = await context.stores.questStore.save(
+                    new Quest({ memberIds: [memberId, voteForId] })
+                )
+                await questFinale.castCharisma({
+                    voteForId,
+                    memberId,
+                    questId: quest.id,
+                    charisma: votesCharisma[i],
                 })
-            ),
+                await questFinale.castWisdom({
+                    voteForId,
+                    memberId,
+                    questId: quest.id,
+                    wisdom: votesWisdom ? votesWisdom[i] : votesCharisma[i],
+                })
+            }
+        },
     }
 }

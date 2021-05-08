@@ -84,7 +84,7 @@ describe('Stranger application', () => {
 })
 
 async function setUp() {
-    const context = createContext()
+    const context = await createContext()
     const { tribe } = await context.testing.makeTribe()
 
     const user = await context.stores.userStore.save(

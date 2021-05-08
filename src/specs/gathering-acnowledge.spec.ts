@@ -51,7 +51,7 @@ describe('Gathering acknowledgement', () => {
 })
 
 async function setUp() {
-    const context = createContext()
+    const context = await createContext()
     const gatheringAck = new GateringAcknowledge(context)
 
     const { tribe, members } = await context.testing.makeTribe()

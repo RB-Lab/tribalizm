@@ -435,7 +435,7 @@ describe('Initiation quests:', () => {
 })
 
 async function setUp() {
-    const context = createContext()
+    const context = await createContext()
     const { members, tribe } = await context.testing.makeTribe()
     const [chief, shaman, newMember] = members
     await context.stores.tribeStore.save({

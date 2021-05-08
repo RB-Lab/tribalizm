@@ -258,7 +258,7 @@ describe('Brainstorm declaration', () => {
 })
 
 async function setUp() {
-    const context = createContext()
+    const context = await createContext()
     const { members, tribe } = await context.testing.makeTribe()
     tribe.chiefId = members[0].id
     const candidate = members[members.length - 1]

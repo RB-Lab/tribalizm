@@ -136,7 +136,7 @@ describe('Spawn new quest', () => {
 })
 
 async function setUp() {
-    const context = createContext()
+    const context = await createContext()
     const {
         members,
         idea,

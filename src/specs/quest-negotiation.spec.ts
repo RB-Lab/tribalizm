@@ -255,7 +255,7 @@ describe('Quest negotiation', () => {
 })
 
 async function setUp() {
-    const context = createContext()
+    const context = await createContext()
     const { members, idea, upvoters } = await context.testing.makeIdea()
     const [member1, member2] = members
     const quest = await context.stores.questStore.save(

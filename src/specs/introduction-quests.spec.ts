@@ -43,6 +43,7 @@ describe('Introduction quests', () => {
         const tasks = await world.taskStore.find({ type: 'intorduction-quest' })
         expect(tasks.length).toBe(0)
     })
+    // FLICK??
     it('marks an introduction task done', async () => {
         const world = await setUp()
         const newMember = await world.getApproval()
@@ -176,7 +177,7 @@ describe('Introduction quests', () => {
 })
 
 async function setUp(size?: number) {
-    const context = createContext()
+    const context = await createContext()
     const { members, tribe } = await context.testing.makeTribe(size)
     const user = await context.stores.userStore.save(
         new User({ name: 'new user' })
