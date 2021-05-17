@@ -25,7 +25,7 @@ describe('Spawn a re-quest', () => {
         const newQuest = await world.getSpawnedQuest()
         expect(newQuest.parentQuestId).toEqual(world.quest.id)
     })
-    it('FAILs to span re-quest if not one of member requeted', async () => {
+    it('FAILs to span re-quest for not one of original members', async () => {
         const world = await setUp()
         await expectAsync(
             world.questSpawn.reQuest({

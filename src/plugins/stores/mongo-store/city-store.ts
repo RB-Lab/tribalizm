@@ -1,5 +1,5 @@
-import { CityStore, ICity } from '../../use-cases/entities/city'
-import { Coordinates } from '../../use-cases/entities/location'
+import { CityStore, ICity } from '../../../use-cases/entities/city'
+import { Coordinates } from '../../../use-cases/entities/location'
 import { MongoStore } from './mongo-store'
 
 export class MongoCityStore extends MongoStore<ICity> implements CityStore {

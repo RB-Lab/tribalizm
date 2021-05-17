@@ -20,9 +20,9 @@ export interface IQuestData {
     memberIds: string[]
     acceptedIds: string[]
     finishedIds: string[]
-    votedMembers: VotedMembers
     parentQuestId: string | null
 }
+
 export interface IQuest extends IQuestData {
     /** @returns members to notify */
     accept: (memberId: string) => string[]
@@ -31,16 +31,6 @@ export interface IQuest extends IQuestData {
     decline: (memberId: string) => void
     addAssignee: (memberId: string) => void
     finish: (memberId: string) => void
-    // TODO this must be removed. Votes in domain model are both for charisma & wisdom
-    //      this thing is purely techincal, e.g. it is not need in case of web form
-    //      Telegram UI module must take care of this async stuff.
-    getNextVoteAction: (memberId: string) => VoteAction | null
-    castCharisma: (
-        memberId: string,
-        voteForId: string,
-        charisma: number
-    ) => void
-    castWisdom: (memberId: string, voteForId: string, charisma: number) => void
 }
 export class Quest implements IQuest {
     public id: string | null
@@ -53,7 +43,6 @@ export class Quest implements IQuest {
     public memberIds: string[]
     public acceptedIds: string[]
     public finishedIds: string[]
-    public votedMembers: VotedMembers
     public parentQuestId: string | null
 
     constructor(params: Partial<IQuestData & Storable> = {}) {
@@ -67,7 +56,6 @@ export class Quest implements IQuest {
         this.memberIds = params.memberIds || []
         this.acceptedIds = params.acceptedIds || []
         this.finishedIds = params.finishedIds || []
-        this.votedMembers = params.votedMembers || {}
         this.parentQuestId = params.parentQuestId || null
     }
 
@@ -117,59 +105,8 @@ export class Quest implements IQuest {
     finish = (memberId: string) => {
         this.checkAssigned(memberId)
         this.finishedIds.push(memberId)
-    }
-    getNextVoteAction = (memberId: string) => {
-        this.checkAssigned(memberId)
-        const actions: Votable[] = ['charisma', 'wisdom']
-        const voted = this.votedMembers[memberId] || {}
-        for (let id of this.memberIds) {
-            if (id !== memberId) {
-                const votes = voted[id] || {}
-                for (let action of actions) {
-                    if (votes[action] === undefined) {
-                        return { action, memberId: id }
-                    }
-                }
-            }
-        }
-        return null
-    }
-    castCharisma = (memberId: string, voteForId: string, charisma: number) => {
-        this.castTrait(memberId, voteForId, { charisma })
-    }
-    castWisdom = (memberId: string, voteForId: string, wisdom: number) => {
-        this.castTrait(memberId, voteForId, { wisdom })
-    }
-
-    private castTrait = (
-        memberId: string,
-        voteForId: string,
-        trait: { wisdom: number } | { charisma: number }
-    ) => {
-        this.checkAssigned(memberId)
-        if (memberId === voteForId) {
-            throw new SelfVotingError('Voting for yourself is not allowed')
-        }
-        const traitVote = 'wisdom' in trait ? trait.wisdom : trait.charisma
-
-        if (traitVote > 9 || traitVote < 0) {
-            const traitName = Object.keys(trait)[0]
-            throw new VoteRangeError(
-                `${
-                    traitName[0].toUpperCase + traitName.slice(1)
-                } vote must be between 0 and 9 but ${traitVote} given`
-            )
-        }
-        const voted = this.votedMembers[memberId] || {}
-        this.votedMembers = {
-            ...this.votedMembers,
-            [memberId]: {
-                ...voted,
-                [voteForId]: {
-                    ...voted[voteForId],
-                    ...trait,
-                },
-            },
+        if (this.memberIds.every((id) => this.finishedIds.includes(id))) {
+            this.status = QuestStatus.done
         }
     }
 
@@ -198,30 +135,11 @@ export class NotYourQuest extends Error {
     }
 }
 
-export class SelfVotingError extends Error {
-    constructor(msg: string) {
-        super(msg)
-    }
-}
-export class VoteRangeError extends Error {
-    constructor(msg: string) {
-        super(msg)
-    }
-}
-
 export class IndeclinableError extends Error {
     constructor(msg: string) {
         super(msg)
     }
 }
-type Votable = 'charisma' | 'wisdom'
-
-interface VoteAction {
-    action: Votable
-    memberId: string
-}
-
-type VotedMembers = Record<string, Record<string, Record<Votable, number>>>
 
 export enum QuestType {
     coordination = 'coordination',

@@ -1,4 +1,8 @@
-import { IQuest, QuestStore, QuestType } from '../../use-cases/entities/quest'
+import {
+    IQuest,
+    QuestStore,
+    QuestType,
+} from '../../../use-cases/entities/quest'
 import { InMemoryStore } from './in-memory-store'
 
 export class InMemoryQuestStore extends InMemoryStore<IQuest>

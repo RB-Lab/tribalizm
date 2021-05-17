@@ -8,6 +8,7 @@
         "module": "CommonJS",
         "skipLibCheck": true,
         "baseUrl": "./",
+        "esModuleInterop": true,
         "paths": {
             "*": ["typings/*"]
         }

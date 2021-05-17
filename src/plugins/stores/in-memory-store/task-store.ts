@@ -1,4 +1,4 @@
-import { ITask, TaskStore } from '../../use-cases/utils/scheduler'
+import { ITask, TaskStore } from '../../../use-cases/utils/scheduler'
 import { InMemoryStore } from './in-memory-store'
 
 export class InMemoryTaskStore extends InMemoryStore<ITask>

@@ -1,4 +1,4 @@
-import { Store } from '../../use-cases/entities/store'
+import { Store } from '../../../use-cases/entities/store'
 import { Collection, ObjectId } from 'mongodb'
 
 interface Storable {

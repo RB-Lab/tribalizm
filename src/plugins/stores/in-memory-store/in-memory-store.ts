@@ -1,5 +1,5 @@
-import * as equal from 'fast-deep-equal'
-import { Store } from '../../use-cases/entities/store'
+import equal from 'fast-deep-equal'
+import { Store } from '../../../use-cases/entities/store'
 
 interface Storable {
     id: string

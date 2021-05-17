@@ -95,6 +95,7 @@ describe('Brainstorm declaration', () => {
             })
         )
     })
+    // FLICK
     it('alocates a task to start brainstorm', async () => {
         const world = await setUp()
         await world.stromCycle.declare(world.defReq)
@@ -182,6 +183,7 @@ describe('Brainstorm declaration', () => {
         )
         expect(startedBrainstorm?.state).toEqual('generation')
     })
+    // FLICK
     it('marks StormStart done', async () => {
         const world = await setUp()
         const { task } = await world.startStorm()

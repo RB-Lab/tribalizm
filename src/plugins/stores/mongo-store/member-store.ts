@@ -1,8 +1,9 @@
-import { IMember, MemberStore } from '../../use-cases/entities/member'
-import { InMemoryStore } from './in-memory-store'
+import { IMember, MemberStore } from '../../../use-cases/entities/member'
+import { MongoStore } from './mongo-store'
 
-export class InMemoryMemberStore extends InMemoryStore<IMember>
+export class MongoMemberStore extends MongoStore<IMember>
     implements MemberStore {
+    //FIXME optimize this shit with DB usage
     countTribeMembers(ids: string): Promise<number>
     countTribeMembers(ids: string[]): Promise<Record<string, number>>
     countTribeMembers(ids: string | string[]) {

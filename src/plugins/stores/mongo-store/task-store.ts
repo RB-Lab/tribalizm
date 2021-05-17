@@ -1,5 +1,5 @@
-import { Storable } from '../../use-cases/entities/store'
-import { ITask, TaskStore } from '../../use-cases/utils/scheduler'
+import { Storable } from '../../../use-cases/entities/store'
+import { ITask, TaskStore } from '../../../use-cases/utils/scheduler'
 import { MongoStore } from './mongo-store'
 
 export class MongoTaskStore extends MongoStore<ITask> implements TaskStore {

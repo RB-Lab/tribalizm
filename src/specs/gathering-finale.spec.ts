@@ -1,5 +1,5 @@
 import { Gathering, NotParticipated } from '../use-cases/entities/gathering'
-import { GatheringVote, OutOfRange } from '../use-cases/entities/member'
+import { GatheringVote, VoteRangeError } from '../use-cases/entities/member'
 import { Storable } from '../use-cases/entities/store'
 import { GatheringFinale } from '../use-cases/gathering-finale'
 import { IdeasIncarnation } from '../use-cases/incarnate-ideas'
@@ -38,7 +38,7 @@ describe('Gathering finale', () => {
                 ...world.defautlRequest,
                 score: -4,
             })
-        ).toBeRejectedWithError(OutOfRange)
+        ).toBeRejectedWithError(VoteRangeError)
     })
     it('FAILs to cast more than 4', async () => {
         const world = await setUp()
@@ -47,7 +47,7 @@ describe('Gathering finale', () => {
                 ...world.defautlRequest,
                 score: 14,
             })
-        ).toBeRejectedWithError(OutOfRange)
+        ).toBeRejectedWithError(VoteRangeError)
     })
     describe('score casting', () => {
         it('affects all involved in gathering coordination', async () => {

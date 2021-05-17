@@ -6,6 +6,7 @@ import { getRootIdea } from './utils/get-root-idea'
 import { QuestMessage } from './utils/quest-message'
 
 export class QuestSource extends ContextUser {
+    // In case coordinators decided, that they need one more meeting
     reQuest = async (req: ReQuestRequest) => {
         const parentQuest = await this.getQuest(req.parentQuestId)
         if (!parentQuest.memberIds.includes(req.memberId)) {

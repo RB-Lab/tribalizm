@@ -236,9 +236,10 @@ async function setUp(size?: number) {
             const questReq = makeQuestReq(task)
             await introQuests.createIntroQuest(questReq)
             const quest = await context.stores.questStore._last()
-            await questFinale.imDone({
+            await questFinale.finalyze({
                 memberId: newMemberId,
                 questId: quest!.id,
+                votes: [],
             })
             const newTask = await getNewItroTask()
             if (newTask) {

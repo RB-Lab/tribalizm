@@ -18,13 +18,15 @@ export class GatheringFinale extends ContextUser {
             id: [...coordinators],
         })
         members.forEach((member) => {
-            member.castVote({
-                type: 'gathering-vote',
-                casted: Date.now(),
-                gatheringId: gathering.id,
-                memberId: req.memberId,
-                score: req.score,
-            })
+            if (member.id !== req.memberId) {
+                member.castVote({
+                    type: 'gathering-vote',
+                    casted: Date.now(),
+                    gatheringId: gathering.id,
+                    memberId: req.memberId,
+                    score: req.score,
+                })
+            }
         })
         await this.stores.memberStore.saveBulk(members)
         const tribeMembers = await this.stores.memberStore.find({

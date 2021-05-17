@@ -1,5 +1,5 @@
-import { CityStore, ICity } from '../../use-cases/entities/city'
-import { Coordinates } from '../../use-cases/entities/location'
+import { CityStore, ICity } from '../../../use-cases/entities/city'
+import { Coordinates } from '../../../use-cases/entities/location'
 import { InMemoryStore } from './in-memory-store'
 
 export class InMemoryCityStore extends InMemoryStore<ICity>

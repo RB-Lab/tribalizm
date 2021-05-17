@@ -5,12 +5,13 @@ import { findMaxTrait } from './utils/members-utils'
 import { IntroductionTask } from './utils/scheduler'
 
 export class QuestFinale extends ContextUser {
-    imDone = async (req: ImDoneRequest) => {
+    finalyze = async (req: QuestFinaleRequest) => {
         const quest = await this.getQuest(req.questId)
         quest.finish(req.memberId)
+        const member = await this.getMember(req.memberId)
+        // TODO BEGIN transaction
         // TODO 🤔 this looks like it doesn't belong here...
         if (quest.type === QuestType.introduction) {
-            const member = await this.getMember(req.memberId)
             const allMembers = await this.stores.memberStore.find({
                 tribeId: member.tribeId,
             })
@@ -18,7 +19,7 @@ export class QuestFinale extends ContextUser {
                 req.memberId
             )
             const nextOldMember = allMembers
-                .sort(() => Math.random() - 1)
+                .sort(() => Math.random() - 0.5)
                 .find(
                     (m) =>
                         !allIntroQuests.some((q) => q.memberIds.includes(m.id))
@@ -35,84 +36,42 @@ export class QuestFinale extends ContextUser {
                 })
             }
         }
-        await this.stores.questStore.save(quest)
-    }
-    getNextVoteAction = async (req: NextMemberToVoteRequest) => {
-        const quest = await this.getQuest(req.questId)
-        const action = quest.getNextVoteAction(req.memberId)
-        if (action === null) {
-            return null
-        }
-        const member = await this.getMember(action.memberId)
-        const user = await this.getUser(member.userId)
-        return {
-            ...action,
-            memberName: user.name,
-        }
-    }
-
-    castCharisma = async (req: CharismaCastRequest) => {
-        const quest = await this.getQuest(req.questId)
-        quest.castCharisma(req.memberId, req.voteForId, req.charisma)
-
-        this.stores.questStore.save(quest)
-        await this.maybeCastVote(quest, req.memberId, req.voteForId)
-    }
-    castWisdom = async (req: WisdomCastRequest) => {
-        const quest = await this.getQuest(req.questId)
-        quest.castWisdom(req.memberId, req.voteForId, req.wisdom)
-
-        this.stores.questStore.save(quest)
-        await this.maybeCastVote(quest, req.memberId, req.voteForId)
-    }
-
-    private async maybeCastVote(
-        quest: IQuest & Storable,
-        memberId: string,
-        voteForId: string
-    ) {
-        const action = quest.getNextVoteAction(memberId)
-        if (action?.memberId !== voteForId) {
-            const member = await this.getMember(voteForId)
-            const vote = quest.votedMembers[memberId][voteForId]
+        for (let vote of req.votes) {
+            const member = await this.getMember(vote.voteForId)
             member.castVote({
                 type: 'quest-vote',
                 casted: Date.now(),
                 charisma: vote.charisma,
                 wisdom: vote.wisdom,
-                memberId: memberId,
+                memberId: req.memberId,
                 questId: quest.id,
             })
             await this.stores.memberStore.save(member)
-            const members = await this.stores.memberStore.find({
-                tribeId: member.tribeId,
-            })
-            const mostCharismatic = findMaxTrait(members, 'charisma')
-            const mostWise = findMaxTrait(members, 'wisdom')
-            const tribe = await this.getTribe(member.tribeId)
-            await this.stores.tribeStore.save({
-                ...tribe,
-                chiefId: mostCharismatic.id,
-                shamanId: mostWise.id,
-            })
         }
+        const members = await this.stores.memberStore.find({
+            tribeId: member.tribeId,
+        })
+        const mostCharismatic = findMaxTrait(members, 'charisma')
+        const mostWise = findMaxTrait(members, 'wisdom')
+        const tribe = await this.getTribe(member.tribeId)
+        await this.stores.tribeStore.save({
+            ...tribe,
+            chiefId: mostCharismatic.id,
+            shamanId: mostWise.id,
+        })
+        await this.stores.questStore.save(quest)
+        // TODO COMMIT
     }
 }
 
-export interface QuestFinalRequest {
-    memberId: string
-    questId: string
-}
-
-export type ImDoneRequest = QuestFinalRequest
-export type NextMemberToVoteRequest = QuestFinalRequest
-
-export interface CharismaCastRequest extends QuestFinalRequest {
+interface Vote {
     voteForId: string
     charisma: number
+    wisdom: number
 }
 
-export interface WisdomCastRequest extends QuestFinalRequest {
-    voteForId: string
-    wisdom: number
+export interface QuestFinaleRequest {
+    memberId: string
+    questId: string
+    votes: Vote[]
 }

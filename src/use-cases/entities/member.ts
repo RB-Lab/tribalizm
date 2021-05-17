@@ -44,16 +44,27 @@ export class Member implements IMember {
 
     castVote = (vote: MemberVote) => {
         if (vote.memberId === this.id) {
-            return
+            throw new SelfVotingError(`Cannot vote for self (id: ${this.id})`)
         }
-        this.votes.push(vote)
         if (vote.type === 'gathering-vote') {
             if (vote.score < 0 || vote.score > 4) {
-                throw new OutOfRange(
+                throw new VoteRangeError(
                     `Cannot set scroe ${vote.score}: must be between 0 and 4`
                 )
             }
+        } else if (vote.type === 'quest-vote') {
+            if (vote.charisma > 9 || vote.charisma < 0) {
+                throw new VoteRangeError(
+                    `Cannot set charisma to ${vote.charisma}: must be between 0 and 9`
+                )
+            }
+            if (vote.wisdom > 9 || vote.wisdom < 0) {
+                throw new VoteRangeError(
+                    `Cannot set wisdom to ${vote.wisdom}: must be between 0 and 9`
+                )
+            }
         }
+        this.votes.push(vote)
         this.recaluclateGatheringScores()
     }
 
@@ -129,7 +140,12 @@ export interface GatheringVote {
     casted: number
 }
 
-export class OutOfRange extends Error {
+export class VoteRangeError extends Error {
+    constructor(msg: string) {
+        super(msg)
+    }
+}
+export class SelfVotingError extends Error {
     constructor(msg: string) {
         super(msg)
     }

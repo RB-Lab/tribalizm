@@ -3,7 +3,7 @@ import {
     QuestStatus,
     QuestStore,
     QuestType,
-} from '../../use-cases/entities/quest'
+} from '../../../use-cases/entities/quest'
 import { MongoStore } from './mongo-store'
 
 export class MongoQuestStore extends MongoStore<IQuest> implements QuestStore {
