@@ -10,6 +10,7 @@
     "scripts": {
         "start": "nodemon src/main.ts",
         "test": "ts-node ./node_modules/.bin/jasmine './src/**/*.spec.ts'",
+        "full-test": "FULL_TEST='true' ts-node ./node_modules/.bin/jasmine './src/**/*.spec.ts'",
         "tdd": "tsnd --rs --respawn ./node_modules/.bin/jasmine './src/**/*.spec.ts'"
     },
     "dependencies": {

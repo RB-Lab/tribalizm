@@ -1,4 +1,6 @@
+import { loadCities } from '../scripts/load-cities'
 import { City } from '../use-cases/entities/city'
+import { Storable } from '../use-cases/entities/store'
 import { TribeShow } from '../use-cases/tribes-show'
 import { createContext } from './test-context'
 
@@ -6,7 +8,7 @@ describe('Show tribe(s)', () => {
     it('list tribes for coordinates', async () => {
         const world = await setUp()
         const tribes = await world.tribeShow.getLocalTribes({
-            coordinates: { latitude: 59.9, longitude: 10.8 },
+            coordinates: { latitude: 59.92, longitude: 10.8 },
         })
         expect(tribes.length).toBe(2)
         expect(tribes).toEqual(
@@ -53,13 +55,19 @@ describe('Show tribe(s)', () => {
 async function setUp() {
     const context = await createContext()
 
-    const city = await context.stores.cityStore.save(new City({ name: 'Oslo' }))
+    let city: City & Storable
+    if (process.env.FULL_TEST) {
+        await loadCities('meta/cities.geojson', context.stores.cityStore)
+        const cities = await context.stores.cityStore.find({ name: 'Oslo' })
+        city = cities[0]
+    } else {
+        city = await context.stores.cityStore.save(new City({ name: 'Oslo' }))
+    }
     const { tribe, members, users } = await context.testing.makeTribe()
     const {
         tribe: tribe2,
         members: members2,
     } = await context.testing.makeTribe(12)
-    // tribe3 is from the city, that will never be found in store (because we didn't create it)
     const { tribe: tribe3 } = await context.testing.makeTribe()
     await context.stores.tribeStore.save({ ...tribe, cityId: city.id })
     await context.stores.tribeStore.save({ ...tribe2, cityId: city.id })

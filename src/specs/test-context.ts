@@ -116,8 +116,10 @@ async function createMongoStores() {
 
 export async function createContext() {
     const notififcationBus = new TestNotificationBus()
-    // const stores = await createMongoStores()
-    const stores = createInmemroyStores()
+    const stores =
+        process.env.FULL_TEST === 'true'
+            ? await createMongoStores()
+            : createInmemroyStores()
 
     const makeTribe = async (n = 6) => {
         let tribe = await stores.tribeStore.save(
