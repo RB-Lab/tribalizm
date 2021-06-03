@@ -2,8 +2,8 @@
 //      - those with specifc class should be handled somewhere below
 //      - genereic Errors will porpagate up to here and must be reported
 
-import * as https from 'https'
-import * as express from 'express'
+import https from 'https'
+import express from 'express'
 
 const app = express()
 app.use(express.json())
