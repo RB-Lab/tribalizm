@@ -1,11 +1,20 @@
 import { Storable, Store } from './store'
 
 export interface QuestStore extends Store<IQuest> {
+    /**
+     * Counts all quests that currently assingned to a member
+     * @param memberIds ids of those member for whom to search quests
+     * @returns map of member ids to number of quests assigned to them
+     */
     getActiveQuestsCount: (
         memberIds: string[]
     ) => Promise<{ [id: string]: number }>
     // TODO: add pagination
-    getAllIntorQuests: (memberId: string) => Promise<Array<IQuest & Storable>>
+    /**
+     * get all introduction quests for a particular tribe member (so you can decide whti whom they
+     * didn't met yet)
+     */
+    getAllIntroQuests: (memberId: string) => Promise<Array<IQuest & Storable>>
 }
 
 export interface IQuestData {

@@ -15,7 +15,7 @@ export class QuestFinale extends ContextUser {
             const allMembers = await this.stores.memberStore.find({
                 tribeId: member.tribeId,
             })
-            const allIntroQuests = await this.stores.questStore.getAllIntorQuests(
+            const allIntroQuests = await this.stores.questStore.getAllIntroQuests(
                 req.memberId
             )
             const nextOldMember = allMembers

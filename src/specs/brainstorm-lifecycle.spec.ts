@@ -18,7 +18,7 @@ import {
 } from '../use-cases/utils/scheduler'
 import { createContext } from './test-context'
 
-describe('Brainstorm declaration', () => {
+describe('Brainstorm lifecycle', () => {
     it('notifies all members on declared brainstorm', async () => {
         const world = await setUp()
         const onDeclare = world.spyOnMessage<BrainstormDeclarationMessage>(

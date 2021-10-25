@@ -1,4 +1,3 @@
-import { Storable } from '../../../use-cases/entities/store'
 import { ITask, TaskStore } from '../../../use-cases/utils/scheduler'
 import { MongoStore } from './mongo-store'
 

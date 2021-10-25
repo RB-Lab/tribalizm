@@ -11,12 +11,13 @@
 ## Use Cases
 
 1.  ✅ A _stranger_ looks through the list of available _tribes_ to find one to join
-2.  ❕ A _stranger_ gets request to set their city whne they don't want to share coordinates
+2.  ❕ A _stranger_ gets request to set their city when they don't want to share coordinates
 3.  ❕ A _stranger_ searches available _tribes_ to find one to join
 4.  ✅ A _stranger_ views a _tribe_ info to decide if they want to join
 5.  ❕ A _stranger_ gets proposal to start a _tribe chapter_ when they open link to the tribe not in
     their area
-6.  🤔 A _stranger_ becames _user_
+6.  🤔 A _stranger_ becames _user_ ­– this is probably about user's screen, e.g. in what tribes
+    they're member, see i. 9
 7.  ✅ A _user_ fills an _application_ to join a _tribe_
 8.  ✅ A _tribe cheif_ gets _users_ _application_ and requests the _initiation quest_ with
     proposed date and place
@@ -49,7 +50,7 @@
 30. ✅ The _system_ assigns sub-quest to one of upvoted _member_
 31. ✅ A _member_ declares _gathering_; all memebers of the tribe or all upwoters are notified about
     time, place and theme of the gathering
-32. ✅ A _member_ creates a re-quest (repeat of the same quest)
+32. ✅ A _member_ creates a re-quest (repeat of the same quest) – 🤔 for what??
 33. ✅ The _system_ makes an introduction _quest_ and assigns it to those pair of members that never
     had one
 34. ❕ A _member_ who made a coordination _sub-quest_ may request a report on its completion
@@ -67,12 +68,12 @@
     applied only when %5=0
 41. ✅ A _member_ sets scores for _gathering_: its awesomness, this score propagates to
     charisma of those who participated on coordination of this _quest_
-    -   NOTE: not all quests have execution qust at the end
+    -   NOTE: not all quests have execution quest at the end
 42. ❕ A _tribe cheif_ deligates their responsibilitis to any _member_ with _trust_
 43. ✅ A score for _gathering_ is applied to all organizing _members_ charisma immediately
 44. ✅ A score casted by another _member_ ia applied to _member_ charisma & wisdom after each 5 votes
 45. ✅ A _member_ rejects _quest_ (except initiation)
-46. ✅ The _system_ reassigns rejected _quest_ to antoter member (see usecases 26 & 29)
+46. ✅ The _system_ reassigns rejected _quest_ to antoter member (see usecases 27 & 30)
 47. ✅ The _system_ makes most charismatic member tribe _chief_
 48. ✅ The _system_ makes most wise member tribe _shaman_
 49. ❕ The _system_ notifies tribe members that tribe have new _chief_ or _shaman_

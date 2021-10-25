@@ -22,7 +22,7 @@ export class MongoQuestStore extends MongoStore<IQuest> implements QuestStore {
         await cursor.close()
         return res
     }
-    getAllIntorQuests = async (memberId: string) => {
+    getAllIntroQuests = async (memberId: string) => {
         const cursor = this._collection
             .find({
                 memberIds: { $elemMatch: { $eq: memberId } },

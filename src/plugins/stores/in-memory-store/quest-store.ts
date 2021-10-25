@@ -17,7 +17,7 @@ export class InMemoryQuestStore extends InMemoryStore<IQuest>
         })
         return res
     }
-    getAllIntorQuests = async (memberId: string) => {
+    getAllIntroQuests = async (memberId: string) => {
         return Object.values(this._store).filter(
             (q: IQuest) =>
                 (q.type === QuestType.introduction ||

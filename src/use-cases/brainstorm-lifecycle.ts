@@ -9,6 +9,10 @@ import { ContextUser } from './utils/context-user'
 import { Message } from './utils/message'
 import { Storable } from './entities/store'
 
+/**
+ * Moves @see Brainstorm through it's phases (new, started, voting, done) directly or via task
+ * allocations and notifis members about those transitions
+ */
 export class BrainstormLifecycle extends ContextUser {
     declare = async (req: BrainstormDeclarationContext) => {
         const member = await this.getMember(req.memberId)
