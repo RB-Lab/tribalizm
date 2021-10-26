@@ -1,0 +1,8 @@
+{
+    "$schema": "https://unpkg.com/typesafe-i18n@2.46.5/schema/typesafe-i18n.json",
+ 
+    "adapter": "node",
+    "loadLocalesAsync": false,
+    "baseLocale": "en",
+    "outputPath": "./src/plugins/ui/i18n"
+ }
