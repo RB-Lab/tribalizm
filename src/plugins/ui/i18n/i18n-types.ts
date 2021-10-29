@@ -30,9 +30,7 @@ export type Translation = {
 	'rules': {	
 		'apply': {	
 			/**
-			 * To join a tribe you like you must send application. 
-					Tribe's chief and shaman will consider it and invite you to have a conversation with them. 
-					If they decide that you allign with the tribe spirit well, they will let you join
+			 * To join a tribe you like you must send application. Tribe's chief and shaman will consider it and invite you to have a conversation with them. If they decide that you allign with the tribe spirit well, they will let you join
 			 */
 			'text': string
 			'buttons': {	
@@ -112,8 +110,7 @@ export type Translation = {
 		}
 		'onBrainsotrm': {	
 			/**
-			 * In a brainstorm you will suggest activities for the tribe and vote for activities you like
-					You will be notified when next brainstorm is on the horizon!
+			 * In a brainstorm you will suggest activities for the tribe and vote for activities you likeYou will be notified when next brainstorm is on the horizon!
 			 */
 			'text': string
 			'buttons': {	
@@ -146,7 +143,7 @@ export type Translation = {
 	}
 	'tribesList': {	
 		/**
-		 * To find tribes nearby we need acces to your location
+		 * What is the city youe in?
 		 */
 		'requestLocationText': string
 		/**
@@ -157,6 +154,28 @@ export type Translation = {
 		 * Send application
 		 */
 		'apply': string
+		/**
+		 * Members count:
+		 */
+		'count': string
+		/**
+		 * Searchin in city: {city}
+		 * @param {unknown} city
+		 */
+		'searchIn': RequiredParams1<'city'>
+		/**
+		 * Please, write tribe's chief and shaman about yourself and why do you want to join "{tribe}" tribe?
+		 * @param {unknown} tribe
+		 */
+		'applyText': RequiredParams1<'tribe'>
+		/**
+		 * Your application has been sent. Tribe chief will propose a meeting soon.
+		 */
+		'applicationSent': string
+		/**
+		 * Application has been sent
+		 */
+		'applicationSentShort': string
 	}
 }
 
@@ -180,9 +199,7 @@ export type TranslationFunctions = {
 	'rules': {	
 		'apply': {	
 			/**
-			 * To join a tribe you like you must send application. 
-					Tribe's chief and shaman will consider it and invite you to have a conversation with them. 
-					If they decide that you allign with the tribe spirit well, they will let you join
+			 * To join a tribe you like you must send application. Tribe's chief and shaman will consider it and invite you to have a conversation with them. If they decide that you allign with the tribe spirit well, they will let you join
 			 */
 			'text': () => LocalizedString
 			'buttons': {	
@@ -262,8 +279,7 @@ export type TranslationFunctions = {
 		}
 		'onBrainsotrm': {	
 			/**
-			 * In a brainstorm you will suggest activities for the tribe and vote for activities you like
-					You will be notified when next brainstorm is on the horizon!
+			 * In a brainstorm you will suggest activities for the tribe and vote for activities you likeYou will be notified when next brainstorm is on the horizon!
 			 */
 			'text': () => LocalizedString
 			'buttons': {	
@@ -296,7 +312,7 @@ export type TranslationFunctions = {
 	}
 	'tribesList': {	
 		/**
-		 * To find tribes nearby we need acces to your location
+		 * What is the city youe in?
 		 */
 		'requestLocationText': () => LocalizedString
 		/**
@@ -307,7 +323,35 @@ export type TranslationFunctions = {
 		 * Send application
 		 */
 		'apply': () => LocalizedString
+		/**
+		 * Members count:
+		 */
+		'count': () => LocalizedString
+		/**
+		 * Searchin in city: {city}
+		 */
+		'searchIn': (arg: { city: unknown }) => LocalizedString
+		/**
+		 * Please, write tribe's chief and shaman about yourself and why do you want to join "{tribe}" tribe?
+		 */
+		'applyText': (arg: { tribe: unknown }) => LocalizedString
+		/**
+		 * Your application has been sent. Tribe chief will propose a meeting soon.
+		 */
+		'applicationSent': () => LocalizedString
+		/**
+		 * Application has been sent
+		 */
+		'applicationSentShort': () => LocalizedString
 	}
 }
 
 export type Formatters = {}
+
+type Param<P extends string> = `{${P}}`
+
+type Params1<P1 extends string> =
+	`${string}${Param<P1>}${string}`
+
+type RequiredParams1<P1 extends string> =
+	| Params1<P1>

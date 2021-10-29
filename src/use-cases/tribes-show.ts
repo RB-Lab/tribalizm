@@ -1,13 +1,10 @@
+import { City } from './entities/city'
 import { Coordinates } from './entities/location'
+import { Storable } from './entities/store'
 import { TribeType } from './entities/tribe'
 import { ContextUser } from './utils/context-user'
 
-export class StrangerNowhereError extends Error {
-    constructor(msg: string) {
-        super(msg)
-    }
-}
-interface TribeInfo {
+export interface TribeInfo {
     id: string
     name: string
     description: string
@@ -18,8 +15,9 @@ interface TribeInfo {
     }
 }
 
-interface TribesRequest {
+export interface TribesRequest {
     coordinates: Coordinates | null
+    citySearchString?: string
     after?: string
     limit?: number
 }
@@ -45,14 +43,14 @@ export class TribeShow extends ContextUser {
         return response
     }
     getLocalTribes = async (req: TribesRequest) => {
-        if (!req.coordinates) {
-            throw new StrangerNowhereError(
-                'Cannot get tribes for stranger in the middle of nowhere'
+        let city: (City & Storable) | null = null
+        if (req.coordinates) {
+            city = await this.stores.cityStore.findByCoordinates(
+                req.coordinates
             )
+        } else if (req.citySearchString) {
+            city = await this.stores.cityStore.findByName(req.citySearchString)
         }
-        const city = await this.stores.cityStore.findByCoordinates(
-            req.coordinates
-        )
         if (!city) {
             return []
         }

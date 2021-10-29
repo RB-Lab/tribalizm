@@ -3,7 +3,7 @@ import { Member } from './entities/member'
 import { ContextUser } from './utils/context-user'
 import { Message } from './utils/message'
 
-interface ApplicationRequest {
+export interface ApplicationRequest {
     userId: string
     tribeId: string
     coverLetter: string
@@ -17,6 +17,7 @@ export class TribeApplication extends ContextUser {
             throw new NoChiefTribeError(`Tribe ${req.tribeId} has no chief`)
         }
         const chief = await this.getMember(tribe.chiefId)
+        // creates a new _candidate_ member of the tribe
         const newMember = await this.stores.memberStore.save(
             new Member({ userId: user.id, tribeId: tribe.id })
         )
@@ -38,6 +39,7 @@ export class TribeApplication extends ContextUser {
                 userName: user.name,
             },
         })
+        // TODO remove this! notification already sent
         return app
     }
 }

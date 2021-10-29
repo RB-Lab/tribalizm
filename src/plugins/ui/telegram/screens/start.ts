@@ -1,11 +1,11 @@
-import { Markup, Telegraf } from 'telegraf'
+import { Markup, Scenes, Telegraf } from 'telegraf'
 import L from '../../i18n/i18n-node'
 import { toLocale } from '../../i18n/to-locale'
 
-export function startScreen(bot: Telegraf) {
+export function startScreen(bot: Telegraf<Scenes.SceneContext>) {
     bot.start((ctx) => {
         const l = toLocale(ctx.message.from.language_code)
-        
+
         const texts = L[l].start
 
         const keyboard = Markup.inlineKeyboard([

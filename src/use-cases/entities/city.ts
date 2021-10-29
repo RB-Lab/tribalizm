@@ -6,6 +6,7 @@ export interface CityStore extends Store<ICity> {
     findByCoordinates: (
         coordinates: Coordinates
     ) => Promise<(ICity & Storable) | null>
+    findByName: (searchString: string) => Promise<(ICity & Storable) | null>
 }
 
 export interface ICity {
