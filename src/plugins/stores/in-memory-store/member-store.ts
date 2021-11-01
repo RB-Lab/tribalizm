@@ -1,8 +1,10 @@
 import { IMember, MemberStore } from '../../../use-cases/entities/member'
 import { InMemoryStore } from './in-memory-store'
 
-export class InMemoryMemberStore extends InMemoryStore<IMember>
-    implements MemberStore {
+export class InMemoryMemberStore
+    extends InMemoryStore<IMember>
+    implements MemberStore
+{
     countTribeMembers(ids: string): Promise<number>
     countTribeMembers(ids: string[]): Promise<Record<string, number>>
     countTribeMembers(ids: string | string[]) {

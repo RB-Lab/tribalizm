@@ -73,6 +73,34 @@ const en: BaseTranslation = {
             'Your application has been sent. Tribe chief will propose a meeting soon.',
         applicationSentShort: 'Application has been sent',
     },
+    initiation: {
+        declineText:
+            'Please describe in a few words why did you decline an appliaction.',
+        declinedForElder: 'Ok, appliaction has been declined',
+        proposeDate: "📅 Select a date, when you'd like to meet the candidate",
+        proposeTimeHours: '🕘 Choose an hour of the day',
+        proposeTimeMinutes: '🕤 Choose minutes',
+        proposePlace: '🗿 Now where you want to meet?',
+        proposal:
+            'You propose to meet\n • Time: {date:Date|date}\n • Place: {place}',
+        confirm: '✅ Okay',
+        edit: '🤔 Edit',
+        weekdays: 'Su,Mo,Tu,We,Th,Fr,St',
+        months: 'January,February,March,April,May,June,July,August,September,October,November,December',
+        startWeekDay: '0',
+        proposalDone: 'Ok, proposal has been sent.',
+    },
+    notifications: {
+        tribeAppliaction: {
+            title: 'A new member appliaction for tribe {tribe}!',
+            applicant: 'From user {username}.',
+            coverLetter: 'Cover leter:',
+            assignInitiation: 'Propose a meeting',
+            decline: 'Decline',
+            declinedForApplicant:
+                'Your appliaction to the tribe "{tribe}" has been declined',
+        },
+    },
 }
 
 export default en

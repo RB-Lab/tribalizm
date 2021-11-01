@@ -1,14 +1,50 @@
-import { ApplicationRequest } from '../../../use-cases/apply-tribe'
-import { Application } from '../../../use-cases/entities/application'
-import { ITribe, TribeType } from '../../../use-cases/entities/tribe'
+import {
+    ApplicationMessage,
+    ApplicationRequest,
+} from '../../../use-cases/apply-tribe'
+import { Storable } from '../../../use-cases/entities/store'
+import { TribeType } from '../../../use-cases/entities/tribe'
+import { User } from '../../../use-cases/entities/user'
+import {
+    ApplicationDeclined,
+    ChiefApprovalRequest,
+    DeclineRequest,
+    InitiationRequest,
+    ShamanApprovalRequest,
+} from '../../../use-cases/initiation'
 import { TribesRequest } from '../../../use-cases/tribes-show'
+import { NotificationBus } from '../../../use-cases/utils/notification-bus'
+
+let user: (User & Storable) | null = null
+// TODO add to use-cases
+export class TelegramUsers {
+    createUser = async (
+        name: string,
+        providerData: {
+            chatId: string
+            locale?: string
+            username?: string
+        }
+    ) => {
+        user = {
+            ...new User({
+                name,
+                provider: {
+                    telegram: providerData,
+                },
+            }),
+            id: 'mock-user',
+        }
+    }
+    getUserByChatId = async (chatId: number | undefined) => {
+        return user
+    }
+    getUserById = async (userId: string) => {
+        return user
+    }
+}
 
 const names = [
-    [
-        'id_1',
-        'любители котиков',
-        'Мы восхищаемся котиками и всеми, что с ними связано',
-    ],
     [
         'id_2',
         'Lex Fridman podcast descussion',
@@ -19,13 +55,7 @@ const names = [
         'Открытый космос СПБ',
         'Группа поддержки открытого космоса в Санкт_Петербурге',
     ],
-    [
-        'id_4',
-        'Энтузиасты электро транспорта',
-        'Мы боримся за внедрение электро транспорта в СПБ',
-    ],
     ['id_5', 'Less Wrong', 'Сообщество рационалистов'],
-    ['id_6', 'Steam Punk', 'Настоящая паропанковская туса!'],
 ]
 
 export class TribeShow {
@@ -54,17 +84,45 @@ export class TribeShow {
 }
 
 export class TribeApplication {
+    private bus: NotificationBus
+    constructor(bus: NotificationBus) {
+        this.bus = bus
+    }
     appyToTribe = async (req: ApplicationRequest) => {
-        const newMember = { id: '100500' }
-        return {
-            ...new Application({
-                memberId: newMember.id,
-                tribeId: req.tribeId,
-                coverLetter: req.coverLetter,
-                chiefId: 'tribe.chiefId',
-                shamanId: 'tribe.shamanId',
-            }),
-            id: 'new-application',
+        if (!user) {
+            throw new Error('User is not set')
         }
+        this.bus.notify<ApplicationMessage>({
+            type: 'application-message',
+            payload: {
+                elderUserId: user.id,
+                tribeName: names.find(([id]) => id === req.tribeId)![1],
+                applicationId: 'new-application-id',
+                coverLetter: req.coverLetter,
+                userName: user.name,
+            },
+        })
+    }
+}
+
+export class Initiation {
+    private bus: NotificationBus
+    constructor(bus: NotificationBus) {
+        this.bus = bus
+    }
+    startInitiation = async (req: InitiationRequest) => {
+        console.log(req)
+    }
+    approveByChief = async (req: ChiefApprovalRequest) => {}
+    startShamanInitiation = async (req: InitiationRequest) => {}
+    approveByShaman = async (req: ShamanApprovalRequest) => {}
+    decline = async (req: DeclineRequest) => {
+        this.bus.notify<ApplicationDeclined>({
+            type: 'application-declined',
+            payload: {
+                targetUserId: user!.id,
+                tribeName: 'Tribe you applied, you know...',
+            },
+        })
     }
 }

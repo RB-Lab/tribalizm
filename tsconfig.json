@@ -10,7 +10,7 @@
         "baseUrl": "./",
         "esModuleInterop": true,
         "paths": {
-            "*": ["typings/*"]
+            "*": ["src/typings/*"]
         }
     }
 }

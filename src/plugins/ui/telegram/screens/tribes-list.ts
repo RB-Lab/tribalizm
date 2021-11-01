@@ -2,11 +2,13 @@ import { Markup, Scenes, Telegraf } from 'telegraf'
 import { TribeInfo } from '../../../../use-cases/tribes-show'
 import L from '../../i18n/i18n-node'
 import { toLocale } from '../../i18n/to-locale'
+import { TelegramUsers } from '../mocks'
 import { Tribalizm } from '../tribalism'
 
 export function tribesListScreen(
     bot: Telegraf<Scenes.SceneContext>,
-    tribalizm: Tribalizm
+    tribalizm: Tribalizm,
+    telegramUsers: TelegramUsers
 ) {
     const locationScene = new Scenes.BaseScene<Scenes.SceneContext>(
         'set-location'
@@ -85,8 +87,6 @@ export function tribesListScreen(
     )
     applyTribeScene.enter(async (ctx) => {
         const l = toLocale(ctx.from?.language_code)
-        console.log(ctx.scene.state)
-
         const texts = L[l].tribesList
         const tribe = await tribalizm.tribesShow.getTribeInfo({
             tribeId: (ctx.scene.state as any).tribeId,
@@ -96,11 +96,14 @@ export function tribesListScreen(
     applyTribeScene.on('text', async (ctx) => {
         const l = toLocale(ctx.from?.language_code)
         const texts = L[l].tribesList
-        // TODO userId must be retrieved from user's store via telegram username...
+        const user = await telegramUsers.getUserByChatId(ctx.chat.id)
+        if (!user) {
+            throw new Error(`Cannot find user for chat ${ctx.chat.id}`)
+        }
         await tribalizm.tribeApplication.appyToTribe({
             coverLetter: ctx.message.text,
-            tribeId: ctx.state.tribeId,
-            userId: ctx.from.username || 'wtf',
+            tribeId: (ctx.scene.state as any).tribeId,
+            userId: user.id,
         })
 
         ctx.reply(texts.applicationSent())

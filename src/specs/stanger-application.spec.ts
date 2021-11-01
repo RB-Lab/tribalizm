@@ -21,16 +21,17 @@ describe('Stranger application', () => {
             'application-message',
             onApplication
         )
-        const app = await world.tribeApplication.appyToTribe(world.defReq)
+        await world.tribeApplication.appyToTribe(world.defReq)
 
         expect(onApplication).toHaveBeenCalledTimes(1)
         expect(onApplication).toHaveBeenCalledWith(
             jasmine.objectContaining<ApplicationMessage>({
                 type: 'application-message',
                 payload: {
+                    elderUserId: world.chief.userId,
+                    tribeName: world.tribe.name,
                     coverLetter: world.defReq.coverLetter,
-                    elderId: world.tribe.chiefId!,
-                    applicationId: app.id,
+                    applicationId: jasmine.any(String),
                     userName: world.user.name,
                 },
             })
@@ -38,8 +39,8 @@ describe('Stranger application', () => {
     })
     it('stores properly initialized application', async () => {
         const world = await setUp()
-        const app = await world.tribeApplication.appyToTribe(world.defReq)
-        const savedApp = await world.applicationStore.getById(app.id)
+        await world.tribeApplication.appyToTribe(world.defReq)
+        const savedApp = await world.applicationStore._last()
         expect(savedApp).toEqual(
             jasmine.objectContaining<IApplication>({
                 coverLetter: world.defReq.coverLetter,
@@ -66,7 +67,8 @@ describe('Stranger application', () => {
     it('creates a new member candidate', async () => {
         const world = await setUp()
 
-        const app = await world.tribeApplication.appyToTribe(world.defReq)
+        await world.tribeApplication.appyToTribe(world.defReq)
+        const app = await world.applicationStore._last()
         const members = await world.memberStore.find({
             tribeId: world.tribe.id,
             userId: world.user.id,
@@ -79,7 +81,7 @@ describe('Stranger application', () => {
                 tribeId: world.tribe.id,
             })
         )
-        expect(app.memberId).toBe(members[0].id)
+        expect(app?.memberId).toBe(members[0].id)
     })
 })
 
@@ -87,11 +89,10 @@ async function setUp() {
     const context = await createContext()
     const { tribe } = await context.testing.makeTribe()
 
+    const chief = await context.stores.memberStore.getById(tribe.chiefId!)
+    const shaman = await context.stores.memberStore.getById(tribe.shamanId!)
     const user = await context.stores.userStore.save(
-        new User({
-            name: 'Userus Tribe',
-            coordinates: {} as Coordinates,
-        })
+        new User({ name: 'Userus Tribe' })
     )
     const defReq = {
         userId: user.id,
@@ -102,6 +103,8 @@ async function setUp() {
     const tribeApplication = new TribeApplication(context)
     return {
         tribe,
+        chief: chief!,
+        shaman: shaman!,
         user,
         defReq,
         ...context.stores,

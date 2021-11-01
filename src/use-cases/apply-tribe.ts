@@ -33,14 +33,13 @@ export class TribeApplication extends ContextUser {
         this.notify<ApplicationMessage>({
             type: 'application-message',
             payload: {
-                elderId: chief.id,
+                elderUserId: chief.userId,
+                tribeName: tribe.name,
                 applicationId: app.id,
                 coverLetter: app.coverLetter,
                 userName: user.name,
             },
         })
-        // TODO remove this! notification already sent
-        return app
     }
 }
 
@@ -53,7 +52,8 @@ export class NoChiefTribeError extends Error {
 export interface ApplicationMessage extends Message {
     type: 'application-message'
     payload: {
-        elderId: string
+        elderUserId: string
+        tribeName: string
         applicationId: string
         userName: string
         coverLetter: string

@@ -1,8 +1,10 @@
 import { IMember, MemberStore } from '../../../use-cases/entities/member'
 import { MongoStore } from './mongo-store'
 
-export class MongoMemberStore extends MongoStore<IMember>
-    implements MemberStore {
+export class MongoMemberStore
+    extends MongoStore<IMember>
+    implements MemberStore
+{
     //FIXME optimize this shit with DB usage
     countTribeMembers(ids: string): Promise<number>
     countTribeMembers(ids: string[]): Promise<Record<string, number>>

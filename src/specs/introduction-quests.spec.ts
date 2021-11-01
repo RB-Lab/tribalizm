@@ -178,30 +178,33 @@ describe('Introduction quests', () => {
 
 async function setUp(size?: number) {
     const context = await createContext()
-    const { members, tribe } = await context.testing.makeTribe(size)
+    const { members, tribe, users } = await context.testing.makeTribe(size)
     const user = await context.stores.userStore.save(
         new User({ name: 'new user' })
     )
 
     const initiation = new Initiation(context)
-    const app = new TribeApplication(context)
+    const tribeApplication = new TribeApplication(context)
     const introQuests = new IntroductionQuests(context)
     const negotiation = new QuestNegotiation(context)
     const questFinale = new QuestFinale(context)
 
     const getApproval = async () => {
-        const application = await app.appyToTribe({
+        await tribeApplication.appyToTribe({
             coverLetter: 'I want to FOO!',
             tribeId: tribe.id,
             userId: user.id,
         })
+        const application = (await context.stores.applicationStore._last())!
+        const chiefUser = users[0]
+        const shamanUser = users[1]
         const initReq = {
             applicationId: application.id,
-            memberId: application.chiefId!,
+            elderUserId: chiefUser.id,
             place: 'The Foo Bar',
             time: 1_700_100_500_000,
         }
-        const shamanReq = { ...initReq, memberId: application.shamanId! }
+        const shamanReq = { ...initReq, elderUserId: shamanUser.id }
         await initiation.startInitiation(initReq)
         await initiation.approveByChief(initReq)
         await initiation.startShamanInitiation(shamanReq)
@@ -284,7 +287,7 @@ async function setUp(size?: number) {
         initiation,
         negotiation,
         questFinale,
-        app,
+        app: tribeApplication,
         getApproval,
         makeIntroTask,
         getAllTasks,

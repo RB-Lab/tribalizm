@@ -177,6 +177,92 @@ export type Translation = {
 		 */
 		'applicationSentShort': string
 	}
+	'initiation': {	
+		/**
+		 * Please describe in a few words why did you decline an appliaction.
+		 */
+		'declineText': string
+		/**
+		 * Ok, appliaction has been declined
+		 */
+		'declinedForElder': string
+		/**
+		 * 📅 Select a date, when you'd like to meet the candidate
+		 */
+		'proposeDate': string
+		/**
+		 * 🕘 Choose an hour of the day
+		 */
+		'proposeTimeHours': string
+		/**
+		 * 🕤 Choose minutes
+		 */
+		'proposeTimeMinutes': string
+		/**
+		 * 🗿 Now where you want to meet?
+		 */
+		'proposePlace': string
+		/**
+		 * You propose to meet
+	 • Time: {date|date}
+	 • Place: {place}
+		 * @param {Date} date
+		 * @param {unknown} place
+		 */
+		'proposal': RequiredParams2<'date|date', 'place'>
+		/**
+		 * ✅ Okay
+		 */
+		'confirm': string
+		/**
+		 * 🤔 Edit
+		 */
+		'edit': string
+		/**
+		 * Su,Mo,Tu,We,Th,Fr,St
+		 */
+		'weekdays': string
+		/**
+		 * January,February,March,April,May,June,July,August,September,October,November,December
+		 */
+		'months': string
+		'startWeekDay': string
+		/**
+		 * Ok, proposal has been sent.
+		 */
+		'proposalDone': string
+	}
+	'notifications': {	
+		'tribeAppliaction': {	
+			/**
+			 * A new member appliaction for tribe {tribe}!
+			 * @param {unknown} tribe
+			 */
+			'title': RequiredParams1<'tribe'>
+			/**
+			 * From user {username}.
+			 * @param {unknown} username
+			 */
+			'applicant': RequiredParams1<'username'>
+			/**
+			 * Cover leter:
+			 */
+			'coverLetter': string
+			/**
+			 * Propose a meeting
+			 */
+			'assignInitiation': string
+			/**
+			 * Decline
+			 */
+			'decline': string
+			/**
+			 * Your appliaction to the tribe "{tribe}" has been declined
+			 * @param {unknown} tribe
+			 */
+			'declinedForApplicant': RequiredParams1<'tribe'>
+		}
+	}
 }
 
 export type TranslationFunctions = {
@@ -344,14 +430,104 @@ export type TranslationFunctions = {
 		 */
 		'applicationSentShort': () => LocalizedString
 	}
+	'initiation': {	
+		/**
+		 * Please describe in a few words why did you decline an appliaction.
+		 */
+		'declineText': () => LocalizedString
+		/**
+		 * Ok, appliaction has been declined
+		 */
+		'declinedForElder': () => LocalizedString
+		/**
+		 * 📅 Select a date, when you'd like to meet the candidate
+		 */
+		'proposeDate': () => LocalizedString
+		/**
+		 * 🕘 Choose an hour of the day
+		 */
+		'proposeTimeHours': () => LocalizedString
+		/**
+		 * 🕤 Choose minutes
+		 */
+		'proposeTimeMinutes': () => LocalizedString
+		/**
+		 * 🗿 Now where you want to meet?
+		 */
+		'proposePlace': () => LocalizedString
+		/**
+		 * You propose to meet
+	 • Time: {date|date}
+	 • Place: {place}
+		 */
+		'proposal': (arg: { date: Date, place: unknown }) => LocalizedString
+		/**
+		 * ✅ Okay
+		 */
+		'confirm': () => LocalizedString
+		/**
+		 * 🤔 Edit
+		 */
+		'edit': () => LocalizedString
+		/**
+		 * Su,Mo,Tu,We,Th,Fr,St
+		 */
+		'weekdays': () => LocalizedString
+		/**
+		 * January,February,March,April,May,June,July,August,September,October,November,December
+		 */
+		'months': () => LocalizedString
+		'startWeekDay': () => LocalizedString
+		/**
+		 * Ok, proposal has been sent.
+		 */
+		'proposalDone': () => LocalizedString
+	}
+	'notifications': {	
+		'tribeAppliaction': {	
+			/**
+			 * A new member appliaction for tribe {tribe}!
+			 */
+			'title': (arg: { tribe: unknown }) => LocalizedString
+			/**
+			 * From user {username}.
+			 */
+			'applicant': (arg: { username: unknown }) => LocalizedString
+			/**
+			 * Cover leter:
+			 */
+			'coverLetter': () => LocalizedString
+			/**
+			 * Propose a meeting
+			 */
+			'assignInitiation': () => LocalizedString
+			/**
+			 * Decline
+			 */
+			'decline': () => LocalizedString
+			/**
+			 * Your appliaction to the tribe "{tribe}" has been declined
+			 */
+			'declinedForApplicant': (arg: { tribe: unknown }) => LocalizedString
+		}
+	}
 }
 
-export type Formatters = {}
+export type Formatters = {
+	'date': (value: Date) => unknown
+}
 
 type Param<P extends string> = `{${P}}`
 
 type Params1<P1 extends string> =
 	`${string}${Param<P1>}${string}`
 
+type Params2<P1 extends string, P2 extends string> =
+	`${string}${Param<P1>}${string}${Param<P2>}${string}`
+
 type RequiredParams1<P1 extends string> =
 	| Params1<P1>
+
+type RequiredParams2<P1 extends string, P2 extends string> =
+	| Params2<P1, P2>
+	| Params2<P2, P1>

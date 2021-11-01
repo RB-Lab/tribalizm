@@ -80,4 +80,30 @@ export class ContextUser {
         }
         return app
     }
+
+    protected async getTribeMemberByUserId(tribeId: string, userId: string) {
+        const members = await this.stores.memberStore.find({ tribeId, userId })
+        if (!members.length) {
+            throw new EntityNotFound(
+                `Cannot find member in tribe ${tribeId} for user ${userId}`
+            )
+        }
+        return members[0]
+    }
+
+    protected async getUserIdByTribeMemberId(
+        tribeId: string,
+        memberId: string
+    ) {
+        const users = await this.stores.memberStore.find({
+            tribeId,
+            id: memberId,
+        })
+        if (!users.length) {
+            throw new EntityNotFound(
+                `Cannot find member ${memberId} in tribe ${tribeId}`
+            )
+        }
+        return users[0].userId
+    }
 }
