@@ -1,9 +1,9 @@
 import { Markup, Scenes, Telegraf } from 'telegraf'
-import { TelegramUsers } from '../mocks'
+import { TelegramUsersAdapter } from '../users-adapter'
 
 export function testLauncher(
     bot: Telegraf<Scenes.SceneContext>,
-    telegramUsers: TelegramUsers
+    telegramUsers: TelegramUsersAdapter
 ) {
     bot.command('/test', (ctx) => {
         const scene = ctx.update.message.text.replace('/test ', '')

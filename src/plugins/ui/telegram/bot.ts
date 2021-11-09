@@ -3,64 +3,113 @@
 //      - genereic Errors will porpagate up to here and must be reported
 
 import { Scenes, session, Telegraf } from 'telegraf'
-import express from 'express'
-
 import { startScreen } from './screens/start'
 import { rulesScreen } from './screens/rules'
 import { tribesListScreen } from './screens/tribes-list'
-import { TribeApplication, TribeShow, TelegramUsers, Initiation } from './mocks'
-import { TestNotificationBus } from '../../notification-bus'
 import { attachNotifications } from './notifications'
 import { initiationScreen } from './screens/initiation'
 import { testLauncher } from './screens/test-launcher'
+import { TelegramUsersAdapter } from './users-adapter'
+import { Tribalizm } from '../../../use-cases/tribalism'
+import { NotificationBus } from '../../../use-cases/utils/notification-bus'
 
-const token = process.env.BOT_KEY_TEST1
-if (token === undefined) {
-    throw new Error('BOT_TOKEN must be provided!')
+interface LocalHookConfig {
+    /** port & path are used to start a server inside a bot */
+    port: number
+    path: string
+    /**
+     * if domain is also provided Telegraf will _automatically_
+     * register hook at https://${domain}${hookPath}
+     */
+    domain?: string
 }
-
-const bot = new Telegraf<Scenes.SceneContext>(token)
-
-const bus = new TestNotificationBus()
-const telegramUsers = new TelegramUsers()
-const tribalism = {
-    tribesShow: new TribeShow(),
-    tribeApplication: new TribeApplication(bus),
-    initiation: new Initiation(bus),
+interface PublicHookConfig {
+    /**
+     * domain is used to _ only register_ hook on Telegram server
+     * you suppose to use middleware provided by bot.webhookCallback(path: string)
+     * in your server later
+     */
+    domain: string
 }
-bot.catch((err, ctx) => {
-    console.error('============================')
-    console.error(err)
-    console.error('============================')
-    ctx.reply(String(err))
-})
-bot.use(session())
-bot.telegram.setWebhook('https://tribalizm-1.rblab.net/tg-hook')
-bot.use(async (ctx, next) => {
-    ctx.state.user = await telegramUsers.getUserByChatId(ctx.chat?.id)
-    next()
-})
-startScreen(bot, telegramUsers)
-rulesScreen(bot)
-tribesListScreen(bot, tribalism, telegramUsers)
-initiationScreen(bot, tribalism, telegramUsers)
-attachNotifications(bot, bus, telegramUsers)
-testLauncher(bot, telegramUsers)
-bot.launch()
+interface BotConfig {
+    telegramUsersAdapter: TelegramUsersAdapter
+    webHook: LocalHookConfig | PublicHookConfig
+    tribalism: Tribalizm
+    token: string | undefined
+    notifcationsBus: NotificationBus
+    telegramURL?: string
+}
+export async function makeBot(config: BotConfig) {
+    if (config.token === undefined) {
+        throw new Error('BOT_TOKEN must be provided!')
+    }
 
-// Enable graceful stop
-process.once('SIGINT', () => bot.stop('SIGINT'))
-process.once('SIGTERM', () => bot.stop('SIGTERM'))
+    let bot: Telegraf<Scenes.SceneContext>
 
-const app = express()
-app.use(express.json())
+    if (config.telegramURL) {
+        bot = new Telegraf<Scenes.SceneContext>(config.token, {
+            telegram: { apiRoot: config.telegramURL },
+        })
+    } else {
+        bot = new Telegraf<Scenes.SceneContext>(config.token)
+    }
 
-/** this one used to check server is running */
-app.get('/ping', (req, res) => {
-    console.log('ping recieved')
-    res.end('pong')
-})
+    bot.use(async (ctx, next) => {
+        ctx.state.user = null
+        if (ctx.chat && ctx.from) {
+            ctx.state.user = await config.telegramUsersAdapter.getUserByChatId(
+                ctx.chat.id
+            )
+            if (!ctx.state.user) {
+                const name =
+                    ctx.from.first_name +
+                    (ctx.from.last_name ? ` ${ctx.from.last_name}` : '')
+                await config.telegramUsersAdapter.createUser(name, {
+                    chatId: String(ctx.chat.id),
+                    locale: ctx.from.language_code,
+                    username: ctx.from.username,
+                })
+            }
+        }
+        next()
+    })
+    bot.use(session())
 
-app.use(bot.webhookCallback('/tg-hook'))
+    bot.catch((err, ctx) => {
+        console.error('============================')
+        console.error(err)
+        console.error('============================')
+        ctx.reply(String(err))
+    })
 
-app.listen(3000)
+    startScreen(bot)
+    rulesScreen(bot)
+    tribesListScreen(bot, config.tribalism)
+    initiationScreen(bot, config.tribalism)
+    attachNotifications(
+        bot,
+        config.notifcationsBus,
+        config.telegramUsersAdapter
+    )
+
+    // TODO for bridge I need domain AND hook. Also it looks like it starts server anyway
+    if ('domain' in config.webHook) {
+        await bot.launch({ webhook: { domain: config.webHook.domain } })
+    } else if ('path' in config.webHook) {
+        await bot.telegram.setWebhook(
+            `http://localhost:${config.webHook.port}${config.webHook.path}`
+        )
+        await bot.launch({
+            webhook: {
+                hookPath: config.webHook.path,
+                port: config.webHook.port,
+            },
+        })
+    }
+
+    // Enable graceful stop
+    process.once('SIGINT', () => bot.stop('SIGINT'))
+    process.once('SIGTERM', () => bot.stop('SIGTERM'))
+
+    return bot
+}

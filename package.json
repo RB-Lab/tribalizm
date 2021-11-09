@@ -8,7 +8,7 @@
     "license": "UNLICENZED",
     "private": true,
     "scripts": {
-        "start:bot-dev": "nodemon src/plugins/ui/telegram/bot.ts",
+        "start:bot-dev": "nodemon src/plugins/ui/telegram/ui-tests-mock-bot.ts",
         "test": "ts-node ./node_modules/.bin/jasmine './src/**/*.spec.ts'",
         "full-test": "FULL_TEST='true' ts-node ./node_modules/.bin/jasmine './src/**/*.spec.ts'",
         "tdd": "tsnd --rs --respawn ./node_modules/.bin/jasmine './src/**/*.spec.ts'",
@@ -31,10 +31,10 @@
     "devDependencies": {
         "@types/jasmine": "^3.6.2",
         "dependency-cruiser": "^10.5.0",
-        "fast-deep-equal": "^3.1.3",
         "jasmine": "^3.6.3",
         "mongodb-memory-server": "^6.9.6",
         "nodemon": "^2.0.7",
+        "telegram-test-api": "https://github.com/RB-Lab/telegram-test-api.git#05c96d45b5fa37148988486e0e17b03db8bff947",
         "ts-node-dev": "^1.1.6"
     }
 }

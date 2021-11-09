@@ -12,3 +12,6 @@ export function filterMaybeArrayMaybe<T>(array: Maybe<Maybe<T>[]>) {
     }
     return array.filter(notEmpty)
 }
+
+
+export type Awaited<T> = T extends PromiseLike<infer U> ? U : T

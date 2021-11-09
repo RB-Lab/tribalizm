@@ -34,12 +34,16 @@ export class Initiation extends ContextUser {
                 acceptedIds: [app.chiefId],
             })
         )
+        const targetUserId = await this.getUserIdByTribeMemberId(
+            app.tribeId,
+            app.memberId
+        )
         this.notify<QuestMessage>({
             type: 'new-quest-message',
             payload: {
                 ...quest,
                 questId: quest.id,
-                targetMemberId: app.memberId,
+                targetUserId,
             },
         })
         app.nextPhase()
@@ -117,7 +121,7 @@ export class Initiation extends ContextUser {
             payload: {
                 ...quest,
                 questId: quest.id,
-                targetMemberId: app.memberId,
+                targetUserId: app.memberId,
             },
         })
         app.nextPhase()
@@ -148,7 +152,12 @@ export class Initiation extends ContextUser {
             req.elderUserId
         )
         if (app.chiefId === elder.id) {
-            if (app.phase !== ApplicationPhase.chiefInitiation) {
+            if (
+                ![
+                    ApplicationPhase.chiefInitiation,
+                    ApplicationPhase.initial,
+                ].includes(app.phase)
+            ) {
                 throw new WrongPhaseError(
                     `Cannot decline by chief when application is in "${app.phase}" phase`
                 )

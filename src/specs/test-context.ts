@@ -33,6 +33,9 @@ import { Message } from '../use-cases/utils/message'
 import { NotificationBus } from '../use-cases/utils/notification-bus'
 import { MongoMemoryServer } from 'mongodb-memory-server'
 import { MongoClient } from 'mongodb'
+import { TribeShow } from '../use-cases/tribes-show'
+import { TribeApplication } from '../use-cases/apply-tribe'
+import { Initiation } from '../use-cases/initiation'
 
 function createInmemroyStores() {
     const ideaStore = new InMemoryIdeaStore(QuestIdea)
@@ -194,12 +197,23 @@ export async function createContext() {
         makeIdea,
     }
 
-    return {
+    const context = {
         stores,
         async: {
             notififcationBus,
         },
+    }
+
+    const tribalism = {
+        tribesShow: new TribeShow(context),
+        tribeApplication: new TribeApplication(context),
+        initiation: new Initiation(context),
+    }
+
+    return {
+        ...context,
         testing,
+        tribalism
     }
 }
 

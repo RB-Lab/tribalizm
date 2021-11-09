@@ -219,6 +219,10 @@ export type Translation = {
 		 */
 		'edit': string
 		/**
+		 * 🤔 Propose other date/time
+		 */
+		'proposeOther': string
+		/**
 		 * Su,Mo,Tu,We,Th,Fr,St
 		 */
 		'weekdays': string
@@ -469,6 +473,10 @@ export type TranslationFunctions = {
 		 * 🤔 Edit
 		 */
 		'edit': () => LocalizedString
+		/**
+		 * 🤔 Propose other date/time
+		 */
+		'proposeOther': () => LocalizedString
 		/**
 		 * Su,Mo,Tu,We,Th,Fr,St
 		 */

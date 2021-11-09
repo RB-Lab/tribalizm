@@ -97,7 +97,7 @@ describe('Introduction quests', () => {
             jasmine.objectContaining<QuestMessage>({
                 type: 'new-quest-message',
                 payload: jasmine.objectContaining<QuestMessage['payload']>({
-                    targetMemberId: newMember.id,
+                    targetUserId: newMember.id,
                     memberIds: jasmine.arrayContaining([
                         newMember.id,
                         oldMember!.id,

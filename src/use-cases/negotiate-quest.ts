@@ -100,7 +100,7 @@ export class QuestNegotiation extends ContextUser {
             type: 'new-quest-message',
             payload: {
                 ...quest,
-                targetMemberId: nextMember.id,
+                targetUserId: nextMember.id,
                 questId: quest.id,
             },
         })

@@ -49,7 +49,9 @@ export class TribeShow extends ContextUser {
                 req.coordinates
             )
         } else if (req.citySearchString) {
-            city = await this.stores.cityStore.findByName(req.citySearchString)
+            city = (
+                await this.stores.cityStore.find({ name: req.citySearchString })
+            )[0]
         }
         if (!city) {
             return []

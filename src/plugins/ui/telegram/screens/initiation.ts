@@ -1,14 +1,12 @@
 import { Markup, Scenes, Telegraf } from 'telegraf'
 import L from '../../i18n/i18n-node'
 import { toLocale } from '../../i18n/to-locale'
-import { TelegramUsers } from '../mocks'
-import { Tribalizm } from '../tribalism'
+import { Tribalizm } from '../../../../use-cases/tribalism'
 import Calendar from 'telegraf-calendar-telegram'
 
 export function initiationScreen(
     bot: Telegraf<Scenes.SceneContext>,
-    tribalizm: Tribalizm,
-    telegramUsers: TelegramUsers
+    tribalizm: Tribalizm
 ) {
     const proposeInitiation = new Scenes.BaseScene<Scenes.SceneContext>(
         'propose-initiation'
@@ -68,8 +66,7 @@ export function initiationScreen(
     })
 
     proposeInitiation.action('confirm-proposal', async (ctx) => {
-        const user = await telegramUsers.getUserByChatId(ctx.chat?.id)
-        if (!user) {
+        if (!ctx.state.user) {
             // 🤔 Or just create this user here???
             throw new Error(`Cannot find user for chat ${ctx.chat?.id}`)
         }
@@ -77,7 +74,7 @@ export function initiationScreen(
         const place = (ctx.scene.state as any).place
         await tribalizm.initiation.startInitiation({
             applicationId: (ctx.scene.state as any).appId,
-            elderUserId: user.id,
+            elderUserId: ctx.state.user.id,
             place: place,
             // TODO here don't forget to offset user's time zone!
             time: date.getTime(),
@@ -115,15 +112,14 @@ export function initiationScreen(
         const l = toLocale(ctx.from?.language_code)
         const texts = L[l].initiation
         ctx.reply(texts.declinedForElder())
-        const user = await telegramUsers.getUserByChatId(ctx.chat.id)
-        if (!user) {
+        if (!ctx.state.user) {
             // 🤔 Or just create this user here???
             throw new Error(`Cannot find user for chat ${ctx.chat.id}`)
         }
         // TODO should use the text maybe?
         tribalizm.initiation.decline({
             applicationId: (ctx.scene.state as any).appId,
-            elderUserId: user.id,
+            elderUserId: ctx.state.user.id,
         })
         ctx.scene.leave()
     })
@@ -139,7 +135,7 @@ export function initiationScreen(
         ctx.scene.enter('propose-initiation', { appId: ctx.match[1] })
     })
 
-    bot.action(/declline-application:(.+)/, (ctx) => {
+    bot.action(/decline-application:(.+)/, (ctx) => {
         ctx.scene.enter('declline-application', { appId: ctx.match[1] })
     })
 }

@@ -21,9 +21,4 @@ export class MongoCityStore extends MongoStore<ICity> implements CityStore {
 
         return res ? this._instantiate(res) : null
     }
-
-    findByName = async (searchString: string) => {
-        // TODO implement
-        return null
-    }
 }

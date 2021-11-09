@@ -247,8 +247,8 @@ describe('When brainstorm is over', () => {
             expect(spy.calls.argsFor(0)[0]).toEqual(expectedMessage)
             expect(spy.calls.argsFor(1)[0]).toEqual(expectedMessage)
             const notifiedMembers = [
-                spy.calls.argsFor(0)[0].payload.targetMemberId,
-                spy.calls.argsFor(1)[0].payload.targetMemberId,
+                spy.calls.argsFor(0)[0].payload.targetUserId,
+                spy.calls.argsFor(1)[0].payload.targetUserId,
             ]
             expect(notifiedMembers).toEqual(
                 jasmine.arrayWithExactContents(quest.memberIds)

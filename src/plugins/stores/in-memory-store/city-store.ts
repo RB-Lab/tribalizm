@@ -10,9 +10,4 @@ export class InMemoryCityStore
         const res = Object.values(this._store)[0]
         return res ? this._instantiate(res) : null
     }
-
-    findByName = async (searchString: string) => {
-        // TODO implement
-        return null
-    }
 }

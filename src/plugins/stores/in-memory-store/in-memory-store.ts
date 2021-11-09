@@ -1,4 +1,3 @@
-import equal from 'fast-deep-equal'
 import { Store } from '../../../use-cases/entities/store'
 
 interface Storable {
@@ -47,16 +46,7 @@ export class InMemoryStore<T> implements Store<T> {
     }
     find: Store<T>['find'] = (query) => {
         const results = Object.values(this._store).filter((doc) => {
-            return Object.keys(query).every((k) => {
-                if (!isValidObjectKey(k, query)) {
-                    return false
-                }
-                const queryParam = query[k]
-                if (Array.isArray(queryParam)) {
-                    return queryParam.some((v) => equal(doc[k], v))
-                }
-                return equal(doc[k], queryParam)
-            })
+            return check(query, doc)
         })
         return Promise.resolve(results.map(this._instantiate))
     }
@@ -81,11 +71,16 @@ export class InMemoryStore<T> implements Store<T> {
     }
 }
 
-export function isValidObjectKey<T>(
-    key: string | number | symbol,
-    doc: T
-): key is keyof T {
-    return key in doc
+function check(query: any, doc: any): boolean {
+    return Object.keys(query).every((k) => {
+        const queryParam = query[k]
+        if (Array.isArray(queryParam)) {
+            return queryParam.some((subQuery) => check(subQuery, doc[k]))
+        } else if (typeof queryParam === 'object' && queryParam !== null) {
+            return check(queryParam, doc[k])
+        }
+        return queryParam === doc[k]
+    })
 }
 
 export function getKeys<T extends object>(doc: T) {

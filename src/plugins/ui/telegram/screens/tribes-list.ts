@@ -1,14 +1,12 @@
 import { Markup, Scenes, Telegraf } from 'telegraf'
+import { Tribalizm } from '../../../../use-cases/tribalism'
 import { TribeInfo } from '../../../../use-cases/tribes-show'
 import L from '../../i18n/i18n-node'
 import { toLocale } from '../../i18n/to-locale'
-import { TelegramUsers } from '../mocks'
-import { Tribalizm } from '../tribalism'
 
 export function tribesListScreen(
     bot: Telegraf<Scenes.SceneContext>,
-    tribalizm: Tribalizm,
-    telegramUsers: TelegramUsers
+    tribalizm: Tribalizm
 ) {
     const locationScene = new Scenes.BaseScene<Scenes.SceneContext>(
         'set-location'
@@ -25,14 +23,11 @@ export function tribesListScreen(
             .resize()
 
         ctx.deleteMessage()
-        ctx.reply(texts.requestLocationText(), keyboard).then((d) => {
-            d.message_id
-        })
+        ctx.reply(texts.requestLocationText(), keyboard)
     })
 
     locationScene.on('location', async (ctx) => {
-        // 🤔 or should it be in ctx.scene.state?
-        ctx.state.location = ctx.message.location
+        ;(ctx.scene.state as any).location = ctx.message.location
         const tribes = await tribalizm.tribesShow.getLocalTribes({
             coordinates: ctx.message.location,
             limit: 3,
@@ -43,7 +38,7 @@ export function tribesListScreen(
     locationScene.on('text', async (ctx) => {
         const l = toLocale(ctx.from?.language_code)
         const texts = L[l].tribesList
-        ctx.state.citySearchString = ctx.message.text
+        ;(ctx.scene.state as any).citySearchString = ctx.message.text
         const tribes = await tribalizm.tribesShow.getLocalTribes({
             coordinates: null,
             citySearchString: ctx.message.text,
@@ -96,14 +91,13 @@ export function tribesListScreen(
     applyTribeScene.on('text', async (ctx) => {
         const l = toLocale(ctx.from?.language_code)
         const texts = L[l].tribesList
-        const user = await telegramUsers.getUserByChatId(ctx.chat.id)
-        if (!user) {
+        if (!ctx.state.user) {
             throw new Error(`Cannot find user for chat ${ctx.chat.id}`)
         }
         await tribalizm.tribeApplication.appyToTribe({
             coverLetter: ctx.message.text,
             tribeId: (ctx.scene.state as any).tribeId,
-            userId: user.id,
+            userId: ctx.state.user.id,
         })
 
         ctx.reply(texts.applicationSent())
@@ -125,12 +119,13 @@ export function tribesListScreen(
         const l = toLocale(ctx.from?.language_code)
         const texts = L[l].tribesList
         ctx.editMessageText(
+            // It thinks that it is ServiceMessage and it has no text, but it has
             (ctx.update.callback_query.message as any).text +
                 '\n\n' +
                 texts.applicationSentShort(),
             Markup.inlineKeyboard([])
         )
-
+        // TODO 🤔 should I leave previeous scenen here?
         ctx.scene.enter('apply-tribe', {
             tribeId: ctx.match.input.replace('apply-tribe:', ''),
         })

@@ -4,7 +4,7 @@ import { QuestType } from '../entities/quest'
 export interface QuestMessage extends Message {
     type: 'new-quest-message'
     payload: {
-        targetMemberId: string
+        targetUserId: string
         questId: string
         description?: string
         type: QuestType

@@ -87,7 +87,7 @@ describe('Spawn new quest', () => {
             jasmine.objectContaining<QuestMessage>({
                 type: 'new-quest-message',
                 payload: jasmine.objectContaining<QuestMessage['payload']>({
-                    targetMemberId: quest.memberIds[0],
+                    targetUserId: quest.memberIds[0],
                     questId: quest.id,
                     type: QuestType.coordination,
                     time: jasmine.any(Number),
@@ -98,7 +98,7 @@ describe('Spawn new quest', () => {
         expect(onQuest).toHaveBeenCalledWith(
             jasmine.objectContaining<QuestMessage>({
                 payload: jasmine.objectContaining<QuestMessage['payload']>({
-                    targetMemberId: quest.memberIds[1],
+                    targetUserId: quest.memberIds[1],
                 }),
             })
         )
@@ -137,12 +137,8 @@ describe('Spawn new quest', () => {
 
 async function setUp() {
     const context = await createContext()
-    const {
-        members,
-        idea,
-        upvoters,
-        downvoters,
-    } = await context.testing.makeIdea([1, 3, 4, 6], [2, 5])
+    const { members, idea, upvoters, downvoters } =
+        await context.testing.makeIdea([1, 3, 4, 6], [2, 5])
 
     const voting = new Voting(context)
     const [member1, member2] = members

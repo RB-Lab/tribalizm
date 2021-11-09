@@ -67,7 +67,7 @@ describe('Initiation quests:', () => {
                 jasmine.objectContaining<QuestMessage>({
                     type: 'new-quest-message',
                     payload: jasmine.objectContaining<QuestMessage['payload']>({
-                        targetMemberId: world.application.memberId,
+                        targetUserId: world.newMemberUser.id,
                         questId: jasmine.any(String),
                         type: QuestType.initiation,
                         time: world.initReq.time,
@@ -291,7 +291,7 @@ describe('Initiation quests:', () => {
                 jasmine.objectContaining<QuestMessage>({
                     type: 'new-quest-message',
                     payload: jasmine.objectContaining<QuestMessage['payload']>({
-                        targetMemberId: world.application.memberId,
+                        targetUserId: world.application.memberId,
                         questId: jasmine.any(String),
                         type: QuestType.initiation,
                         time: world.initReq.time,
@@ -374,9 +374,9 @@ describe('Initiation quests:', () => {
                 'shaman'
             )
         })
-        it('FAILs to decilne by chief if NOT in "chiefzInitiation" phase', async () => {
+        it('FAILs to decilne by chief if NOT in "chiefzInitiation" or "initial" phase', async () => {
             await failOnWrongPhase(
-                ApplicationPhase.chiefInitiation,
+                [ApplicationPhase.chiefInitiation, ApplicationPhase.initial],
                 'decline',
                 'chief'
             )
@@ -471,6 +471,7 @@ async function setUp() {
         user: user!,
         chief,
         shaman,
+        newMemberUser,
         chiefUser,
         shamanUser,
         initReq: defaultInitiationRequest,
@@ -517,6 +518,9 @@ async function failOnWrongPhase(
 ) {
     await Promise.all(
         Object.values(ApplicationPhase).map(async (phase) => {
+            if (Array.isArray(correctPhase) && correctPhase.includes(phase)) {
+                return Promise.resolve()
+            }
             if (phase === correctPhase) {
                 return Promise.resolve()
             }

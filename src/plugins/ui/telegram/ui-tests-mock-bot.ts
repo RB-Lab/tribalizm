@@ -2,9 +2,8 @@ import {
     ApplicationMessage,
     ApplicationRequest,
 } from '../../../use-cases/apply-tribe'
-import { Storable } from '../../../use-cases/entities/store'
 import { TribeType } from '../../../use-cases/entities/tribe'
-import { User } from '../../../use-cases/entities/user'
+import { StoredUser, User } from '../../../use-cases/entities/user'
 import {
     ApplicationDeclined,
     ChiefApprovalRequest,
@@ -14,10 +13,13 @@ import {
 } from '../../../use-cases/initiation'
 import { TribesRequest } from '../../../use-cases/tribes-show'
 import { NotificationBus } from '../../../use-cases/utils/notification-bus'
+import { TestNotificationBus } from '../../notification-bus'
+import { makeBot } from './bot'
+import { testLauncher } from './screens/test-launcher'
 
-let user: (User & Storable) | null = null
-// TODO add to use-cases
-export class TelegramUsers {
+let user: StoredUser | null = null
+
+class TelegramUsersAdapter {
     createUser = async (
         name: string,
         providerData: {
@@ -36,7 +38,7 @@ export class TelegramUsers {
             id: 'mock-user',
         }
     }
-    getUserByChatId = async (chatId: number | undefined) => {
+    getUserByChatId = async (chatId: number | string) => {
         return user
     }
     getUserById = async (userId: string) => {
@@ -126,3 +128,26 @@ export class Initiation {
         })
     }
 }
+
+const token = process.env.BOT_KEY_TEST1
+
+const notifcationsBus = new TestNotificationBus()
+const telegramUsersAdapter = new TelegramUsersAdapter()
+const tribalism = {
+    tribesShow: new TribeShow(),
+    tribeApplication: new TribeApplication(notifcationsBus),
+    initiation: new Initiation(notifcationsBus),
+}
+makeBot({
+    telegramUsersAdapter,
+    webHook: {
+        path: '/tg-hook',
+        port: 3000,
+        domain: 'tribalizm-1.rblab.net',
+    },
+    tribalism,
+    token,
+    notifcationsBus,
+}).then((bot) => {
+    testLauncher(bot, telegramUsersAdapter)
+})

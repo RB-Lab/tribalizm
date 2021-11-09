@@ -31,7 +31,7 @@ export class IntroductionQuests extends ContextUser {
         this.notify<QuestMessage>({
             type: 'new-quest-message',
             payload: {
-                targetMemberId: req.newMemberId,
+                targetUserId: req.newMemberId,
                 questId: quest.id,
                 ...quest,
             },

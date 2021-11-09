@@ -77,7 +77,11 @@ describe('In memory store', () => {
         const store = new InMemoryStore<Foo>(Foo)
         const ololo = new Foo({ id: '1', bar: 'ololo', baz: { foo: 1 } })
         const ololo2 = new Foo({ id: '2', bar: 'ololo', baz: { foo: 2 } })
-        const ololo3 = new Foo({ id: '3', bar: 'ololo', baz: { foo: 2 } })
+        const ololo3 = new Foo({
+            id: '3',
+            bar: 'ololo',
+            baz: { foo: 2, quak: 'oops' },
+        })
         await store.saveBulk([ololo, ololo2, ololo3])
         await expectAsync(
             store.find({ bar: 'ololo', baz: { foo: 2 } }) as any

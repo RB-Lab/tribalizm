@@ -85,6 +85,7 @@ const en: BaseTranslation = {
             'You propose to meet\n • Time: {date:Date|date}\n • Place: {place}',
         confirm: '✅ Okay',
         edit: '🤔 Edit',
+        proposeOther: '🤔 Propose other date/time',
         weekdays: 'Su,Mo,Tu,We,Th,Fr,St',
         months: 'January,February,March,April,May,June,July,August,September,October,November,December',
         startWeekDay: '0',

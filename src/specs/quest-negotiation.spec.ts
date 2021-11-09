@@ -84,9 +84,8 @@ describe('Quest negotiation', () => {
     })
     it('notifes other party on acceptance', async () => {
         const world = await setUp()
-        const onQuestAccepted = world.spyOnMessage<QuestAcceptedMessage>(
-            'quest-accepted'
-        )
+        const onQuestAccepted =
+            world.spyOnMessage<QuestAcceptedMessage>('quest-accepted')
         await world.questNegotiation.proposeChange(world.defaultProposal)
         await world.questNegotiation.acceptQuest({
             questId: world.quest.id,
@@ -150,9 +149,8 @@ describe('Quest negotiation', () => {
     })
     it('needs all parties to accept proposal', async () => {
         const world = await setUp()
-        const onQuestAccepted = world.spyOnMessage<QuestAcceptedMessage>(
-            'quest-accepted'
-        )
+        const onQuestAccepted =
+            world.spyOnMessage<QuestAcceptedMessage>('quest-accepted')
         const member3 = await world.memberStore.save(
             new Member({
                 tribeId: 'tribe.id',
@@ -216,19 +214,19 @@ describe('Quest negotiation', () => {
                 type: 'new-quest-message',
                 payload: jasmine.objectContaining<QuestMessage['payload']>({
                     description: world.quest.description,
-                    targetMemberId: jasmine.any(String),
+                    targetUserId: jasmine.any(String),
                     questId: world.quest.id,
                 }),
             })
         )
         const quest = await world.questStore.getById(world.quest.id)
         const message = onQuest.calls.argsFor(0)[0] as QuestMessage
-        expect(world.upvoters).toContain(message.payload.targetMemberId)
-        expect(message.payload.targetMemberId).not.toBe(world.member2.id)
-        expect(message.payload.targetMemberId).not.toBe(world.member1.id)
+        expect(world.upvoters).toContain(message.payload.targetUserId)
+        expect(message.payload.targetUserId).not.toBe(world.member2.id)
+        expect(message.payload.targetUserId).not.toBe(world.member1.id)
         expect(quest!.memberIds).toEqual([
             world.member1.id,
-            message.payload.targetMemberId,
+            message.payload.targetUserId,
         ])
         expect(quest!.memberIds).not.toContain(world.member2.id)
     })

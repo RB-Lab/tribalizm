@@ -37,7 +37,7 @@ export class IdeasIncarnation extends ContextUser {
                     payload: {
                         ...quest,
                         questId: quest.id,
-                        targetMemberId,
+                        targetUserId: targetMemberId,
                     },
                 })
             })
