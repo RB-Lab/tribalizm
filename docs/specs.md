@@ -82,7 +82,7 @@
     timeperiod? or add to calendar)
 52. ❕ A _tribe cheif_ wants to rename tribe and change description
 
-Done: 33, In porgres: 1, Must: 1, Should: 16, total: 52
+Done: 35, In porgres: 0, Must: 0, Should: 16, total: 52
 
 ## Entities
 
@@ -117,6 +117,8 @@ Done: 33, In porgres: 1, Must: 1, Should: 16, total: 52
 1.  What to do when a user logs-in with new coordinates...
 2.  What if several tribes have a brainstorm at the same time (for one user)
 3.  How to list user's own tribes?
-4.  Whan if user ignores bot messages, esp. intro & init quests?
-5.  What if user leaves their area temporary, or temporary get's in other area and became chief
+4.  List of user's tasks, incl. current one
+5.  Forbid to spawn/gather before coodination quest started?
+6.  Whan if user ignores bot messages, esp. intro & init quests?
+7.  What if user leaves their area temporary, or temporary get's in other area and became chief
     there?

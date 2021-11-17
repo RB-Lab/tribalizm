@@ -77,6 +77,7 @@ export function initiationScreen(
             elderUserId: ctx.state.user.id,
             place: place,
             // TODO here don't forget to offset user's time zone!
+            //      use "tz-db", timezone name is in cities database
             time: date.getTime(),
         })
         ctx.editMessageText(

@@ -1,5 +1,5 @@
-import { EventEmitter } from 'events'
 import TelegramServer from 'telegram-test-api'
+import { KeyboardButton } from 'typegram'
 import { Awaited, notEmpty } from '../../ts-utils'
 
 type TelegramClient = ReturnType<TelegramServer['getClient']>
@@ -10,7 +10,9 @@ export function getInlineKeyCallbacks(update: BotUpdate | undefined) {
     const markup = update?.message.reply_markup
     if (markup && 'inline_keyboard' in markup) {
         return flatten(
-            markup.inline_keyboard.map((bs) => bs.map((b) => b.callback_data))
+            markup.inline_keyboard.map((bs) =>
+                bs.map((b) => ('callback_data' in b && b.callback_data) || null)
+            )
         ).filter(notEmpty)
     }
     return []
@@ -49,7 +51,7 @@ export function makeChat(server: TelegramServer, client: TelegramClient) {
             await client.sendCallback(
                 client.makeCallbackQuery(text, {
                     message: {
-                        message_id: String(lastUpdate.messageId),
+                        message_id: lastUpdate.messageId,
                         text: lastUpdate.message.text,
                     },
                 })
@@ -61,10 +63,7 @@ export function makeChat(server: TelegramServer, client: TelegramClient) {
         debug('>...')
 
         if (waitEdit) {
-            let updateType = ''
-            while (updateType !== 'EditedMessageText') {
-                updateType = await server.waitForUpdate()
-            }
+            await server.waitBotEdits()
             const hist = await client.getUpdatesHistory()
             lastUpdate = hist.find(
                 (u) => u.updateId === lastUpdate.updateId && isBotUpdate(u)

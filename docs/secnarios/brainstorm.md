@@ -1,0 +1,226 @@
+# 1. Get into tribe
+
+## World
+
+-   City Novosibirsk
+-   Tribes:
+    -   Foo Tribe,
+-   Users:
+    -   Chief (C: 10, W: 5)
+    -   Shaman (C: 5, W: 10)
+    -   Member 1 (C: 3, W: 5)
+    -   Member 2 (C: 7, W: 5)
+    -   Member 3 (C: 5, W: 7)
+
+## Main scenario
+
+-   _Chief_
+    -   → It's time to gather a brainstorm! 🌩 Propose a date `...calendar...`
+    -   ← 12/05/2022
+    -   → Enter hours `9...21`
+    -   ← 21
+    -   → Enter minutes `00, 15, 30, 45`
+    -   ← 45
+    -   → Ok, start brainstorm 12/05/2022, 21:45? `Yes`, `Change`
+    -   ← Yes
+-   _Shaman_
+    -   → A brainstorm declared 12/05/2022 at 21:45! 🌩
+-   _Member 1_
+    -   → A brainstorm declared 12/05/2022 at 21:45! 🌩
+-   _Member 2_
+    -   → A brainstorm declared 12/05/2022 at 21:45! 🌩
+-   _Member 3_
+    -   → A brainstorm declared 12/05/2022 at 21:45! 🌩
+-   --------- DATE 15 min before storm -------------
+-   _Chief_
+    -   → Brainstorm starts in 15 minutes! 🌩
+-   _Shaman_
+    -   → Brainstorm starts in 15 minutes! 🌩
+-   _Member 1_
+    -   → Brainstorm starts in 15 minutes! 🌩
+-   _Member 2_
+    -   → Brainstorm starts in 15 minutes! 🌩
+-   _Member 3_
+    -   → Brainstorm starts in 15 minutes! 🌩
+-   --------- DATE storm _start_ ------------
+-   _Chief_
+    -   → Brainstorm started! Propose your ideas! 💥
+-   _Shaman_
+    -   → Brainstorm started! Propose your ideas! 💥
+-   _Member 1_
+    -   → Brainstorm started! Propose your ideas! 💥
+-   _Member 2_
+    -   → Brainstorm started! Propose your ideas! 💥
+-   _Member 3_
+    -   → Brainstorm started! Propose your ideas! 💥
+-   _Member 2_
+    -   ← Let's go FOOOO!!
+-   _Chief_
+    -   → Let's go FOOOO!!
+-   _Shaman_
+    -   → Let's go FOOOO!!
+-   _Member 1_
+    -   → Let's go FOOOO!!
+-   _Member 3_
+    -   → Let's go FOOOO!!
+-   _Member 3_
+    -   ← Let's go Arr!!
+-   _Chief_
+    -   → Let's go Arr!!
+-   _Shaman_
+    -   → Let's go Arr!!
+-   _Member 1_
+    -   → Let's go Arr!!
+-   _Member 2_
+    -   → Let's go Arr!!
+-   --------- DATE storm _voting_ ------------
+-   _Chief_
+    -   → Brainstorm is over, it's time to vote for ideas!
+    -   → Let's go FOOO!! ⇒ Let's go FOO!! 👍👎
+    -   → Let's go Arr!! ⇒ Let's go Arr!! 👍👎
+-   _Shaman_
+    -   → Brainstorm is over, it's time to vote for ideas!
+    -   → Let's go FOOO!! ⇒ Let's go FOO!! 👍👎
+    -   → Let's go Arr!! ⇒ Let's go Arr!! 👍👎
+-   _Member 1_
+    -   → Brainstorm is over, it's time to vote for ideas!
+    -   → Let's go FOOO!! ⇒ Let's go FOO!! 👍👎
+    -   → Let's go Arr!! ⇒ Let's go Arr!! 👍👎
+-   _Member 2_
+    -   → Brainstorm is over, it's time to vote for ideas!
+    -   → Let's go FOOO!! ⇒ Let's go FOO!! 👍👎
+    -   → Let's go Arr!! ⇒ Let's go Arr!! 👍👎
+-   _Member 3_
+    -   → Brainstorm is over, it's time to vote for ideas!
+    -   → Let's go FOOO!! ⇒ Let's go FOO!! 👍👎
+    -   → Let's go Arr!! ⇒ Let's go Arr!! 👍👎
+-   _EVERYBODY_
+    -   → Let's go FOOO!! 👍
+-   --------- DATE storm _end_ ------------
+-   _Chief_
+    -   → Storm ended! Most popular ideas going to be executed.
+-   _Shaman_
+    -   → Storm ended! Most popular ideas going to be executed.
+-   _Member 1_
+    -   → Storm ended! Most popular ideas going to be executed.
+-   _Member 2_
+    -   → Storm ended! Most popular ideas going to be executed.
+-   _Member 3_
+    -   → Storm ended! Most popular ideas going to be executed.
+-   _Member 2_
+    -   → You're going to coordinate execution of your idea "Let's go FOOO!!" with Shaman. Propose a
+        date to meet with them `...calendar...`
+    -   ← 14/05/2022
+    -   → Enter hours `9...21`
+    -   ← 21
+    -   → Enter minutes `00, 15, 30, 45`
+    -   ← 45
+    -   → Enter place
+    -   ← "Barr Bar"
+    -   → Ok, you proposed 14/05/2022, 12:45, in Barr Bar `Yes`, `Change`
+    -   ← Yes
+    -   → Ok, Shaman has been informed
+-   _Shaman_
+    -   → You're going to coordinate execution of your idea "Let's go FOOO!!" with Member 2. They
+        proposed to meet 14/05/2022, 12:45, in Barr Bar `Agree`, `Change`, `Decline`
+    -   ← Change
+    -   → Enter date `...calendar...`
+    -   ← 14/05/2022
+    -   → Enter hours `9...21`
+    -   ← 20
+    -   → Enter minutes `00, 15, 30, 45`
+    -   ← 00
+    -   → Enter place
+    -   ← "Barr Bar"
+    -   → Ok, you proposed 14/05/2022, 20:00, in Barr Bar `Yes`, `Change`
+    -   ← Yes
+    -   → Ok, Member 2 has been informed
+-   _Member 2_
+    -   → Shaman proposed to meet 14/05/2022, 20:00, in Barr Bar `Agree`, `Change`
+    -   ← Agree
+    -   → Ok, Shaman has been informed
+    -   → When discuss with Shaman, you can: `Spawn`, `Gather upvoters`, `Gather tribe`, `Re-Quest`
+-   _Shman_
+    -   → Member 2 agreed on your proposal, you're meeting 14/05/2022, 20:00, in Barr Bar.
+    -   → When discuss with Member 2, you can: `Spawn`, `Gather upvoters`, `Gather tribe`, `Re-Quest`
+-   _Member 2_
+    -   ← Spawn
+    -   → Describe the quest, please
+    -   ← "Buy FOOO grenades"
+    -   → Ok, quest assigned
+-   --------- DATE _some time after_ ------------
+-   [... C/W casting ...]
+-   _Member 3_
+    -   → New quest assigned to you and Chief! "Buy FOOO grenades". Propose a date to meet with them
+        `...calendar...`, `Decline`
+    -   ← 18/05/2022
+    -   → Enter hours `9...21`
+    -   ← 20
+    -   → Enter minutes `00, 15, 30, 45`
+    -   ← 45
+    -   → Enter place
+    -   ← "Barr Bar"
+    -   → Ok, you proposed 18/05/2022, 20:45, in Barr Bar `Yes`, `Change`
+    -   ← Yes
+    -   → Ok, Chief has been informed
+-   _Chief_
+    -   → New quest assigned to you and Member 3! "Buy FOOO grenades". Propose a date to meet with
+        them `...calendar...`, `Decline`
+    -   → You're going to coordinate execution of your idea "Let's go FOOO!!" with Member 2. They
+        proposed to meet 18/05/2022, 12:45, in Barr Bar `Agree`, `Change`, `Decline`
+    -   ← Agree
+    -   → Ok, Member 3 has been informed
+    -   → When discuss with Shaman, you can: `Spawn`, `Gather upvoters`, `Gather tribe`, `Re-Quest`
+-   _Member 3_
+    -   → Member 2 agreed on your proposal, you're meeting 14/05/2022, 20:00, in Barr Bar.
+    -   → When discuss with Member 2, you can: `Spawn`, `Gather upvoters`, `Gather tribe`, `Re-Quest`
+-   _Chief_
+    -   ← Gather upvoters
+    -   → Describe the reason for gathering
+    -   ← Let's go FOOO!!
+    -   → When you want to gater? `...calendar...`
+    -   ← 18/05/2022
+    -   → Enter hours `9...21`
+    -   ← 20
+    -   → Enter minutes `00, 15, 30, 45`
+    -   ← 45
+    -   → Enter place
+    -   ← "Barr Bar"
+    -   → Ok, you proposed 18/05/2022, 20:45, in Barr Bar `Yes`, `Change`
+    -   ← Yes
+    -   → Ok, I proclame gathering to upvoters
+-   _Shaman_
+    -   → New gathering for "Let's go FOOO!!" 18/05/2022, 20:45, in Barr Bar `Accnowledge`, `Decline`
+    -   ← Acknowledge
+-   _Member 1_
+    -   → New gathering for "Let's go FOOO!!" 18/05/2022, 20:45, in Barr Bar `Accnowledge`, `Decline`
+    -   ← Acknowledge
+-   _Member 2_
+    -   → New gathering for "Let's go FOOO!!" 18/05/2022, 20:45, in Barr Bar `Accnowledge`, `Decline`
+    -   ← Decline
+-   _Member 3_
+    -   → New gathering for "Let's go FOOO!!" 18/05/2022, 20:45, in Barr Bar `Accnowledge`, `Decline`
+    -   ← Acknowledge
+-   --------- DATE _some time after_ ------------
+-   [... C/W casting, chief, member3 ...]
+-   --------- DATE _some time gatherin_ ------------
+-   _Chief_
+    -   → How was the gathering? 😩😒😐😌🥰
+    -   ← 😌
+    -   → Ok. Saved
+-   _Shaman_
+    -   → How was the gathering? 😩😒😐😌🥰
+    -   ← 😒
+    -   → Ok. Saved
+-   _Member 1_
+    -   → How was the gathering? 😩😒😐😌🥰
+    -   ← 🥰
+    -   → Ok. Saved
+-   _Member 3_
+    -   → How was the gathering? 😩😒😐😌🥰
+    -   ← 😌
+    -   → Ok. Saved
+
+## Variations
+
+### Shaman declines coordination quest

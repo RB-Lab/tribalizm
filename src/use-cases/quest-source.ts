@@ -6,7 +6,10 @@ import { getRootIdea } from './utils/get-root-idea'
 import { QuestMessage } from './utils/quest-message'
 
 export class QuestSource extends ContextUser {
-    // In case coordinators decided, that they need one more meeting
+    /**
+     * Creates a sub-quest _with the same line-up_. In case coordinators decided, that they need to
+     * meet one more time
+     */
     reQuest = async (req: ReQuestRequest) => {
         const parentQuest = await this.getQuest(req.parentQuestId)
         if (!parentQuest.memberIds.includes(req.memberId)) {
@@ -23,8 +26,13 @@ export class QuestSource extends ContextUser {
         })
         await this.stores.questStore.save(quest)
     }
+    /**
+     * Creates a sub-quest.
+     */
     spawnQuest = async (req: SpawnRequest) => {
         const parentQuest = await this.getQuest(req.parentQuestId)
+        // TODO check member spawning member is one of the parent quest assignees
+        // TODO check that parent quest is not in the future
         const ideaId = await getRootIdea(
             this.stores.questStore,
             req.parentQuestId
