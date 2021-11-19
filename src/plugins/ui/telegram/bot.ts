@@ -1,17 +1,13 @@
-// TODO don't forget to handle all exceptions:
-//      - those with specifc class should be handled somewhere below
-//      - genereic Errors will porpagate up to here and must be reported
-
 import { Scenes, session, Telegraf } from 'telegraf'
-import { startScreen } from './screens/start'
-import { rulesScreen } from './screens/rules'
-import { tribesListScreen } from './screens/tribes-list'
-import { attachNotifications } from './notifications'
-import { initiationScreen } from './screens/initiation'
-import { testLauncher } from './screens/test-launcher'
-import { TelegramUsersAdapter } from './users-adapter'
 import { Tribalizm } from '../../../use-cases/tribalism'
 import { NotificationBus } from '../../../use-cases/utils/notification-bus'
+import { attachNotifications } from './notifications'
+import { initiationScreen } from './screens/initiation'
+import { questNegotiationScreen } from './screens/quest-negotiation'
+import { rulesScreen } from './screens/rules'
+import { startScreenActions } from './screens/start'
+import { tribesListScreen } from './screens/tribes-list'
+import { TelegramUsersAdapter } from './users-adapter'
 
 interface LocalHookConfig {
     /** port & path are used to start a server inside a bot */
@@ -55,26 +51,33 @@ export async function makeBot(config: BotConfig) {
     }
 
     bot.use(async (ctx, next) => {
-        ctx.state.user = null
-        if (ctx.chat && ctx.from) {
-            ctx.state.user = await config.telegramUsersAdapter.getUserByChatId(
-                ctx.chat.id
-            )
-            if (!ctx.state.user) {
-                const name =
-                    ctx.from.first_name +
-                    (ctx.from.last_name ? ` ${ctx.from.last_name}` : '')
-                await config.telegramUsersAdapter.createUser(name, {
+        if (!ctx.chat || !ctx.from) {
+            throw new Error("Can't authenticate user without chat data")
+        }
+        ctx.state.userId = await config.telegramUsersAdapter.getUserIdByChatId(
+            ctx.chat.id
+        )
+
+        if (!ctx.state.userId) {
+            const name =
+                ctx.from.first_name +
+                (ctx.from.last_name ? ` ${ctx.from.last_name}` : '')
+            ctx.state.userId = await config.telegramUsersAdapter.createUser(
+                name,
+                {
                     chatId: String(ctx.chat.id),
                     locale: ctx.from.language_code,
                     username: ctx.from.username,
-                })
-            }
+                }
+            )
         }
         next()
     })
     bot.use(session())
 
+    // TODO don't forget to handle all exceptions:
+    //      - those with specifc class should be handled somewhere below
+    //      - genereic Errors will porpagate up to here and must be reported
     bot.catch((err, ctx) => {
         console.error('============================')
         console.error(err)
@@ -82,10 +85,20 @@ export async function makeBot(config: BotConfig) {
         ctx.reply(String(err))
     })
 
-    startScreen(bot)
-    rulesScreen(bot)
-    tribesListScreen(bot, config.tribalism)
-    initiationScreen(bot, config.tribalism)
+    const stage = new Scenes.Stage<Scenes.SceneContext>([
+        ...rulesScreen.scenes(),
+        ...tribesListScreen.scenes(config.tribalism),
+        ...questNegotiationScreen.scenes(config.tribalism),
+        ...initiationScreen.scenes(config.tribalism),
+    ])
+    bot.use(stage.middleware())
+
+    rulesScreen.actions(bot)
+    initiationScreen.actions(bot)
+    questNegotiationScreen.actions(bot)
+    tribesListScreen.actions(bot)
+    startScreenActions(bot)
+
     attachNotifications(
         bot,
         config.notifcationsBus,

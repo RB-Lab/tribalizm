@@ -1,21 +1,28 @@
 import { Message } from './message'
-import { QuestType } from '../entities/quest'
 
-export interface QuestMessage extends Message {
-    type: 'new-quest-message'
-    payload: {
-        targetUserId: string
-        questId: string
-        description?: string
-        type: QuestType
-        time: number
-        place?: string
-        memberIds: string[]
-    }
+export interface NewCoordinationQuestMessage extends Message {
+    type: 'new-coordination-quest-message'
+    payload: CoordinationPayload
 }
 
-interface IntorductionPayload {
-    type: QuestType.introduction
+export interface NewIntroductionQuestMessage extends Message {
+    type: 'new-introduction-quest-message'
+    payload: IntroductionPaylaod
+}
+
+interface QuestPayload {
+    targetUserId: string
+    targetMemberId: string
+    questId: string
+}
+interface IntroductionPaylaod extends QuestPayload {
     userName: string
+    time: number
+    place: string
 }
-interface InitiationPaylaod {}
+interface CoordinationPayload extends QuestPayload {
+    description: string
+    members: Array<{ id: string; name: string }>
+    time: number | null
+    place: string | null
+}

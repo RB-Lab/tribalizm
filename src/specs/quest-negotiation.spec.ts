@@ -13,7 +13,7 @@ import {
     QuestChangeMessage,
     QuestNegotiation,
 } from '../use-cases/negotiate-quest'
-import { QuestMessage } from '../use-cases/utils/quest-message'
+import { NewCoordinationQuestMessage } from '../use-cases/utils/quest-message'
 import { HowWasQuestTask } from '../use-cases/utils/scheduler'
 import { createContext } from './test-context'
 
@@ -99,9 +99,9 @@ describe('Quest negotiation', () => {
                     QuestAcceptedMessage['payload']
                 >({
                     description: quest!.description,
-                    place: quest!.place,
+                    place: quest!.place!,
                     questId: quest!.id,
-                    time: quest!.time,
+                    time: quest!.time!,
                     targetMemberId: world.member1.id,
                 }),
             })
@@ -189,7 +189,7 @@ describe('Quest negotiation', () => {
         await expectAsync(
             world.questNegotiation.proposeChange({
                 ...world.defaultProposal,
-                memberId: 'other-id',
+                memberId: world.members[4].id,
             })
         ).toBeRejectedWithError(NotYourQuest)
     })
@@ -198,21 +198,25 @@ describe('Quest negotiation', () => {
         await expectAsync(
             world.questNegotiation.acceptQuest({
                 questId: world.quest.id,
-                memberId: 'other-id',
+                memberId: world.members[4].id,
             })
         ).toBeRejectedWithError(NotYourQuest)
     })
     it('re-assigns declined quest among upvoters', async () => {
         const world = await setUp()
-        const onQuest = world.spyOnMessage<QuestMessage>('new-quest-message')
+        const onQuest = world.spyOnMessage<NewCoordinationQuestMessage>(
+            'new-coordination-quest-message'
+        )
         await world.questNegotiation.declineQuest({
             memberId: world.member2.id,
             questId: world.quest.id,
         })
         expect(onQuest).toHaveBeenCalledWith(
-            jasmine.objectContaining<QuestMessage>({
-                type: 'new-quest-message',
-                payload: jasmine.objectContaining<QuestMessage['payload']>({
+            jasmine.objectContaining<NewCoordinationQuestMessage>({
+                type: 'new-coordination-quest-message',
+                payload: jasmine.objectContaining<
+                    NewCoordinationQuestMessage['payload']
+                >({
                     description: world.quest.description,
                     targetUserId: jasmine.any(String),
                     questId: world.quest.id,
@@ -220,13 +224,15 @@ describe('Quest negotiation', () => {
             })
         )
         const quest = await world.questStore.getById(world.quest.id)
-        const message = onQuest.calls.argsFor(0)[0] as QuestMessage
-        expect(world.upvoters).toContain(message.payload.targetUserId)
-        expect(message.payload.targetUserId).not.toBe(world.member2.id)
-        expect(message.payload.targetUserId).not.toBe(world.member1.id)
+        const message = onQuest.calls.argsFor(
+            0
+        )[0] as NewCoordinationQuestMessage
+        expect(world.upvoters).toContain(message.payload.targetMemberId)
+        expect(message.payload.targetMemberId).not.toBe(world.member2.id)
+        expect(message.payload.targetMemberId).not.toBe(world.member1.id)
         expect(quest!.memberIds).toEqual([
             world.member1.id,
-            message.payload.targetUserId,
+            message.payload.targetMemberId,
         ])
         expect(quest!.memberIds).not.toContain(world.member2.id)
     })
@@ -278,6 +284,7 @@ async function setUp() {
         quest,
         member1,
         member2,
+        members,
         upvoters,
 
         defaultProposal,

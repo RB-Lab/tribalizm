@@ -3,7 +3,8 @@ import { NotYourQuest, Quest } from './entities/quest'
 import { ContextUser } from './utils/context-user'
 import { getBestFreeMember } from './utils/members-utils'
 import { getRootIdea } from './utils/get-root-idea'
-import { QuestMessage } from './utils/quest-message'
+import { NewCoordinationQuestMessage } from './utils/quest-message'
+import { EntityNotFound } from './utils/not-found-error'
 
 export class QuestSource extends ContextUser {
     /**
@@ -31,7 +32,7 @@ export class QuestSource extends ContextUser {
      */
     spawnQuest = async (req: SpawnRequest) => {
         const parentQuest = await this.getQuest(req.parentQuestId)
-        // TODO check member spawning member is one of the parent quest assignees
+        // TODO check that spawning member is one of the parent quest assignees
         // TODO check that parent quest is not in the future
         const ideaId = await getRootIdea(
             this.stores.questStore,
@@ -40,26 +41,43 @@ export class QuestSource extends ContextUser {
         const idea = await this.getIdea(ideaId)
         const oneWeekAhead = Date.now() + 7 * 24 * 3_600_000
 
-        const memberIds = await this.getQuestAssignees(
+        const members = await this.getQuestAssignees(
             idea,
             parentQuest.memberIds
         )
+        const users = await this.stores.userStore.find({
+            id: members.map((m) => m.userId),
+        })
 
         const quest = await this.stores.questStore.save(
             new Quest({
                 time: oneWeekAhead,
                 description: req.description,
-                memberIds: memberIds,
+                memberIds: members.map((m) => m.id),
                 parentQuestId: parentQuest.id,
             })
         )
-        quest.memberIds.forEach((targetMemberId) => {
-            this.notify<QuestMessage>({
-                type: 'new-quest-message',
+        const membersView = members.map((m) => {
+            const user = users.find((u) => u.id === m.userId)
+            if (!user) {
+                throw new EntityNotFound(`Cannot find user for member ${m.id}`)
+            }
+            return {
+                id: m.id,
+                name: user.name,
+            }
+        })
+        members.forEach(async (member) => {
+            this.notify<NewCoordinationQuestMessage>({
+                type: 'new-coordination-quest-message',
                 payload: {
-                    ...quest,
+                    time: null,
+                    place: null,
                     questId: quest.id,
-                    targetUserId: targetMemberId,
+                    targetMemberId: member.id,
+                    targetUserId: member.userId,
+                    description: quest.description,
+                    members: membersView,
                 },
             })
         })
@@ -98,7 +116,7 @@ export class QuestSource extends ContextUser {
             activeQuests,
             [...exclude, first.id]
         )
-        return [first.id, second.id]
+        return [first, second]
     }
 }
 

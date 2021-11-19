@@ -1,5 +1,6 @@
 import { Application } from './entities/application'
 import { Member } from './entities/member'
+import { Quest, QuestType } from './entities/quest'
 import { ContextUser } from './utils/context-user'
 import { Message } from './utils/message'
 
@@ -30,12 +31,21 @@ export class TribeApplication extends ContextUser {
                 shamanId: tribe.shamanId,
             })
         )
+
+        const quest = await this.stores.questStore.save(
+            new Quest({
+                type: QuestType.initiation,
+                memberIds: [tribe.chiefId, app.memberId],
+                applicationId: app.id,
+            })
+        )
         this.notify<ApplicationMessage>({
             type: 'application-message',
             payload: {
-                elderUserId: chief.userId,
+                targetUserId: chief.userId,
+                targetMemberId: chief.id,
                 tribeName: tribe.name,
-                applicationId: app.id,
+                qeuestId: quest.id,
                 coverLetter: app.coverLetter,
                 userName: user.name,
             },
@@ -52,9 +62,10 @@ export class NoChiefTribeError extends Error {
 export interface ApplicationMessage extends Message {
     type: 'application-message'
     payload: {
-        elderUserId: string
+        targetUserId: string
+        targetMemberId: string
         tribeName: string
-        applicationId: string
+        qeuestId: string
         userName: string
         coverLetter: string
     }

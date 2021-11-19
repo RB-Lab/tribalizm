@@ -1,38 +1,69 @@
 import { ContextUser } from './utils/context-user'
-import { IndeclinableError, QuestStatus, QuestType } from './entities/quest'
+import {
+    IndeclinableError,
+    QuestIncompleteError,
+    QuestStatus,
+    QuestType,
+} from './entities/quest'
 import { getBestFreeMember } from './utils/members-utils'
 import { getRootIdea, NoIdeaError } from './utils/get-root-idea'
 import { Message } from './utils/message'
-import { QuestMessage } from './utils/quest-message'
+import { NewCoordinationQuestMessage } from './utils/quest-message'
 import { HowWasQuestTask } from './utils/scheduler'
+import { EntityNotFound } from './utils/not-found-error'
 
 export class QuestNegotiation extends ContextUser {
     proposeChange = async (req: QuestChangeRequest) => {
         const quest = await this.getQuest(req.questId)
+        const member = await this.getMember(req.memberId)
+        const user = await this.getUser(member.userId)
+        const tribe = await this.getTribe(member.tribeId)
         const targetMembers = quest.propose(req.time, req.place, req.memberId)
         await this.stores.questStore.save(quest)
-        targetMembers.forEach((targetMemberId) => {
+        const elderPatch =
+            tribe.shamanId === member.id
+                ? { elder: 'shaman' as 'shaman' }
+                : tribe.chiefId === member.id
+                ? { elder: 'chief' as 'chief' }
+                : {}
+        for (let targetMemberId of targetMembers) {
+            const targetMember = await this.getMember(targetMemberId)
             this.notify<QuestChangeMessage>({
                 type: 'quest-change-proposed',
                 payload: {
-                    ...quest,
-                    proposingMemberId: req.memberId,
-                    questId: quest.id,
                     targetMemberId,
+                    targetUserId: targetMember.userId,
+                    questId: quest.id,
+                    questType: quest.type,
+                    description: quest.description,
+                    time: req.time,
+                    place: req.place,
+                    proposingMemberId: req.memberId,
+                    proposingMemberName: user.name,
+                    tribe: tribe.name,
+                    ...elderPatch,
                 },
             })
-        })
+        }
     }
     acceptQuest = async (req: QuestAcceptRequest) => {
         const quest = await this.getQuest(req.questId)
         const targetMembers = quest.accept(req.memberId)
         await this.stores.questStore.save(quest)
+        if (!quest.place || !quest.time) {
+            throw new QuestIncompleteError(
+                `Cannot accept incomplete quest, time ${quest.time}, place: ${quest.place}`
+            )
+        }
         if (quest.status === QuestStatus.accepted) {
             targetMembers.forEach((targetMemberId) => {
                 this.notify<QuestAcceptedMessage>({
                     type: 'quest-accepted',
                     payload: {
                         ...quest,
+                        // checked above
+                        time: quest.time!,
+                        place: quest.place!,
                         questId: quest.id,
                         targetMemberId,
                     },
@@ -48,6 +79,9 @@ export class QuestNegotiation extends ContextUser {
         }
     }
 
+    /**
+     * Declines _coordination_ quest and assigns it to another suitable member
+     */
     declineQuest = async (req: QuestDeclineRequest) => {
         const quest = await this.getQuest(req.questId)
         quest.decline(req.memberId)
@@ -95,13 +129,38 @@ export class QuestNegotiation extends ContextUser {
         )
         quest.addAssignee(nextMember.id)
         await this.stores.questStore.save(quest)
+        const users = await this.stores.userStore.find({
+            id: members.map((m) => m.userId),
+        })
+        const membersView = quest.memberIds.map((memberId) => {
+            const member = members.find((m) => m.id === memberId)
+            if (!member) {
+                throw new EntityNotFound(
+                    `Cannot find user for member ${memberId} among assignable members`
+                )
+            }
+            const user = users.find((u) => u.id === member.userId)
+            if (!user) {
+                throw new EntityNotFound(
+                    `Cannot find user for member ${member.id}`
+                )
+            }
+            return {
+                id: memberId,
+                name: user.name,
+            }
+        })
 
-        this.notify<QuestMessage>({
-            type: 'new-quest-message',
+        this.notify<NewCoordinationQuestMessage>({
+            type: 'new-coordination-quest-message',
             payload: {
-                ...quest,
-                targetUserId: nextMember.id,
+                description: quest.description,
                 questId: quest.id,
+                targetMemberId: nextMember.id,
+                targetUserId: nextMember.userId,
+                place: quest.place,
+                time: quest.time,
+                members: membersView,
             },
         })
     }
@@ -110,12 +169,17 @@ export class QuestNegotiation extends ContextUser {
 export interface QuestChangeMessage extends Message {
     type: 'quest-change-proposed'
     payload: {
-        description: string
-        questId: string
-        proposingMemberId: string
         targetMemberId: string
+        targetUserId: string
+        questId: string
+        description: string
         time: number
         place: string
+        tribe: string
+        proposingMemberId: string
+        proposingMemberName: string
+        questType: QuestType
+        elder?: 'chief' | 'shaman'
     }
 }
 

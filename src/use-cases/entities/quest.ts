@@ -24,12 +24,13 @@ export interface IQuestData {
     status: QuestStatus
     description: string
     /** timestamp when quest to take place */
-    time: number
-    place: string
+    time: number | null
+    place: string | null
     memberIds: string[]
     acceptedIds: string[]
     finishedIds: string[]
     parentQuestId: string | null
+    applicationId: string | null
 }
 
 export interface IQuest extends IQuestData {
@@ -47,12 +48,13 @@ export class Quest implements IQuest {
     public type: QuestType
     public status: QuestStatus
     public description: string
-    public time: number
-    public place: string
+    public time: number | null
+    public place: string | null
     public memberIds: string[]
     public acceptedIds: string[]
     public finishedIds: string[]
     public parentQuestId: string | null
+    public applicationId: string | null
 
     constructor(params: Partial<IQuestData & Storable> = {}) {
         this.id = params.id || null
@@ -60,8 +62,9 @@ export class Quest implements IQuest {
         this.type = params.type || QuestType.coordination
         this.status = params.status || QuestStatus.proposed
         this.description = params.description || ''
-        this.time = params.time || Date.now()
-        this.place = params.place || ''
+        this.time = params.time || null
+        this.place = params.place || null
+        this.applicationId = params.applicationId || null
         this.memberIds = params.memberIds || []
         this.acceptedIds = params.acceptedIds || []
         this.finishedIds = params.finishedIds || []
@@ -86,9 +89,11 @@ export class Quest implements IQuest {
 
     accept = (memberId: string) => {
         this.checkAssigned(memberId)
-        if (this.time < Date.now()) {
+        if (this.time && this.time < Date.now()) {
             throw new InvalidAcceptanceTime(
-                'This quet is outdated. Please propose a new time'
+                `Cannot accept quest ${this.id}: it is outdated, ${
+                    this.time
+                }, now: ${Date.now()}`
             )
         }
         this.acceptedIds.push(memberId)
@@ -150,11 +155,16 @@ export class IndeclinableError extends Error {
     }
 }
 
+export class QuestIncompleteError extends Error {
+    constructor(msg: string) {
+        super(msg)
+    }
+}
+
 export enum QuestType {
     coordination = 'coordination',
     initiation = 'initiation',
     introduction = 'introduction',
-    execution = 'execution',
 }
 
 export enum QuestStatus {

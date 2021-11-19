@@ -1,10 +1,11 @@
 import { SavedQuestIdea } from './entities/brainstorm'
 import { Quest } from './entities/quest'
-import { QuestMessage } from './utils/quest-message'
+import { NewCoordinationQuestMessage } from './utils/quest-message'
 import { ContextUser } from './utils/context-user'
 import { getBestFreeMember, minQuests } from './utils/members-utils'
 import { StormFinalyze } from './utils/scheduler'
 import { Storable } from './entities/store'
+import { EntityNotFound } from './utils/not-found-error'
 
 export class IdeasIncarnation extends ContextUser {
     incarnateIdeas = async (task: StormFinalyze & Storable) => {
@@ -15,6 +16,21 @@ export class IdeasIncarnation extends ContextUser {
         const members = await this.stores.memberStore.find({
             tribeId: brainstorm.tribeId,
         })
+        const users = await this.stores.userStore.find({
+            id: members.map((m) => m.userId),
+        })
+        const memberIdToUserName = members.reduce<Record<string, string>>(
+            (result, member) => {
+                const user = users.find((u) => u.id === member.userId)
+                if (!user) {
+                    throw new EntityNotFound(
+                        `Cannot find user for ${member.id}`
+                    )
+                }
+                return { ...result, [member.id]: user.name }
+            },
+            {}
+        )
 
         const quests = await Promise.all(
             ideas
@@ -32,12 +48,25 @@ export class IdeasIncarnation extends ContextUser {
 
         savedQuests.forEach((quest) => {
             quest.memberIds.forEach((targetMemberId) => {
-                this.notify<QuestMessage>({
-                    type: 'new-quest-message',
+                const member = members.find((m) => m.id == targetMemberId)
+                if (!member) {
+                    throw new EntityNotFound(
+                        `Cannot find member ${targetMemberId} amont tribe members`
+                    )
+                }
+                this.notify<NewCoordinationQuestMessage>({
+                    type: 'new-coordination-quest-message',
                     payload: {
-                        ...quest,
                         questId: quest.id,
-                        targetUserId: targetMemberId,
+                        targetMemberId,
+                        targetUserId: member.userId,
+                        description: quest.description,
+                        place: null,
+                        time: null,
+                        members: quest.memberIds.map((id) => ({
+                            id,
+                            name: memberIdToUserName[id],
+                        })),
                     },
                 })
             })

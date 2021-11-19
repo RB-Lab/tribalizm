@@ -3,7 +3,6 @@ import {
     ApplicationRequest,
 } from '../../../use-cases/apply-tribe'
 import { TribeType } from '../../../use-cases/entities/tribe'
-import { StoredUser, User } from '../../../use-cases/entities/user'
 import {
     ApplicationDeclined,
     ChiefApprovalRequest,
@@ -16,33 +15,31 @@ import { NotificationBus } from '../../../use-cases/utils/notification-bus'
 import { TestNotificationBus } from '../../notification-bus'
 import { makeBot } from './bot'
 import { testLauncher } from './screens/test-launcher'
+import { TelegramUsersAdapter } from './users-adapter'
 
-let user: StoredUser | null = null
+interface ChatData {
+    chatId: string
+    locale?: string
+    username?: string
+}
+let user: (ChatData & { id: string }) | null = null
 
-class TelegramUsersAdapter {
-    createUser = async (
-        name: string,
-        providerData: {
-            chatId: string
-            locale?: string
-            username?: string
-        }
-    ) => {
-        user = {
-            ...new User({
-                name,
-                provider: {
-                    telegram: providerData,
-                },
-            }),
-            id: 'mock-user',
-        }
+class MockTelegramUsersAdapter implements TelegramUsersAdapter {
+    createUser = async (name: string, providerData: ChatData) => {
+        user = { ...providerData, username: name, id: 'mock-user' }
+        return 'mock-user'
     }
-    getUserByChatId = async (chatId: number | string) => {
-        return user
+    getUserIdByChatId = async (chatId: number | string) => {
+        return user!.id
     }
-    getUserById = async (userId: string) => {
-        return user
+    getCatDataByUserId = async (userId: string) => {
+        if (!user) {
+            throw new Error(`User ${userId} does not use telegram`)
+        }
+        return {
+            chatId: user.chatId,
+            locale: user.locale || 'en',
+        }
     }
 }
 
@@ -97,11 +94,12 @@ export class TribeApplication {
         this.bus.notify<ApplicationMessage>({
             type: 'application-message',
             payload: {
-                elderUserId: user.id,
+                qeuestId: '--todo--',
+                targetUserId: user.id,
+                targetMemberId: '--todo--',
                 tribeName: names.find(([id]) => id === req.tribeId)![1],
-                applicationId: 'new-application-id',
                 coverLetter: req.coverLetter,
-                userName: user.name,
+                userName: user.username!,
             },
         })
     }
@@ -132,7 +130,7 @@ export class Initiation {
 const token = process.env.BOT_KEY_TEST1
 
 const notifcationsBus = new TestNotificationBus()
-const telegramUsersAdapter = new TelegramUsersAdapter()
+const telegramUsersAdapter = new MockTelegramUsersAdapter()
 const tribalism = {
     tribesShow: new TribeShow(),
     tribeApplication: new TribeApplication(notifcationsBus),
@@ -145,7 +143,7 @@ makeBot({
         port: 3000,
         domain: 'tribalizm-1.rblab.net',
     },
-    tribalism,
+    tribalism: tribalism as any,
     token,
     notifcationsBus,
 }).then((bot) => {

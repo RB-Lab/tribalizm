@@ -6,7 +6,7 @@ import {
     QuestType,
 } from '../use-cases/entities/quest'
 import { NoIdeaError } from '../use-cases/utils/get-root-idea'
-import { QuestMessage } from '../use-cases/utils/quest-message'
+import { NewCoordinationQuestMessage } from '../use-cases/utils/quest-message'
 import { QuestSource } from '../use-cases/quest-source'
 import { Voting } from '../use-cases/vote-idea'
 import { createContext, makeMessageSpy } from './test-context'
@@ -79,26 +79,40 @@ describe('Spawn new quest', () => {
     })
     it('notifies both members on a new quest proposal', async () => {
         const world = await setUp()
-        const onQuest = world.spyOnMessage<QuestMessage>('new-quest-message')
+        const onQuest = world.spyOnMessage<NewCoordinationQuestMessage>(
+            'new-coordination-quest-message'
+        )
         await world.questSpawn.spawnQuest(world.defautlSpawnRequest)
         const quest = await world.getSpawnedQuest()
         expect(onQuest).toHaveBeenCalledTimes(2)
+        const member1 = await world.memberStore.getById(quest.memberIds[0])
+        const member2 = await world.memberStore.getById(quest.memberIds[1])
+        const user1 = await world.userStore.getById(member1!.userId)
+        const user2 = await world.userStore.getById(member2!.userId)
         expect(onQuest).toHaveBeenCalledWith(
-            jasmine.objectContaining<QuestMessage>({
-                type: 'new-quest-message',
-                payload: jasmine.objectContaining<QuestMessage['payload']>({
-                    targetUserId: quest.memberIds[0],
+            jasmine.objectContaining<NewCoordinationQuestMessage>({
+                type: 'new-coordination-quest-message',
+                payload: jasmine.objectContaining<
+                    NewCoordinationQuestMessage['payload']
+                >({
+                    targetUserId: user1?.id,
+                    targetMemberId: member1?.id,
                     questId: quest.id,
-                    type: QuestType.coordination,
-                    time: jasmine.any(Number),
-                    place: '',
+                    description: quest.description,
+                    members: jasmine.arrayWithExactContents([
+                        { id: member1?.id, name: user1?.name },
+                        { id: member2?.id, name: user2?.name },
+                    ]),
                 }),
             })
         )
         expect(onQuest).toHaveBeenCalledWith(
-            jasmine.objectContaining<QuestMessage>({
-                payload: jasmine.objectContaining<QuestMessage['payload']>({
-                    targetUserId: quest.memberIds[1],
+            jasmine.objectContaining<NewCoordinationQuestMessage>({
+                payload: jasmine.objectContaining<
+                    NewCoordinationQuestMessage['payload']
+                >({
+                    targetUserId: user2?.id,
+                    targetMemberId: member2?.id,
                 }),
             })
         )
@@ -137,7 +151,7 @@ describe('Spawn new quest', () => {
 
 async function setUp() {
     const context = await createContext()
-    const { members, idea, upvoters, downvoters } =
+    const { members, idea, upvoters, downvoters, users } =
         await context.testing.makeIdea([1, 3, 4, 6], [2, 5])
 
     const voting = new Voting(context)
@@ -165,6 +179,7 @@ async function setUp() {
         member1,
         member2,
         members,
+        users,
         quest,
         defautlSpawnRequest,
         idea,

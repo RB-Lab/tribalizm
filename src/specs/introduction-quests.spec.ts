@@ -6,10 +6,10 @@ import { Initiation } from '../use-cases/initiation'
 import {
     IntroductionQuests,
     IntroMessage,
-} from '../use-cases/intrroduction-quests'
+} from '../use-cases/introduction-quests'
 import { QuestNegotiation } from '../use-cases/negotiate-quest'
 import { QuestFinale } from '../use-cases/quest-finale'
-import { QuestMessage } from '../use-cases/utils/quest-message'
+import { NewIntroductionQuestMessage } from '../use-cases/utils/quest-message'
 import { IntroductionTask } from '../use-cases/utils/scheduler'
 import { createContext } from './test-context'
 
@@ -91,20 +91,23 @@ describe('Introduction quests', () => {
         const world = await setUp()
         const newMember = await world.getApproval()
         const { oldMember, questReq } = await world.makeIntroTask(newMember.id)
-        const onQuest = world.spyOnMessage<QuestMessage>('new-quest-message')
+        const onQuest = world.spyOnMessage<NewIntroductionQuestMessage>(
+            'new-introduction-quest-message'
+        )
         await world.introQuests.createIntroQuest(questReq)
         expect(onQuest).toHaveBeenCalledOnceWith(
-            jasmine.objectContaining<QuestMessage>({
-                type: 'new-quest-message',
-                payload: jasmine.objectContaining<QuestMessage['payload']>({
-                    targetUserId: newMember.id,
-                    memberIds: jasmine.arrayContaining([
-                        newMember.id,
-                        oldMember!.id,
-                    ]),
+            jasmine.objectContaining<NewIntroductionQuestMessage>({
+                type: 'new-introduction-quest-message',
+                payload: jasmine.objectContaining<
+                    NewIntroductionQuestMessage['payload']
+                >({
+                    targetUserId: newMember.userId,
+                    targetMemberId: newMember.id,
                     questId: jasmine.any(String),
                     time: questReq.time,
-                    type: QuestType.introduction,
+                    place: questReq.place,
+                    userName: world.users.find((u) => u.id === oldMember.userId)
+                        ?.name,
                 }),
             })
         )
@@ -195,18 +198,23 @@ async function setUp(size?: number) {
             tribeId: tribe.id,
             userId: user.id,
         })
-        const application = (await context.stores.applicationStore._last())!
+        const initQuest = (await context.stores.questStore._last())!
         const chiefUser = users[0]
         const shamanUser = users[1]
         const initReq = {
-            applicationId: application.id,
+            questId: initQuest.id,
             elderUserId: chiefUser.id,
             place: 'The Foo Bar',
             time: 1_700_100_500_000,
         }
-        const shamanReq = { ...initReq, elderUserId: shamanUser.id }
         await initiation.startInitiation(initReq)
         await initiation.approveByChief(initReq)
+        const newInitQuest = (await context.stores.questStore._last())!
+        const shamanReq = {
+            ...initReq,
+            elderUserId: shamanUser.id,
+            questId: newInitQuest.id,
+        }
         await initiation.startShamanInitiation(shamanReq)
         await initiation.approveByShaman(shamanReq)
         return (await context.stores.memberStore.find({ userId: user.id }))[0]
@@ -283,6 +291,7 @@ async function setUp(size?: number) {
         members,
         tribe,
         user,
+        users,
         introQuests,
         initiation,
         negotiation,

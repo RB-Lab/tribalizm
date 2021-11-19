@@ -4,7 +4,7 @@ import { Member } from '../use-cases/entities/member'
 import { Quest, QuestStatus, QuestType } from '../use-cases/entities/quest'
 import { Tribe } from '../use-cases/entities/tribe'
 import { IdeasIncarnation } from '../use-cases/incarnate-ideas'
-import { QuestMessage } from '../use-cases/utils/quest-message'
+import { NewCoordinationQuestMessage } from '../use-cases/utils/quest-message'
 import { createContext } from './test-context'
 import { StormFinalyze } from '../use-cases/utils/scheduler'
 import { Storable } from '../use-cases/entities/store'
@@ -228,27 +228,35 @@ describe('When brainstorm is over', () => {
         it('notifies both members on quest proposal', async () => {
             const world = await setUp()
             const spy = jasmine.createSpy('onQuest')
-            world.notififcationBus.subscribe<QuestMessage>(
-                'new-quest-message',
+            world.notififcationBus.subscribe<NewCoordinationQuestMessage>(
+                'new-coordination-quest-message',
                 spy
             )
             const { quest } = await world.incarnateOneIdea()
-            const expectedMessage = jasmine.objectContaining<QuestMessage>({
-                type: 'new-quest-message',
-                payload: jasmine.objectContaining<QuestMessage['payload']>({
-                    memberIds: jasmine.arrayWithExactContents(quest.memberIds),
-                    questId: quest.id,
-                    place: '',
-                    type: quest.type,
-                    time: quest.time,
-                }),
-            })
+            const member1 = await world.memberStore.getById(quest.memberIds[0])
+            const member2 = await world.memberStore.getById(quest.memberIds[1])
+            const user1 = await world.userStore.getById(member1!.userId)
+            const user2 = await world.userStore.getById(member2!.userId)
+            const expectedMessage =
+                jasmine.objectContaining<NewCoordinationQuestMessage>({
+                    type: 'new-coordination-quest-message',
+                    payload: jasmine.objectContaining<
+                        NewCoordinationQuestMessage['payload']
+                    >({
+                        questId: quest.id,
+                        description: quest.description,
+                        members: jasmine.arrayWithExactContents([
+                            { id: member1?.id, name: user1?.name },
+                            { id: member2?.id, name: user2?.name },
+                        ]),
+                    }),
+                })
             expect(spy).toHaveBeenCalledTimes(2)
             expect(spy.calls.argsFor(0)[0]).toEqual(expectedMessage)
             expect(spy.calls.argsFor(1)[0]).toEqual(expectedMessage)
             const notifiedMembers = [
-                spy.calls.argsFor(0)[0].payload.targetUserId,
-                spy.calls.argsFor(1)[0].payload.targetUserId,
+                spy.calls.argsFor(0)[0].payload.targetMemberId,
+                spy.calls.argsFor(1)[0].payload.targetMemberId,
             ]
             expect(notifiedMembers).toEqual(
                 jasmine.arrayWithExactContents(quest.memberIds)
@@ -274,7 +282,6 @@ interface Settings {
 async function setUp(settings: Settings = {}) {
     const context = await createContext()
 
-    const makeTribe = makeTribeFactory(context.stores)
     const incarnation = new IdeasIncarnation(context)
     const { members, tribe } = await makeTribe(
         settings.members || defaultMembers
@@ -302,6 +309,13 @@ async function setUp(settings: Settings = {}) {
             brainstormId: brainstorm.id,
         },
     })) as StormFinalyze & Storable
+
+    async function makeTribe(ms: MemberFake[]) {
+        const { tribe, members } = await context.testing.makeTribe(ms.length)
+        const updMembers = members.map((m, i) => ({ ...m, ...ms[i] }))
+        await context.stores.memberStore.saveBulk(updMembers)
+        return { tribe, members: updMembers }
+    }
 
     const maxVotes = members.length - 1
     async function vote(ideaN: number, votes = { up: maxVotes, down: 0 }) {
@@ -367,26 +381,6 @@ async function setUp(settings: Settings = {}) {
                 )
             )
         },
-    }
-}
-
-function makeTribeFactory({ memberStore, tribeStore }: Context['stores']) {
-    return async function makeTribe(ms: MemberFake[]) {
-        const tribe = await tribeStore.save(
-            new Tribe({ name: 'Foo Tribe', cityId: 'city-42' })
-        )
-        const members = await memberStore.saveBulk(
-            ms.map(
-                (m, i) =>
-                    new Member({
-                        userId: `u-${i + 1}`,
-                        tribeId: tribe.id,
-                        charisma: m.charisma,
-                        wisdom: m.wisdom,
-                    })
-            )
-        )
-        return { tribe, members }
     }
 }
 

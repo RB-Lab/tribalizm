@@ -2,7 +2,7 @@ import { Quest, QuestType } from './entities/quest'
 import { Storable } from './entities/store'
 import { ContextUser } from './utils/context-user'
 import { Message } from './utils/message'
-import { QuestMessage } from './utils/quest-message'
+import { NewIntroductionQuestMessage } from './utils/quest-message'
 import { IntroductionTask } from './utils/scheduler'
 
 export class IntroductionQuests extends ContextUser {
@@ -28,12 +28,18 @@ export class IntroductionQuests extends ContextUser {
                 acceptedIds: [req.memberId],
             })
         )
-        this.notify<QuestMessage>({
-            type: 'new-quest-message',
+        const newMember = await this.getMember(req.newMemberId)
+        const member = await this.getMember(req.memberId)
+        const user = await this.getUser(member.userId)
+        this.notify<NewIntroductionQuestMessage>({
+            type: 'new-introduction-quest-message',
             payload: {
-                targetUserId: req.newMemberId,
+                targetMemberId: req.newMemberId,
+                targetUserId: newMember.userId,
                 questId: quest.id,
-                ...quest,
+                place: req.place,
+                time: req.time,
+                userName: user.name,
             },
         })
     }

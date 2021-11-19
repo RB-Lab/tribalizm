@@ -1,5 +1,4 @@
 import TelegramServer from 'telegram-test-api'
-import { KeyboardButton } from 'typegram'
 import { Awaited, notEmpty } from '../../ts-utils'
 
 type TelegramClient = ReturnType<TelegramServer['getClient']>
@@ -17,6 +16,15 @@ export function getInlineKeyCallbacks(update: BotUpdate | undefined) {
     }
     return []
 }
+export function getInlineKeys(update: BotUpdate | undefined) {
+    const markup = update?.message.reply_markup
+    if (markup && 'inline_keyboard' in markup) {
+        return flatten(
+            markup.inline_keyboard.map((bs) => bs.map((b) => b.text))
+        ).filter(notEmpty)
+    }
+    return []
+}
 
 export function getKeyboardButtons(update: BotUpdate | undefined) {
     const markup = update?.message.reply_markup
@@ -30,9 +38,8 @@ function flatten<T>(arr: T[][]): T[] {
     return Array.prototype.concat.apply([], arr)
 }
 
-export function makeChat(server: TelegramServer, client: TelegramClient) {
+export function wrapClient(server: TelegramServer, client: TelegramClient) {
     let lastUpdate: BotUpdate
-    const debug = chatDebug(client)
     /**
      * Send reply to chat of scpecific client
      * @param text if ommited, chat will just wait for updates, if starts with `/`
@@ -41,13 +48,14 @@ export function makeChat(server: TelegramServer, client: TelegramClient) {
      * @returns last update from bot or previous message if bot edited it
      */
     async function chat(text?: string, waitEdit?: true) {
+        debugName((client as any).userName)
         if (text === undefined) {
             // do nothing, just wait for updates, & replace the last one
         } else if (text.startsWith('/')) {
-            debug('command', text)
+            debugUser('Command', text)
             await client.sendCommand(client.makeCommand(text))
         } else if (getInlineKeyCallbacks(lastUpdate).includes(text)) {
-            debug('callback', text)
+            debugUser('Callback', text)
             await client.sendCallback(
                 client.makeCallbackQuery(text, {
                     message: {
@@ -57,36 +65,74 @@ export function makeChat(server: TelegramServer, client: TelegramClient) {
                 })
             )
         } else {
-            debug('message', text)
+            debugUser('Message', text)
             await client.sendMessage(client.makeMessage(text))
         }
-        debug('>...')
 
+        let result: BotUpdate[]
         if (waitEdit) {
             await server.waitBotEdits()
             const hist = await client.getUpdatesHistory()
-            lastUpdate = hist.find(
-                (u) => u.updateId === lastUpdate.updateId && isBotUpdate(u)
-            )! as any
+            result = hist
+                .filter((u) => u.updateId === lastUpdate.updateId)
+                .filter(isBotUpdate)
         } else {
-            const result = (await client.getUpdates()).result
-            lastUpdate = result[result.length - 1]
+            result = (await client.getUpdates()).result
         }
-        debug(lastUpdate.message.text, '\n------------')
+        lastUpdate = result[result.length - 1]
+        debugBot(result)
+        return result
+    }
+    async function chatLast(text?: string, waitEdit?: true) {
+        await chat(text, waitEdit)
         return lastUpdate
     }
-    return chat
+
+    return {
+        chat,
+        chatLast,
+        client,
+    }
 }
 
 function isBotUpdate(u: any): u is BotUpdate {
     return 'message' in u && 'chat_id' in u.message
 }
 
-function chatDebug(client: TelegramClient) {
-    return function (...args: any[]) {
-        if (process.env.chatDebug) {
-            console.log(`[${(client as any).firstName}]`, ...args)
+let lastName = ''
+function debugName(name: string) {
+    if (process.env.chatDebug) {
+        console.log()
+        if (lastName !== name) {
+            console.log('\x1b[31m%s\x1b[0m', `== ${name} ==`)
+            lastName = name
         }
+    }
+}
+function debugUser(type: string, text: string) {
+    if (process.env.chatDebug) {
+        console.log('\x1b[34m%s\x1b[0m', ` ← ${type}:`, text)
+    }
+}
+function debugBot(updates: BotUpdate[]) {
+    if (process.env.chatDebug) {
+        const upds = updates.map((u) => {
+            const keys = getInlineKeys(u)
+            if (keys.length) {
+                const end = keys.length > 4 ? '...' : ''
+                return `${u.message.text}\n[${keys
+                    .slice(0, 4)
+                    .join('] [')}]${end}`
+            }
+            return u.message.text
+        })
+        console.log('\x1b[32m%s\x1b[0m', ` → `, upds.join('\n\n'))
+    }
+}
+
+function debugKeyboard(lastUpdate: BotUpdate) {
+    if (process.env.chatDebug) {
+        console.log((lastUpdate?.message?.reply_markup as any)?.inline_keyboard)
     }
 }
 

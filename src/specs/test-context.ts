@@ -1,3 +1,6 @@
+import { MongoClient } from 'mongodb'
+import { MongoMemoryServer } from 'mongodb-memory-server'
+import { TestNotificationBus } from '../plugins/notification-bus'
 import { InMemoryApplicationStore } from '../plugins/stores/in-memory-store/application-store'
 import { InMemoryBrainstormStore } from '../plugins/stores/in-memory-store/brainstorm-store'
 import { InMemoryCityStore } from '../plugins/stores/in-memory-store/city-store'
@@ -8,7 +11,6 @@ import { InMemoryQuestStore } from '../plugins/stores/in-memory-store/quest-stor
 import { InMemoryTaskStore } from '../plugins/stores/in-memory-store/task-store'
 import { InMemoryTribeStore } from '../plugins/stores/in-memory-store/tribe-store'
 import { InMemoryUserStore } from '../plugins/stores/in-memory-store/user-store'
-
 import { MongoApplicationStore } from '../plugins/stores/mongo-store/application-store'
 import { MongoBrainstormStore } from '../plugins/stores/mongo-store/brainstorm-store'
 import { MongoCityStore } from '../plugins/stores/mongo-store/city-store'
@@ -19,8 +21,9 @@ import { MongoQuestStore } from '../plugins/stores/mongo-store/quest-store'
 import { MongoTaskStore } from '../plugins/stores/mongo-store/task-store'
 import { MongoTribeStore } from '../plugins/stores/mongo-store/tribe-store'
 import { MongoUserStore } from '../plugins/stores/mongo-store/user-store'
-
-import { TestNotificationBus } from '../plugins/notification-bus'
+import { AddIdea } from '../use-cases/add-idea'
+import { TribeApplication } from '../use-cases/apply-tribe'
+import { BrainstormLifecycle } from '../use-cases/brainstorm-lifecycle'
 import { Application } from '../use-cases/entities/application'
 import { Brainstorm, QuestIdea } from '../use-cases/entities/brainstorm'
 import { City } from '../use-cases/entities/city'
@@ -29,13 +32,19 @@ import { Member } from '../use-cases/entities/member'
 import { Quest } from '../use-cases/entities/quest'
 import { Tribe } from '../use-cases/entities/tribe'
 import { User } from '../use-cases/entities/user'
+import { GateringAcknowledge } from '../use-cases/gathering-acknowledge'
+import { GatheringDeclare } from '../use-cases/gathering-declare'
+import { GatheringFinale } from '../use-cases/gathering-finale'
+import { IdeasIncarnation } from '../use-cases/incarnate-ideas'
+import { Initiation } from '../use-cases/initiation'
+import { IntroductionQuests } from '../use-cases/introduction-quests'
+import { QuestNegotiation } from '../use-cases/negotiate-quest'
+import { QuestFinale } from '../use-cases/quest-finale'
+import { QuestSource } from '../use-cases/quest-source'
+import { TribeShow } from '../use-cases/tribes-show'
 import { Message } from '../use-cases/utils/message'
 import { NotificationBus } from '../use-cases/utils/notification-bus'
-import { MongoMemoryServer } from 'mongodb-memory-server'
-import { MongoClient } from 'mongodb'
-import { TribeShow } from '../use-cases/tribes-show'
-import { TribeApplication } from '../use-cases/apply-tribe'
-import { Initiation } from '../use-cases/initiation'
+import { Voting } from '../use-cases/vote-idea'
 
 function createInmemroyStores() {
     const ideaStore = new InMemoryIdeaStore(QuestIdea)
@@ -167,7 +176,7 @@ export async function createContext() {
         ideaCater = 0
     ) => {
         const tribeSize = ups.length + downs.length + neutrals.length + 1
-        const { tribe, members } = await makeTribe(tribeSize)
+        const { tribe, members, users } = await makeTribe(tribeSize)
         const brainstorm = await stores.brainstormStore.save(
             new Brainstorm({
                 tribeId: tribe.id,
@@ -189,7 +198,7 @@ export async function createContext() {
         const allTribe = members.map((m) => m.id)
         await stores.ideaStore.save(idea)
 
-        return { tribe, members, idea, upvoters, downvoters, allTribe }
+        return { tribe, members, users, idea, upvoters, downvoters, allTribe }
     }
     const testing = {
         spyOnMessage: makeMessageSpy(notififcationBus),
@@ -205,15 +214,26 @@ export async function createContext() {
     }
 
     const tribalism = {
-        tribesShow: new TribeShow(context),
-        tribeApplication: new TribeApplication(context),
+        addIdea: new AddIdea(context),
+        brainstormLifecycle: new BrainstormLifecycle(context),
+        gateringAcknowledge: new GateringAcknowledge(context),
+        gatheringDeclare: new GatheringDeclare(context),
+        gatheringFinale: new GatheringFinale(context),
         initiation: new Initiation(context),
+        introductionQuests: new IntroductionQuests(context),
+        ideasIncarnation: new IdeasIncarnation(context),
+        tribeApplication: new TribeApplication(context),
+        tribesShow: new TribeShow(context),
+        questNegotiation: new QuestNegotiation(context),
+        questFinale: new QuestFinale(context),
+        questSource: new QuestSource(context),
+        voting: new Voting(context),
     }
 
     return {
         ...context,
         testing,
-        tribalism
+        tribalism,
     }
 }
 

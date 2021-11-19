@@ -8,6 +8,7 @@ export const initFormatters: FormattersInitializer<Locales, Formatters> = (
     const formatters: Formatters = {
         // add your formatter functions here
         date: date(locale, {
+            year: 'numeric',
             weekday: 'long',
             month: 'long',
             day: 'numeric',

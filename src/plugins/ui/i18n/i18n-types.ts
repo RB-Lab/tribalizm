@@ -18,140 +18,82 @@ export type Translation = {
 		'text': string
 		'buttons': {	
 			/**
-			 * Game rules
+			 * ℹ️  Game rules
 			 */
 			'rules': string
 			/**
-			 * List tribes
+			 * 📜 List tribes
 			 */
 			'list': string
 		}
 	}
 	'rules': {	
-		'apply': {	
+		'buttons': {	
 			/**
-			 * To join a tribe you like you must send application. Tribe's chief and shaman will consider it and invite you to have a conversation with them. If they decide that you allign with the tribe spirit well, they will let you join
+			 * ← Back
 			 */
-			'text': string
-			'buttons': {	
-				/**
-				 * Who is shaman?
-				 */
-				'onShaman': string
-				/**
-				 * Who is chief?
-				 */
-				'onChief': string
-				/**
-				 * What's next?
-				 */
-				'next': string
-				/**
-				 * Let's start!
-				 */
-				'start': string
-			}
-		}
-		'onChief': {	
+			'back': string
 			/**
-			 * Chief is the most charismatic person in the tribe. Their duties is to maintain tribe's integrity.
+			 * 🚀 Let's start!
 			 */
-			'text': string
-			'buttons': {	
-				/**
-				 * ← Back
-				 */
-				'back': string
-				/**
-				 * Let's start!
-				 */
-				'start': string
-			}
-		}
-		'onShaman': {	
+			'start': string
 			/**
-			 * Shaman is the most wise person in the tribe. Thier duities is to assist tribe's chief.
+			 * What is brainstorm?
 			 */
-			'text': string
-			'buttons': {	
-				/**
-				 * ← Back
-				 */
-				'back': string
-				/**
-				 * Let's start!
-				 */
-				'start': string
-			}
-		}
-		'inTribe': {	
+			'onBrainsotrm': string
 			/**
-			 * Now, when you're in tribe you can participate in brainstorm and tribe's quests
+			 * Who are quests?
 			 */
-			'text': string
-			'buttons': {	
-				/**
-				 * What is brainstorm?
-				 */
-				'onBrainsotrm': string
-				/**
-				 * Who are quests?
-				 */
-				'onQuests': string
-				/**
-				 * ← Back
-				 */
-				'back': string
-				/**
-				 * Let's start!
-				 */
-				'start': string
-			}
-		}
-		'onBrainsotrm': {	
+			'onQuests': string
 			/**
-			 * In a brainstorm you will suggest activities for the tribe and vote for activities you likeYou will be notified when next brainstorm is on the horizon!
+			 * Who is shaman?
 			 */
-			'text': string
-			'buttons': {	
-				/**
-				 * ← Back
-				 */
-				'back': string
-				/**
-				 * Let's start!
-				 */
-				'start': string
-			}
-		}
-		'onQuests': {	
+			'onShaman': string
 			/**
-			 * Quests are tribe's activities. Those could be practical tasks, or just gatherings to hang out with your fellows
+			 * Who is chief?
 			 */
-			'text': string
-			'buttons': {	
-				/**
-				 * ← Back
-				 */
-				'back': string
-				/**
-				 * Let's start!
-				 */
-				'start': string
-			}
+			'onChief': string
+			/**
+			 * What's next?
+			 */
+			'next': string
 		}
+		/**
+		 * To join a tribe you like you must send application. Tribe's chief and shaman will consider it and invite you to have a conversation with them. If they decide that you allign with the tribe spirit well, they will let you join
+		 */
+		'apply': string
+		/**
+		 * Chief is the most charismatic person in the tribe. Their duties is to maintain tribe's integrity.
+		 */
+		'onChief': string
+		/**
+		 * Shaman is the most wise person in the tribe. Thier duities is to assist tribe's chief.
+		 */
+		'onShaman': string
+		/**
+		 * Now, when you're in tribe you can participate in brainstorm and tribe's quests
+		 */
+		'inTribe': string
+		/**
+		 * In a brainstorm you will suggest activities for the tribe and vote for activities you likeYou will be notified when next brainstorm is on the horizon!
+		 */
+		'onBrainstorm': string
+		/**
+		 * Quests are tribe's activities. Those could be practical tasks, or just gatherings to hang out with your fellows
+		 */
+		'onQuests': string
 	}
 	'tribesList': {	
 		/**
-		 * What is the city youe in?
+		 * What is the city you're in?
 		 */
 		'requestLocationText': string
 		/**
-		 * Share my location
+		 * 🌍 Share my location
 		 */
 		'requestLocation': string
 		/**
-		 * Send application
+		 * 🚀 Send application
 		 */
 		'apply': string
 		/**
@@ -159,7 +101,7 @@ export type Translation = {
 		 */
 		'count': string
 		/**
-		 * Searchin in city: {city}
+		 * Searchin in {city}: 
 		 * @param {unknown} city
 		 */
 		'searchIn': RequiredParams1<'city'>
@@ -169,11 +111,11 @@ export type Translation = {
 		 */
 		'applyText': RequiredParams1<'tribe'>
 		/**
-		 * Your application has been sent. Tribe chief will propose a meeting soon.
+		 * 📨 Your application has been sent. Tribe chief will propose a meeting soon.
 		 */
 		'applicationSent': string
 		/**
-		 * Application has been sent
+		 * 📨 Application has been sent
 		 */
 		'applicationSentShort': string
 	}
@@ -181,13 +123,59 @@ export type Translation = {
 		/**
 		 * Please describe in a few words why did you decline an appliaction.
 		 */
-		'declineText': string
+		'declinePrompt': string
 		/**
 		 * Ok, appliaction has been declined
 		 */
-		'declinedForElder': string
+		'declineOk': string
 		/**
-		 * 📅 Select a date, when you'd like to meet the candidate
+		 * {name}, {elder} of the {tribe} proposes to meet: 
+	 {proposal}
+		 * @param {unknown} elder
+		 * @param {unknown} name
+		 * @param {unknown} proposal
+		 * @param {unknown} tribe
+		 */
+		'questNotification': RequiredParams4<'elder', 'name', 'proposal', 'tribe'>
+		'elders': {	
+			/**
+			 * chief
+			 */
+			'chief': string
+			/**
+			 * shaman
+			 */
+			'shaman': string
+		}
+		/**
+		 * candidate
+		 */
+		'candidate': string
+	}
+	'introduction': {	
+		/**
+		 * {name}, member of the {tribe} proposes to meet: 
+	 {proposal}
+		 * @param {unknown} name
+		 * @param {unknown} proposal
+		 * @param {unknown} tribe
+		 */
+		'questNotification': RequiredParams3<'name', 'proposal', 'tribe'>
+	}
+	'calendar': {	
+		/**
+		 * Su,Mo,Tu,We,Th,Fr,St
+		 */
+		'weekdays': string
+		/**
+		 * January,February,March,April,May,June,July,August,September,October,November,December
+		 */
+		'months': string
+		'startWeekDay': string
+	}
+	'questNegotiation': {	
+		/**
+		 * 📅 Select a date, when you'd like to meet
 		 */
 		'proposeDate': string
 		/**
@@ -199,17 +187,31 @@ export type Translation = {
 		 */
 		'proposeTimeMinutes': string
 		/**
-		 * 🗿 Now where you want to meet?
+		 * 🌍 Now where you want to meet?
 		 */
 		'proposePlace': string
 		/**
-		 * You propose to meet
-	 • Time: {date|date}
+		 *  • Time: {date|date}
 	 • Place: {place}
 		 * @param {Date} date
 		 * @param {unknown} place
 		 */
 		'proposal': RequiredParams2<'date|date', 'place'>
+		/**
+		 * You propose to meet: 
+	 {proposal}
+		 * @param {unknown} proposal
+		 */
+		'proposalConfirmPrompt': RequiredParams1<'proposal'>
+		/**
+		 * {who} of {tribe} tribe proposes to meet for "{description}": 
+	 {proposal}
+		 * @param {unknown} description
+		 * @param {unknown} proposal
+		 * @param {unknown} tribe
+		 * @param {unknown} who
+		 */
+		'proposalRecieved': RequiredParams4<'description', 'proposal', 'tribe', 'who'>
 		/**
 		 * ✅ Okay
 		 */
@@ -219,20 +221,11 @@ export type Translation = {
 		 */
 		'edit': string
 		/**
-		 * 🤔 Propose other date/time
+		 * 🤔 Suggest otherwise
 		 */
 		'proposeOther': string
 		/**
-		 * Su,Mo,Tu,We,Th,Fr,St
-		 */
-		'weekdays': string
-		/**
-		 * January,February,March,April,May,June,July,August,September,October,November,December
-		 */
-		'months': string
-		'startWeekDay': string
-		/**
-		 * Ok, proposal has been sent.
+		 * 📨 Ok, proposal has been sent.
 		 */
 		'proposalDone': string
 	}
@@ -253,18 +246,18 @@ export type Translation = {
 			 */
 			'coverLetter': string
 			/**
-			 * Propose a meeting
+			 * 👍 Propose a meeting
 			 */
 			'assignInitiation': string
 			/**
-			 * Decline
+			 * ⛔️ Decline
 			 */
 			'decline': string
 			/**
 			 * Your appliaction to the tribe "{tribe}" has been declined
 			 * @param {unknown} tribe
 			 */
-			'declinedForApplicant': RequiredParams1<'tribe'>
+			'applicationDeclined': RequiredParams1<'tribe'>
 		}
 	}
 }
@@ -277,140 +270,82 @@ export type TranslationFunctions = {
 		'text': () => LocalizedString
 		'buttons': {	
 			/**
-			 * Game rules
+			 * ℹ️  Game rules
 			 */
 			'rules': () => LocalizedString
 			/**
-			 * List tribes
+			 * 📜 List tribes
 			 */
 			'list': () => LocalizedString
 		}
 	}
 	'rules': {	
-		'apply': {	
+		'buttons': {	
 			/**
-			 * To join a tribe you like you must send application. Tribe's chief and shaman will consider it and invite you to have a conversation with them. If they decide that you allign with the tribe spirit well, they will let you join
+			 * ← Back
 			 */
-			'text': () => LocalizedString
-			'buttons': {	
-				/**
-				 * Who is shaman?
-				 */
-				'onShaman': () => LocalizedString
-				/**
-				 * Who is chief?
-				 */
-				'onChief': () => LocalizedString
-				/**
-				 * What's next?
-				 */
-				'next': () => LocalizedString
-				/**
-				 * Let's start!
-				 */
-				'start': () => LocalizedString
-			}
-		}
-		'onChief': {	
+			'back': () => LocalizedString
 			/**
-			 * Chief is the most charismatic person in the tribe. Their duties is to maintain tribe's integrity.
+			 * 🚀 Let's start!
 			 */
-			'text': () => LocalizedString
-			'buttons': {	
-				/**
-				 * ← Back
-				 */
-				'back': () => LocalizedString
-				/**
-				 * Let's start!
-				 */
-				'start': () => LocalizedString
-			}
-		}
-		'onShaman': {	
+			'start': () => LocalizedString
 			/**
-			 * Shaman is the most wise person in the tribe. Thier duities is to assist tribe's chief.
+			 * What is brainstorm?
 			 */
-			'text': () => LocalizedString
-			'buttons': {	
-				/**
-				 * ← Back
-				 */
-				'back': () => LocalizedString
-				/**
-				 * Let's start!
-				 */
-				'start': () => LocalizedString
-			}
-		}
-		'inTribe': {	
+			'onBrainsotrm': () => LocalizedString
 			/**
-			 * Now, when you're in tribe you can participate in brainstorm and tribe's quests
+			 * Who are quests?
 			 */
-			'text': () => LocalizedString
-			'buttons': {	
-				/**
-				 * What is brainstorm?
-				 */
-				'onBrainsotrm': () => LocalizedString
-				/**
-				 * Who are quests?
-				 */
-				'onQuests': () => LocalizedString
-				/**
-				 * ← Back
-				 */
-				'back': () => LocalizedString
-				/**
-				 * Let's start!
-				 */
-				'start': () => LocalizedString
-			}
-		}
-		'onBrainsotrm': {	
+			'onQuests': () => LocalizedString
 			/**
-			 * In a brainstorm you will suggest activities for the tribe and vote for activities you likeYou will be notified when next brainstorm is on the horizon!
+			 * Who is shaman?
 			 */
-			'text': () => LocalizedString
-			'buttons': {	
-				/**
-				 * ← Back
-				 */
-				'back': () => LocalizedString
-				/**
-				 * Let's start!
-				 */
-				'start': () => LocalizedString
-			}
-		}
-		'onQuests': {	
+			'onShaman': () => LocalizedString
 			/**
-			 * Quests are tribe's activities. Those could be practical tasks, or just gatherings to hang out with your fellows
+			 * Who is chief?
 			 */
-			'text': () => LocalizedString
-			'buttons': {	
-				/**
-				 * ← Back
-				 */
-				'back': () => LocalizedString
-				/**
-				 * Let's start!
-				 */
-				'start': () => LocalizedString
-			}
+			'onChief': () => LocalizedString
+			/**
+			 * What's next?
+			 */
+			'next': () => LocalizedString
 		}
+		/**
+		 * To join a tribe you like you must send application. Tribe's chief and shaman will consider it and invite you to have a conversation with them. If they decide that you allign with the tribe spirit well, they will let you join
+		 */
+		'apply': () => LocalizedString
+		/**
+		 * Chief is the most charismatic person in the tribe. Their duties is to maintain tribe's integrity.
+		 */
+		'onChief': () => LocalizedString
+		/**
+		 * Shaman is the most wise person in the tribe. Thier duities is to assist tribe's chief.
+		 */
+		'onShaman': () => LocalizedString
+		/**
+		 * Now, when you're in tribe you can participate in brainstorm and tribe's quests
+		 */
+		'inTribe': () => LocalizedString
+		/**
+		 * In a brainstorm you will suggest activities for the tribe and vote for activities you likeYou will be notified when next brainstorm is on the horizon!
+		 */
+		'onBrainstorm': () => LocalizedString
+		/**
+		 * Quests are tribe's activities. Those could be practical tasks, or just gatherings to hang out with your fellows
+		 */
+		'onQuests': () => LocalizedString
 	}
 	'tribesList': {	
 		/**
-		 * What is the city youe in?
+		 * What is the city you're in?
 		 */
 		'requestLocationText': () => LocalizedString
 		/**
-		 * Share my location
+		 * 🌍 Share my location
 		 */
 		'requestLocation': () => LocalizedString
 		/**
-		 * Send application
+		 * 🚀 Send application
 		 */
 		'apply': () => LocalizedString
 		/**
@@ -418,7 +353,7 @@ export type TranslationFunctions = {
 		 */
 		'count': () => LocalizedString
 		/**
-		 * Searchin in city: {city}
+		 * Searchin in {city}: 
 		 */
 		'searchIn': (arg: { city: unknown }) => LocalizedString
 		/**
@@ -426,11 +361,11 @@ export type TranslationFunctions = {
 		 */
 		'applyText': (arg: { tribe: unknown }) => LocalizedString
 		/**
-		 * Your application has been sent. Tribe chief will propose a meeting soon.
+		 * 📨 Your application has been sent. Tribe chief will propose a meeting soon.
 		 */
 		'applicationSent': () => LocalizedString
 		/**
-		 * Application has been sent
+		 * 📨 Application has been sent
 		 */
 		'applicationSentShort': () => LocalizedString
 	}
@@ -438,13 +373,52 @@ export type TranslationFunctions = {
 		/**
 		 * Please describe in a few words why did you decline an appliaction.
 		 */
-		'declineText': () => LocalizedString
+		'declinePrompt': () => LocalizedString
 		/**
 		 * Ok, appliaction has been declined
 		 */
-		'declinedForElder': () => LocalizedString
+		'declineOk': () => LocalizedString
 		/**
-		 * 📅 Select a date, when you'd like to meet the candidate
+		 * {name}, {elder} of the {tribe} proposes to meet: 
+	 {proposal}
+		 */
+		'questNotification': (arg: { elder: unknown, name: unknown, proposal: unknown, tribe: unknown }) => LocalizedString
+		'elders': {	
+			/**
+			 * chief
+			 */
+			'chief': () => LocalizedString
+			/**
+			 * shaman
+			 */
+			'shaman': () => LocalizedString
+		}
+		/**
+		 * candidate
+		 */
+		'candidate': () => LocalizedString
+	}
+	'introduction': {	
+		/**
+		 * {name}, member of the {tribe} proposes to meet: 
+	 {proposal}
+		 */
+		'questNotification': (arg: { name: unknown, proposal: unknown, tribe: unknown }) => LocalizedString
+	}
+	'calendar': {	
+		/**
+		 * Su,Mo,Tu,We,Th,Fr,St
+		 */
+		'weekdays': () => LocalizedString
+		/**
+		 * January,February,March,April,May,June,July,August,September,October,November,December
+		 */
+		'months': () => LocalizedString
+		'startWeekDay': () => LocalizedString
+	}
+	'questNegotiation': {	
+		/**
+		 * 📅 Select a date, when you'd like to meet
 		 */
 		'proposeDate': () => LocalizedString
 		/**
@@ -456,15 +430,24 @@ export type TranslationFunctions = {
 		 */
 		'proposeTimeMinutes': () => LocalizedString
 		/**
-		 * 🗿 Now where you want to meet?
+		 * 🌍 Now where you want to meet?
 		 */
 		'proposePlace': () => LocalizedString
 		/**
-		 * You propose to meet
-	 • Time: {date|date}
+		 *  • Time: {date|date}
 	 • Place: {place}
 		 */
 		'proposal': (arg: { date: Date, place: unknown }) => LocalizedString
+		/**
+		 * You propose to meet: 
+	 {proposal}
+		 */
+		'proposalConfirmPrompt': (arg: { proposal: unknown }) => LocalizedString
+		/**
+		 * {who} of {tribe} tribe proposes to meet for "{description}": 
+	 {proposal}
+		 */
+		'proposalRecieved': (arg: { description: unknown, proposal: unknown, tribe: unknown, who: unknown }) => LocalizedString
 		/**
 		 * ✅ Okay
 		 */
@@ -474,20 +457,11 @@ export type TranslationFunctions = {
 		 */
 		'edit': () => LocalizedString
 		/**
-		 * 🤔 Propose other date/time
+		 * 🤔 Suggest otherwise
 		 */
 		'proposeOther': () => LocalizedString
 		/**
-		 * Su,Mo,Tu,We,Th,Fr,St
-		 */
-		'weekdays': () => LocalizedString
-		/**
-		 * January,February,March,April,May,June,July,August,September,October,November,December
-		 */
-		'months': () => LocalizedString
-		'startWeekDay': () => LocalizedString
-		/**
-		 * Ok, proposal has been sent.
+		 * 📨 Ok, proposal has been sent.
 		 */
 		'proposalDone': () => LocalizedString
 	}
@@ -506,17 +480,17 @@ export type TranslationFunctions = {
 			 */
 			'coverLetter': () => LocalizedString
 			/**
-			 * Propose a meeting
+			 * 👍 Propose a meeting
 			 */
 			'assignInitiation': () => LocalizedString
 			/**
-			 * Decline
+			 * ⛔️ Decline
 			 */
 			'decline': () => LocalizedString
 			/**
 			 * Your appliaction to the tribe "{tribe}" has been declined
 			 */
-			'declinedForApplicant': (arg: { tribe: unknown }) => LocalizedString
+			'applicationDeclined': (arg: { tribe: unknown }) => LocalizedString
 		}
 	}
 }
@@ -533,9 +507,49 @@ type Params1<P1 extends string> =
 type Params2<P1 extends string, P2 extends string> =
 	`${string}${Param<P1>}${string}${Param<P2>}${string}`
 
+type Params3<P1 extends string, P2 extends string, P3 extends string> =
+	`${string}${Param<P1>}${string}${Param<P2>}${string}${Param<P3>}${string}`
+
+type Params4<P1 extends string, P2 extends string, P3 extends string, P4 extends string> =
+	`${string}${Param<P1>}${string}${Param<P2>}${string}${Param<P3>}${string}${Param<P4>}${string}`
+
 type RequiredParams1<P1 extends string> =
 	| Params1<P1>
 
 type RequiredParams2<P1 extends string, P2 extends string> =
 	| Params2<P1, P2>
 	| Params2<P2, P1>
+
+type RequiredParams3<P1 extends string, P2 extends string, P3 extends string> =
+	| Params3<P1, P2, P3>
+	| Params3<P1, P3, P2>
+	| Params3<P2, P1, P3>
+	| Params3<P2, P3, P1>
+	| Params3<P3, P1, P2>
+	| Params3<P3, P2, P1>
+
+type RequiredParams4<P1 extends string, P2 extends string, P3 extends string, P4 extends string> =
+	| Params4<P1, P2, P3, P4>
+	| Params4<P1, P2, P4, P3>
+	| Params4<P1, P3, P2, P4>
+	| Params4<P1, P3, P4, P2>
+	| Params4<P1, P4, P2, P3>
+	| Params4<P1, P4, P3, P2>
+	| Params4<P2, P1, P3, P4>
+	| Params4<P2, P1, P4, P3>
+	| Params4<P2, P3, P1, P4>
+	| Params4<P2, P3, P4, P1>
+	| Params4<P2, P4, P1, P3>
+	| Params4<P2, P4, P3, P1>
+	| Params4<P3, P1, P2, P4>
+	| Params4<P3, P1, P4, P2>
+	| Params4<P3, P2, P1, P4>
+	| Params4<P3, P2, P4, P1>
+	| Params4<P3, P4, P1, P2>
+	| Params4<P3, P4, P2, P1>
+	| Params4<P4, P1, P2, P3>
+	| Params4<P4, P1, P3, P2>
+	| Params4<P4, P2, P1, P3>
+	| Params4<P4, P2, P3, P1>
+	| Params4<P4, P3, P1, P2>
+	| Params4<P4, P3, P2, P1>

@@ -1,94 +1,84 @@
 import { Markup, Scenes, Telegraf } from 'telegraf'
-import L from '../../i18n/i18n-node'
-import { toLocale } from '../../i18n/to-locale'
+import { i18n } from '../../i18n/i18n-ctx'
 
-export function rulesScreen(bot: Telegraf<Scenes.SceneContext>) {
+function scenes() {
     const helpScene = new Scenes.BaseScene<Scenes.SceneContext>('help')
 
     helpScene.enter((ctx) => {
-        const l = toLocale(ctx.from?.language_code)
-        const texts = L[l].rules.apply
+        const btns = i18n(ctx).rules.buttons
         const keyboard = Markup.inlineKeyboard(
             [
-                Markup.button.callback(texts.buttons.onChief(), 'on-chief'),
-                Markup.button.callback(texts.buttons.onShaman(), 'on-shaman'),
-                Markup.button.callback(texts.buttons.next(), 'in-tribe'),
-                Markup.button.callback(texts.buttons.start(), 'start'),
+                Markup.button.callback(btns.onChief(), 'on-chief'),
+                Markup.button.callback(btns.onShaman(), 'on-shaman'),
+                Markup.button.callback(btns.next(), 'in-tribe'),
+                Markup.button.callback(btns.start(), 'start'),
             ],
             { columns: 2 }
         )
-        ctx.editMessageText(texts.text(), keyboard)
+        ctx.editMessageText(i18n(ctx).rules.apply(), keyboard)
     })
     helpScene.action('on-chief', (ctx) => {
-        const l = toLocale(ctx.from?.language_code)
-        const texts = L[l].rules.onChief
+        const btns = i18n(ctx).rules.buttons
         const keyboard = Markup.inlineKeyboard([
-            Markup.button.callback(texts.buttons.back(), 'rules'),
-            Markup.button.callback(texts.buttons.start(), 'start'),
+            Markup.button.callback(btns.back(), 'rules'),
+            Markup.button.callback(btns.start(), 'start'),
         ])
-        ctx.editMessageText(texts.text(), keyboard)
+        ctx.editMessageText(i18n(ctx).rules.onChief(), keyboard)
     })
     helpScene.action('on-shaman', (ctx) => {
-        const l = toLocale(ctx.from?.language_code)
-        const texts = L[l].rules.onShaman
+        const btns = i18n(ctx).rules.buttons
         const keyboard = Markup.inlineKeyboard([
-            Markup.button.callback(texts.buttons.back(), 'rules'),
-            Markup.button.callback(texts.buttons.start(), 'start'),
+            Markup.button.callback(btns.back(), 'rules'),
+            Markup.button.callback(btns.start(), 'start'),
         ])
-        ctx.editMessageText(texts.text(), keyboard)
+        ctx.editMessageText(i18n(ctx).rules.onShaman(), keyboard)
     })
     helpScene.action('in-tribe', (ctx) => {
-        const l = toLocale(ctx.from?.language_code)
-        const texts = L[l].rules.inTribe
+        const btns = i18n(ctx).rules.buttons
         const keyboard = Markup.inlineKeyboard(
             [
-                Markup.button.callback(
-                    texts.buttons.onBrainsotrm(),
-                    'on-brainstorm'
-                ),
-                Markup.button.callback(texts.buttons.onQuests(), 'on-quest'),
-                Markup.button.callback(texts.buttons.back(), 'rules'),
-                Markup.button.callback(texts.buttons.start(), 'start'),
+                Markup.button.callback(btns.onBrainsotrm(), 'on-brainstorm'),
+                Markup.button.callback(btns.onQuests(), 'on-quest'),
+                Markup.button.callback(btns.back(), 'rules'),
+                Markup.button.callback(btns.start(), 'start'),
             ],
             { columns: 2 }
         )
-        ctx.editMessageText(texts.text(), keyboard)
+        ctx.editMessageText(i18n(ctx).rules.inTribe(), keyboard)
     })
     helpScene.action('on-brainstorm', (ctx) => {
-        const l = toLocale(ctx.from?.language_code)
-        const texts = L[l].rules.onBrainsotrm
+        const btns = i18n(ctx).rules.buttons
         const keyboard = Markup.inlineKeyboard([
-            Markup.button.callback(texts.buttons.back(), 'in-tribe'),
-            Markup.button.callback(texts.buttons.start(), 'start'),
+            Markup.button.callback(btns.back(), 'in-tribe'),
+            Markup.button.callback(btns.start(), 'start'),
         ])
-        ctx.editMessageText(texts.text(), keyboard)
+        ctx.editMessageText(i18n(ctx).rules.inTribe(), keyboard)
     })
     helpScene.action('on-quest', (ctx) => {
-        const l = toLocale(ctx.from?.language_code)
-        const texts = L[l].rules.onQuests
+        const btns = i18n(ctx).rules.buttons
         const keyboard = Markup.inlineKeyboard([
-            Markup.button.callback(texts.buttons.back(), 'in-tribe'),
-            Markup.button.callback(texts.buttons.start(), 'start'),
+            Markup.button.callback(btns.back(), 'in-tribe'),
+            Markup.button.callback(btns.start(), 'start'),
         ])
-        ctx.editMessageText(texts.text(), keyboard)
+        ctx.editMessageText(i18n(ctx).rules.onQuests(), keyboard)
     })
     helpScene.action('start', (ctx) => {
-        const l = toLocale(ctx.from?.language_code)
-
-        const texts = L[l].start
+        const btns = i18n(ctx).start.buttons
 
         const keyboard = Markup.inlineKeyboard([
-            Markup.button.callback(texts.buttons.list(), 'list-tribes'),
-            Markup.button.callback(texts.buttons.rules(), 'rules'),
+            Markup.button.callback(btns.list(), 'list-tribes'),
+            Markup.button.callback(btns.rules(), 'rules'),
         ])
-        ctx.editMessageText(texts.text(), keyboard)
+        ctx.editMessageText(i18n(ctx).start.text(), keyboard)
     })
 
-    const stage = new Scenes.Stage<Scenes.SceneContext>([helpScene])
+    return [helpScene]
+}
 
-    bot.use(stage.middleware())
-
+function actions(bot: Telegraf<Scenes.SceneContext>) {
     bot.action('rules', (ctx) => {
         ctx.scene.enter('help')
     })
 }
+
+export const rulesScreen = { scenes, actions }

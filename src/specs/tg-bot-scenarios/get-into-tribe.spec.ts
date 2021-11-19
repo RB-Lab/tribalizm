@@ -1,0 +1,240 @@
+import TelegramServer from 'telegram-test-api'
+import { createContext } from '../test-context'
+import { makeBot } from '../../plugins/ui/telegram/bot'
+import { StoreTelegramUsersAdapter } from '../../plugins/ui/telegram/users-adapter'
+import {
+    getInlineKeyCallbacks,
+    getKeyboardButtons,
+    wrapClient,
+} from './bot-utils'
+import { City } from '../../use-cases/entities/city'
+import { Tribe } from '../../use-cases/entities/tribe'
+import { Awaited } from '../../ts-utils'
+import { Member } from '../../use-cases/entities/member'
+
+function xdescribe(...args: any[]) {}
+describe('Get into tribe [integration]', () => {
+    let world: Awaited<ReturnType<typeof setup>>
+    beforeEach(async () => {
+        world = await setup()
+    })
+    afterEach(async () => {
+        await world.tearDown()
+    })
+
+    fit('apply to tribe, initiate new member, introduce to tribe', async () => {
+        // /start
+        const update = await world.newUser.chatLast('/start')
+        const callbacks = getInlineKeyCallbacks(update)
+        expect(callbacks).toEqual(['list-tribes', 'rules'])
+
+        // list tribes
+        await world.newUser.chat('list-tribes')
+        // TODO check it asks for location
+        const tribesListUpdate = await world.newUser.chat(world.city.name)
+        expect(tribesListUpdate.length).toBe(world.tribes.length + 1)
+        expect(tribesListUpdate[0].message.text).toMatch(world.city.name)
+        const markup = tribesListUpdate[0].message.reply_markup
+        expect(markup && 'remove_keyboard' in markup).toBeTrue()
+
+        // apply to last tribe
+        const tribeListItem = tribesListUpdate[tribesListUpdate.length - 1]
+        const applyButton = getInlineKeyCallbacks(tribeListItem)[0]
+        expect(applyButton).toMatch('apply-tribe')
+        const applyReply = await world.newUser.chatLast(applyButton)
+        const tribeId = applyButton.replace('apply-tribe:', '')
+        const tribe = world.tribes.find((t) => t.id === tribeId)
+        expect(applyReply.message.text).toMatch(tribe!.name)
+        // TODO check that it asks for cover letter
+        const coverLetter = 'I want to FOO!!'
+        await world.newUser.chat(coverLetter)
+
+        // Chief is notified on new application
+        const chiefUpdates = await world.chief.chat()
+        expect(chiefUpdates.length).toBe(1)
+        const chiefNot = chiefUpdates[0]
+        expect(chiefNot.message.text).toMatch(coverLetter)
+        const newUserMember = (await world.context.stores.memberStore._last())!
+        const initQuest = await world.context.stores.questStore._last()
+        const chiefNotButtons = getInlineKeyCallbacks(chiefNot)
+        expect(chiefNotButtons).toEqual([
+            `propose-initiation:${world.chief.member.id}:${initQuest!.id}`,
+            `decline-application:${world.chief.member.id}:${initQuest!.id}`,
+        ])
+
+        // Chief proposes a meeting
+        const propose = chiefNotButtons.find((b) => b.startsWith('propose'))
+        const calendar = await world.chief.chatLast(propose!)
+        const dates = getInlineKeyCallbacks(calendar).filter((cb) =>
+            cb.includes('date')
+        )
+        const hour = getInlineKeyCallbacks(
+            await world.chief.chatLast(dates[3], true)
+        )[4]
+        const minutes = getInlineKeyCallbacks(
+            await world.chief.chatLast(hour, true)
+        )[2]
+        await world.chief.chat(minutes, true)
+        const proposalConfirmPrompt = await world.chief.chatLast(
+            'Lets meet at Awesome Place Inn'
+        )
+        const proposalPromptButtons = getInlineKeyCallbacks(
+            proposalConfirmPrompt
+        )
+        expect(proposalPromptButtons).toEqual([
+            'confirm-proposal',
+            'redo-proposal',
+        ])
+        await world.chief.chat('confirm-proposal', true)
+
+        // new user recieves proposal
+        const initQuest2 = await world.context.stores.questStore._last()
+        const userUpdate = await world.newUser.chatLast()
+        const userNotifButtons = getInlineKeyCallbacks(userUpdate)
+        expect(userNotifButtons).toEqual([
+            `agree-quest:${newUserMember.id}:${initQuest2?.id}`,
+            `change-quest:${newUserMember.id}:${initQuest2?.id}`,
+        ])
+        const propose2 = userNotifButtons.find((b) => b.startsWith('change'))
+        const calendar2 = await world.newUser.chatLast(propose2!)
+        const dates2 = getInlineKeyCallbacks(calendar2).filter((cb) =>
+            cb.includes('date')
+        )
+        const hour2 = getInlineKeyCallbacks(
+            await world.newUser.chatLast(dates2[6]!, true)
+        )[6]
+        const minutes2 = getInlineKeyCallbacks(
+            await world.newUser.chatLast(hour2, true)
+        )[0]
+        await world.newUser.chat(minutes2, true)
+        process.env.chatDebug = 'true'
+        const proposalConfirmPrompt2 = await world.newUser.chatLast(
+            'Go Bar-Bar bar!'
+        )
+        const proposalPromptButtons2 = getInlineKeyCallbacks(
+            proposalConfirmPrompt2
+        )
+        expect(proposalPromptButtons2).toEqual([
+            'confirm-proposal',
+            'redo-proposal',
+        ])
+        await world.newUser.chat('confirm-proposal', true)
+    })
+
+    it('Shows tribes list on location sharing', async () => {
+        await world.newUser.chatLast('/start')
+        const response = await world.newUser.chatLast('list-tribes')
+        // should have button for sharing location
+        const btn = getKeyboardButtons(response)[0]
+        expect(btn).toBeTruthy()
+        expect(typeof btn === 'object' && 'request_location' in btn).toBeTrue()
+        // TODO add location to test API client
+    })
+    it('Decline application', async () => {
+        await world.newUser.chat('/start')
+        await world.newUser.chat('list-tribes')
+        const lastTribeReply = await world.newUser.chatLast(world.city.name)
+        await world.newUser.chat(getInlineKeyCallbacks(lastTribeReply)[0])
+
+        await world.newUser.chat('I want to FOO!!')
+        const chiefUpdates = await world.chief.chatLast()
+        const buttons = getInlineKeyCallbacks(chiefUpdates)
+        const decline = buttons.find((b) => b.startsWith('decline'))
+        await world.chief.chat(decline!)
+        await world.chief.chat('Because fuck off!')
+        const updates = await world.newUser.client.getUpdates()
+        expect(updates.result.length).toBe(1)
+    })
+})
+
+async function setup() {
+    // process.env.chatDebug = 'true'
+    const token = '-test-bot-token'
+    const server = new TelegramServer({ port: 9001 })
+    await server.start()
+
+    const context = await createContext()
+
+    const bot = await makeBot({
+        notifcationsBus: context.async.notififcationBus,
+        token,
+        tribalism: context.tribalism,
+        webHook: {
+            port: 9002,
+            path: '/tg-hook',
+        },
+        telegramUsersAdapter: new StoreTelegramUsersAdapter(
+            context.stores.userStore
+        ),
+        telegramURL: server.config.apiURL,
+    })
+
+    const newUser = wrapClient(
+        server,
+        server.getClient(token, {
+            firstName: 'Newbie',
+            userName: 'Applicant',
+            chatId: 3,
+            userId: 3,
+        })
+    )
+    const chief = wrapClient(
+        server,
+        server.getClient(token, {
+            firstName: 'BarBar Monster',
+            userName: 'Tribe Chief',
+            chatId: 1,
+            userId: 1,
+        })
+    )
+    await chief.chat('/start')
+    const chiefUser = await context.stores.userStore._last()
+
+    const city = await context.stores.cityStore.save(
+        new City({
+            name: 'Novosibirsk',
+        })
+    )
+    const tribes = await context.stores.tribeStore.saveBulk([
+        new Tribe({
+            cityId: city.id,
+            name: 'Foo Tribe',
+            description: 'We love to FOOO!!!',
+        }),
+        new Tribe({
+            cityId: city.id,
+            name: 'Bar Tribe',
+            description: 'We BAR BAR!',
+        }),
+    ])
+    const chiefMember = await context.stores.memberStore.save(
+        new Member({
+            tribeId: tribes[1].id,
+            userId: chiefUser!.id,
+            isCandidate: false,
+            charisma: 10,
+        })
+    )
+    await context.stores.tribeStore.save({
+        ...tribes[1],
+        chiefId: chiefMember.id,
+    })
+
+    return {
+        bot,
+        chief: {
+            ...chief,
+            member: chiefMember,
+            user: chiefUser,
+        },
+        newUser,
+        city,
+        tribes,
+        context,
+        server,
+        tearDown: async () => {
+            bot.stop()
+            await server.stop()
+        },
+    }
+}

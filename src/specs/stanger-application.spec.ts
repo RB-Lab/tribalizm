@@ -9,6 +9,7 @@ import {
 } from '../use-cases/entities/application'
 import { Coordinates } from '../use-cases/entities/location'
 import { SavedMember } from '../use-cases/entities/member'
+import { IQuest, QuestStatus, QuestType } from '../use-cases/entities/quest'
 import { Tribe } from '../use-cases/entities/tribe'
 import { User } from '../use-cases/entities/user'
 import { createContext } from './test-context'
@@ -28,15 +29,17 @@ describe('Stranger application', () => {
             jasmine.objectContaining<ApplicationMessage>({
                 type: 'application-message',
                 payload: {
-                    elderUserId: world.chief.userId,
+                    targetMemberId: world.chief.id,
+                    targetUserId: world.chief.userId,
                     tribeName: world.tribe.name,
                     coverLetter: world.defReq.coverLetter,
-                    applicationId: jasmine.any(String),
+                    qeuestId: jasmine.any(String),
                     userName: world.user.name,
                 },
             })
         )
     })
+
     it('stores properly initialized application', async () => {
         const world = await setUp()
         await world.tribeApplication.appyToTribe(world.defReq)
@@ -47,6 +50,25 @@ describe('Stranger application', () => {
                 tribeId: world.tribe.id,
                 chiefId: world.tribe.chiefId,
                 phase: ApplicationPhase.initial,
+            })
+        )
+    })
+    it('creates an initiation quest', async () => {
+        const world = await setUp()
+
+        await world.tribeApplication.appyToTribe(world.defReq)
+        const quest = await world.questStore._last()
+        const app = await world.applicationStore._last()
+
+        expect(quest).toEqual(
+            jasmine.objectContaining<IQuest>({
+                type: QuestType.initiation,
+                status: QuestStatus.proposed,
+                applicationId: app!.id,
+                memberIds: jasmine.arrayContaining([
+                    world.chief.id,
+                    app!.memberId,
+                ]),
             })
         )
     })

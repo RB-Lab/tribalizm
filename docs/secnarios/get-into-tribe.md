@@ -41,7 +41,7 @@
     -   ← Yes
     -   → Ok, candidat has been informed
 -   _New User_
-    -   → Bar Tribe Chief proposed to meet 12/05/2022, 12:45, in Barr Bar `Agree`, `Change` 🚩
+    -   → Bar Tribe Chief proposed to meet 12/05/2022, 12:45, in Barr Bar `Agree`, `Change`
     -   ← Change
     -   → Enter date `...calendar...`
     -   ← 14/05/2022
@@ -53,7 +53,7 @@
     -   ← "Barr Bar"
     -   → Ok, you proposed 14/05/2022, 20:00, in Barr Bar `Yes`, `Change`
     -   ← Yes
-    -   → Ok, chief has been informed
+    -   → Ok, chief has been informed 🚩
 -   _Bar Tribe chief_
     -   → Candidate proposed to meet 14/05/2022, 20:00, in Barr Bar `Agree`, `Change`
     -   ← Agree

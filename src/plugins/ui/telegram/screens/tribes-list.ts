@@ -1,20 +1,15 @@
 import { Markup, Scenes, Telegraf } from 'telegraf'
 import { Tribalizm } from '../../../../use-cases/tribalism'
 import { TribeInfo } from '../../../../use-cases/tribes-show'
-import L from '../../i18n/i18n-node'
-import { toLocale } from '../../i18n/to-locale'
+import { i18n } from '../../i18n/i18n-ctx'
 
-export function tribesListScreen(
-    bot: Telegraf<Scenes.SceneContext>,
-    tribalizm: Tribalizm
-) {
+function scenes(tribalizm: Tribalizm) {
     const locationScene = new Scenes.BaseScene<Scenes.SceneContext>(
         'set-location'
     )
 
     locationScene.enter((ctx) => {
-        const l = toLocale(ctx.from?.language_code)
-        const texts = L[l].tribesList
+        const texts = i18n(ctx).tribesList
 
         const keyboard = Markup.keyboard([
             Markup.button.locationRequest(texts.requestLocation()),
@@ -36,8 +31,7 @@ export function tribesListScreen(
     })
 
     locationScene.on('text', async (ctx) => {
-        const l = toLocale(ctx.from?.language_code)
-        const texts = L[l].tribesList
+        const texts = i18n(ctx).tribesList
         ;(ctx.scene.state as any).citySearchString = ctx.message.text
         const tribes = await tribalizm.tribesShow.getLocalTribes({
             coordinates: null,
@@ -58,8 +52,7 @@ export function tribesListScreen(
     }
 
     function showTribesList(ctx: Ctx, tribes: TribeInfo[]) {
-        const l = toLocale(ctx.from?.language_code)
-        const texts = L[l].tribesList
+        const texts = i18n(ctx).tribesList
 
         tribes.forEach((tribe) => {
             const keyboard = Markup.inlineKeyboard([
@@ -81,43 +74,34 @@ export function tribesListScreen(
         'apply-tribe'
     )
     applyTribeScene.enter(async (ctx) => {
-        const l = toLocale(ctx.from?.language_code)
-        const texts = L[l].tribesList
+        const texts = i18n(ctx).tribesList
         const tribe = await tribalizm.tribesShow.getTribeInfo({
             tribeId: (ctx.scene.state as any).tribeId,
         })
         ctx.reply(texts.applyText({ tribe: tribe.name }))
     })
     applyTribeScene.on('text', async (ctx) => {
-        const l = toLocale(ctx.from?.language_code)
-        const texts = L[l].tribesList
-        if (!ctx.state.user) {
-            throw new Error(`Cannot find user for chat ${ctx.chat.id}`)
-        }
+        const texts = i18n(ctx).tribesList
         await tribalizm.tribeApplication.appyToTribe({
             coverLetter: ctx.message.text,
             tribeId: (ctx.scene.state as any).tribeId,
-            userId: ctx.state.user.id,
+            userId: ctx.state.userId,
         })
 
         ctx.reply(texts.applicationSent())
         ctx.scene.leave()
     })
 
-    const stage = new Scenes.Stage<Scenes.SceneContext>([
-        locationScene,
-        applyTribeScene,
-    ])
+    return [locationScene, applyTribeScene]
+}
 
-    bot.use(stage.middleware())
-
+function actions(bot: Telegraf<Scenes.SceneContext>) {
     bot.action('list-tribes', (ctx) => {
         ctx.scene.enter('set-location')
     })
 
     bot.action(/apply-tribe:+/, (ctx) => {
-        const l = toLocale(ctx.from?.language_code)
-        const texts = L[l].tribesList
+        const texts = i18n(ctx).tribesList
         ctx.editMessageText(
             // It thinks that it is ServiceMessage and it has no text, but it has
             (ctx.update.callback_query.message as any).text +
@@ -131,3 +115,4 @@ export function tribesListScreen(
         })
     })
 }
+export const tribesListScreen = { scenes, actions }
