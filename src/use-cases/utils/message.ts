@@ -2,5 +2,9 @@
 
 export interface Message {
     type: string
-    payload: any
+    payload: {
+        // TODO ucnomment this
+        // targetUserId: string
+        // targetMemberId: string
+    }
 }

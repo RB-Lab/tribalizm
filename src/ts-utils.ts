@@ -13,5 +13,8 @@ export function filterMaybeArrayMaybe<T>(array: Maybe<Maybe<T>[]>) {
     return array.filter(notEmpty)
 }
 
-
 export type Awaited<T> = T extends PromiseLike<infer U> ? U : T
+
+export function mapify<T extends { id: string }>(arr: T[]) {
+    return arr.reduce<Record<string, T>>((r, i) => ({ ...r, [i.id]: i }), {})
+}

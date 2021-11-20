@@ -1,5 +1,6 @@
 import { EntityNotFound } from './not-found-error'
 import { Storable, Store } from '../entities/store'
+import { QuestType } from '../entities/quest'
 
 export interface TaskStore extends Store<ITask> {
     // TODO: add pagination
@@ -124,6 +125,7 @@ export interface HowWasQuestTask extends ITask {
     type: 'how-was-quest'
     payload: {
         questId: string
+        questType: QuestType
     }
 }
 // NOTE HowWasQuestTask should be handled differently depentding on quest type:

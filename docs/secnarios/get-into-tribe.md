@@ -53,7 +53,7 @@
     -   ← "Barr Bar"
     -   → Ok, you proposed 14/05/2022, 20:00, in Barr Bar `Yes`, `Change`
     -   ← Yes
-    -   → Ok, chief has been informed 🚩
+    -   → Ok, chief has been informed
 -   _Bar Tribe chief_
     -   → Candidate proposed to meet 14/05/2022, 20:00, in Barr Bar `Agree`, `Change`
     -   ← Agree
@@ -66,7 +66,7 @@
 -   _Bar Tribe chief_
     -   → Do you accept candidate `Yes`, `No`
     -   ← Yes
-    -   → Ok, passing candidate to Shaman
+    -   → Ok, passing candidate to Shaman 🚩
 -   _New User_
     -   → You've just meat Bar Trime chief, how charismatic they are? ℹ️😩😕🤔🤩🔥
     -   ← 🤩

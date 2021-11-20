@@ -4,7 +4,7 @@ import {
 } from '../../../use-cases/apply-tribe'
 import { TribeType } from '../../../use-cases/entities/tribe'
 import {
-    ApplicationDeclined,
+    ApplicationDeclinedMessage,
     ChiefApprovalRequest,
     DeclineRequest,
     InitiationRequest,
@@ -117,7 +117,7 @@ export class Initiation {
     startShamanInitiation = async (req: InitiationRequest) => {}
     approveByShaman = async (req: ShamanApprovalRequest) => {}
     decline = async (req: DeclineRequest) => {
-        this.bus.notify<ApplicationDeclined>({
+        this.bus.notify<ApplicationDeclinedMessage>({
             type: 'application-declined',
             payload: {
                 targetUserId: user!.id,

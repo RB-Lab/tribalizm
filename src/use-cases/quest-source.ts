@@ -45,9 +45,6 @@ export class QuestSource extends ContextUser {
             idea,
             parentQuest.memberIds
         )
-        const users = await this.stores.userStore.find({
-            id: members.map((m) => m.userId),
-        })
 
         const quest = await this.stores.questStore.save(
             new Quest({
@@ -57,16 +54,7 @@ export class QuestSource extends ContextUser {
                 parentQuestId: parentQuest.id,
             })
         )
-        const membersView = members.map((m) => {
-            const user = users.find((u) => u.id === m.userId)
-            if (!user) {
-                throw new EntityNotFound(`Cannot find user for member ${m.id}`)
-            }
-            return {
-                id: m.id,
-                name: user.name,
-            }
-        })
+        const membersView = await this.getMembersViews(members)
         members.forEach(async (member) => {
             this.notify<NewCoordinationQuestMessage>({
                 type: 'new-coordination-quest-message',

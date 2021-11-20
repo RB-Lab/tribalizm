@@ -48,24 +48,31 @@ export class QuestNegotiation extends ContextUser {
     }
     acceptQuest = async (req: QuestAcceptRequest) => {
         const quest = await this.getQuest(req.questId)
-        const targetMembers = quest.accept(req.memberId)
+        const targetMemberIds = quest.accept(req.memberId)
         await this.stores.questStore.save(quest)
         if (!quest.place || !quest.time) {
             throw new QuestIncompleteError(
                 `Cannot accept incomplete quest, time ${quest.time}, place: ${quest.place}`
             )
         }
+        const members = await this.stores.memberStore.find({
+            id: targetMemberIds,
+        })
+
         if (quest.status === QuestStatus.accepted) {
-            targetMembers.forEach((targetMemberId) => {
+            const memberViews = await this.getMembersViews(quest.memberIds)
+            members.forEach((member) => {
                 this.notify<QuestAcceptedMessage>({
                     type: 'quest-accepted',
                     payload: {
-                        ...quest,
+                        targetMemberId: member.id,
+                        description: quest.description,
+                        targetUserId: member.userId,
+                        members: memberViews,
                         // checked above
                         time: quest.time!,
                         place: quest.place!,
                         questId: quest.id,
-                        targetMemberId,
                     },
                 })
             })
@@ -74,7 +81,7 @@ export class QuestNegotiation extends ContextUser {
                 type: 'how-was-quest',
                 done: false,
                 time: quest.time + after * 3_600_000,
-                payload: { questId: quest.id },
+                payload: { questId: quest.id, questType: quest.type },
             })
         }
     }
@@ -129,27 +136,7 @@ export class QuestNegotiation extends ContextUser {
         )
         quest.addAssignee(nextMember.id)
         await this.stores.questStore.save(quest)
-        const users = await this.stores.userStore.find({
-            id: members.map((m) => m.userId),
-        })
-        const membersView = quest.memberIds.map((memberId) => {
-            const member = members.find((m) => m.id === memberId)
-            if (!member) {
-                throw new EntityNotFound(
-                    `Cannot find user for member ${memberId} among assignable members`
-                )
-            }
-            const user = users.find((u) => u.id === member.userId)
-            if (!user) {
-                throw new EntityNotFound(
-                    `Cannot find user for member ${member.id}`
-                )
-            }
-            return {
-                id: memberId,
-                name: user.name,
-            }
-        })
+        const membersView = await this.getMembersViews(members)
 
         this.notify<NewCoordinationQuestMessage>({
             type: 'new-coordination-quest-message',
@@ -160,9 +147,23 @@ export class QuestNegotiation extends ContextUser {
                 targetUserId: nextMember.userId,
                 place: quest.place,
                 time: quest.time,
-                members: membersView,
+                members: membersView.filter((mv) =>
+                    quest.memberIds.includes(mv.id)
+                ),
             },
         })
+    }
+
+    questDetails = async (req: { questId: string }) => {
+        const quest = await this.getQuest(req.questId)
+
+        const membersView = await this.getMembersViews(quest.memberIds)
+        return {
+            id: quest.id,
+            type: quest.type,
+            description: quest.description,
+            participants: membersView,
+        }
     }
 }
 
@@ -189,6 +190,8 @@ export interface QuestAcceptedMessage extends Message {
         description: string
         questId: string
         targetMemberId: string
+        targetUserId: string
+        members: Array<{ name: string; id: string }>
         time: number
         place: string
     }

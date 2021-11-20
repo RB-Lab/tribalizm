@@ -11,6 +11,8 @@ import { City } from '../../use-cases/entities/city'
 import { Tribe } from '../../use-cases/entities/tribe'
 import { Awaited } from '../../ts-utils'
 import { Member } from '../../use-cases/entities/member'
+import { TaskDiscpatcher } from '../../use-cases/utils/task-dispatcher'
+import { Scheduler } from '../../use-cases/utils/scheduler'
 
 function xdescribe(...args: any[]) {}
 describe('Get into tribe [integration]', () => {
@@ -48,7 +50,6 @@ describe('Get into tribe [integration]', () => {
         // TODO check that it asks for cover letter
         const coverLetter = 'I want to FOO!!'
         await world.newUser.chat(coverLetter)
-
         // Chief is notified on new application
         const chiefUpdates = await world.chief.chat()
         expect(chiefUpdates.length).toBe(1)
@@ -88,12 +89,11 @@ describe('Get into tribe [integration]', () => {
         await world.chief.chat('confirm-proposal', true)
 
         // new user recieves proposal
-        const initQuest2 = await world.context.stores.questStore._last()
         const userUpdate = await world.newUser.chatLast()
         const userNotifButtons = getInlineKeyCallbacks(userUpdate)
         expect(userNotifButtons).toEqual([
-            `agree-quest:${newUserMember.id}:${initQuest2?.id}`,
-            `change-quest:${newUserMember.id}:${initQuest2?.id}`,
+            `agree-quest:${newUserMember.id}:${initQuest?.id}`,
+            `change-quest:${newUserMember.id}:${initQuest?.id}`,
         ])
         const propose2 = userNotifButtons.find((b) => b.startsWith('change'))
         const calendar2 = await world.newUser.chatLast(propose2!)
@@ -107,7 +107,6 @@ describe('Get into tribe [integration]', () => {
             await world.newUser.chatLast(hour2, true)
         )[0]
         await world.newUser.chat(minutes2, true)
-        process.env.chatDebug = 'true'
         const proposalConfirmPrompt2 = await world.newUser.chatLast(
             'Go Bar-Bar bar!'
         )
@@ -119,6 +118,47 @@ describe('Get into tribe [integration]', () => {
             'redo-proposal',
         ])
         await world.newUser.chat('confirm-proposal', true)
+        process.env.chatDebug = 'true'
+
+        // chief recieves candidate's new proposal
+        const chiefUpdates2 = await world.chief.chat()
+        expect(chiefUpdates.length).toBe(1)
+        const usersProposalButtons = getInlineKeyCallbacks(chiefUpdates2[0])
+        expect(usersProposalButtons).toEqual([
+            `agree-quest:${world.chief.member.id}:${initQuest?.id}`,
+            `change-quest:${world.chief.member.id}:${initQuest?.id}`,
+        ])
+        const agreeButton = usersProposalButtons.find((b) =>
+            b.startsWith('agree')
+        )!
+        await world.chief.chat(agreeButton)
+
+        // candidate gets proposal confirmation
+        const candidatesProposalConfiremdUpds = await world.newUser.chat()
+        expect(candidatesProposalConfiremdUpds.length).toBe(1)
+
+        // time forward to the point when system asks about initiation
+
+        jasmine.clock().install()
+        const howWasInitTask = await world.context.stores.taskStore._last()
+        jasmine.clock().mockDate(new Date(howWasInitTask!.time + 1000))
+        world.requestTaskQueue()
+        jasmine.clock().uninstall()
+
+        // chief is asked if they accept member
+        const chiefFeedbackUpd = await world.chief.chat()
+        expect(chiefFeedbackUpd.length).toBe(1)
+        const chiefFeedbackButtons = getInlineKeyCallbacks(chiefFeedbackUpd[0])
+        expect(chiefFeedbackButtons).toEqual([
+            jasmine.stringMatching('application-accept:'),
+            jasmine.stringMatching('application-decline:'),
+        ])
+        const chiefAcceptButton = chiefFeedbackButtons.find((b) =>
+            b.startsWith('application-accept:')
+        )!
+        await world.chief.chat(chiefAcceptButton, true)
+
+        // new user is asked opinion about chief's charisma & wisdom
     })
 
     it('Shows tribes list on location sharing', async () => {
@@ -168,6 +208,8 @@ async function setup() {
         ),
         telegramURL: server.config.apiURL,
     })
+    const scheduler = new Scheduler(context.stores.taskStore)
+    const taskDiscpatcher = new TaskDiscpatcher(context.tribalism, scheduler)
 
     const newUser = wrapClient(
         server,
@@ -187,8 +229,19 @@ async function setup() {
             userId: 1,
         })
     )
+    const shaman = wrapClient(
+        server,
+        server.getClient(token, {
+            firstName: 'Barlog',
+            userName: 'Tribe Shaman',
+            chatId: 2,
+            userId: 2,
+        })
+    )
     await chief.chat('/start')
     const chiefUser = await context.stores.userStore._last()
+    await shaman.chat('/start')
+    const shamanUser = await context.stores.userStore._last()
 
     const city = await context.stores.cityStore.save(
         new City({
@@ -213,19 +266,43 @@ async function setup() {
             userId: chiefUser!.id,
             isCandidate: false,
             charisma: 10,
+            wisdom: 5,
+        })
+    )
+    const shamanMember = await context.stores.memberStore.save(
+        new Member({
+            tribeId: tribes[1].id,
+            userId: shamanUser!.id,
+            isCandidate: false,
+            charisma: 5,
+            wisdom: 10,
         })
     )
     await context.stores.tribeStore.save({
         ...tribes[1],
         chiefId: chiefMember.id,
+        shamanId: shamanMember.id,
     })
 
     return {
         bot,
+        requestTaskQueue: async () => {
+            if (process.env.chatDebug) {
+                console.log(
+                    `--- tasks updates requested, now is ${new Date()} ---`
+                )
+            }
+            await taskDiscpatcher.run()
+        },
         chief: {
             ...chief,
             member: chiefMember,
             user: chiefUser,
+        },
+        shaman: {
+            ...shaman,
+            member: shamanMember,
+            user: shamanUser,
         },
         newUser,
         city,

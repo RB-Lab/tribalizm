@@ -122,12 +122,41 @@ function scenes(tribalizm: Tribalizm) {
         })
     })
 
-    return [questNegotiation]
+    const agree = new Scenes.BaseScene<Scenes.SceneContext>('quest-agree')
+    const agreeState = new SceneState<{ questId: string; memberId: string }>()
+    agree.enter(async (ctx) => {
+        const questId = agreeState.get(ctx, 'questId')
+        const memberId = agreeState.get(ctx, 'memberId')
+        await tribalizm.questNegotiation.acceptQuest({ memberId, questId })
+        const quest = await tribalizm.questNegotiation.questDetails({ questId })
+        const texts = i18n(ctx).questNegotiation
+        let text: string
+        if (quest.participants.length > 2) {
+            text = texts.proposalAgreed(quest.participants.length - 1)
+        } else {
+            const other = quest.participants.find((p) => p.id !== memberId)
+            if (!other) {
+                throw new Error('Cant agree on quest with no patricipants')
+            }
+            text = texts.proposalAgreedPersonal({ who: other.name })
+        }
+        ctx.reply(text)
+    })
+
+    return [questNegotiation, agree]
 }
 function actions(bot: Telegraf<Scenes.SceneContext>) {
     bot.action(/change-quest:(.+)/, (ctx) => {
         const [memberId, questId] = ctx.match[1].split(':')
         ctx.scene.enter('quest-negotiation', {
+            questId,
+            memberId,
+        })
+    })
+    bot.action(/agree-quest:(.+)/, (ctx) => {
+        const [memberId, questId] = ctx.match[1].split(':')
+
+        ctx.scene.enter('quest-agree', {
             questId,
             memberId,
         })

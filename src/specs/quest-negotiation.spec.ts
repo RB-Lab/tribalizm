@@ -103,6 +103,7 @@ describe('Quest negotiation', () => {
                     questId: quest!.id,
                     time: quest!.time!,
                     targetMemberId: world.member1.id,
+                    targetUserId: world.user1.id,
                 }),
             })
         )
@@ -256,12 +257,37 @@ describe('Quest negotiation', () => {
             })
         ).toBeRejectedWithError(IndeclinableError)
     })
+
+    it('shows quest details', async () => {
+        const world = await setUp()
+        const questView = await world.questNegotiation.questDetails({
+            questId: world.quest.id,
+        })
+        expect(questView).toEqual({
+            id: world.quest.id,
+            description: world.quest.description,
+            type: world.quest.type,
+            participants: [
+                {
+                    userId: world.user1.id,
+                    id: world.member1.id,
+                    name: world.user1.name,
+                },
+                {
+                    userId: world.user2.id,
+                    id: world.member2.id,
+                    name: world.user2.name,
+                },
+            ],
+        })
+    })
 })
 
 async function setUp() {
     const context = await createContext()
-    const { members, idea, upvoters } = await context.testing.makeIdea()
+    const { members, idea, upvoters, users } = await context.testing.makeIdea()
     const [member1, member2] = members
+    const [user1, user2] = users
     const quest = await context.stores.questStore.save(
         new Quest({
             ideaId: idea.id,
@@ -284,6 +310,9 @@ async function setUp() {
         quest,
         member1,
         member2,
+        user1,
+        user2,
+        users,
         members,
         upvoters,
 

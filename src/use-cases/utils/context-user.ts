@@ -1,3 +1,4 @@
+import { SavedMember } from '../entities/member'
 import { Context } from './context'
 import { Message } from './message'
 import { EntityNotFound } from './not-found-error'
@@ -90,4 +91,31 @@ export class ContextUser {
         }
         return members[0]
     }
+
+    protected async getMembersViews(members: string[] | SavedMember[]) {
+        if (isArrayOfStrings(members)) {
+            members = await this.stores.memberStore.find({ id: members })
+        }
+        const users = await this.stores.userStore.find({
+            id: members.map((m) => m.userId),
+        })
+
+        return members.map((member) => {
+            const user = users.find((u) => u.id === member.userId)
+            if (!user) {
+                throw new EntityNotFound(
+                    `Cannot find user for member ${member.id}`
+                )
+            }
+            return {
+                userId: user.id,
+                id: member.id,
+                name: user.name,
+            }
+        })
+    }
+}
+
+function isArrayOfStrings<T>(arr: Array<T | string>): arr is string[] {
+    return arr.every((i) => typeof i === 'string')
 }

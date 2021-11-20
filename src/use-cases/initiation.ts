@@ -1,3 +1,4 @@
+import { mapify } from '../ts-utils'
 import { ApplicationMessage } from './apply-tribe'
 import { ApplicationPhase, IApplication } from './entities/application'
 import { Quest, QuestType } from './entities/quest'
@@ -25,6 +26,21 @@ export class Initiation extends ContextUser {
         }
         app.nextPhase()
         await this.stores.applicationStore.save(app)
+    }
+
+    approveByElder = async (req: ApplicationChangeRequest) => {
+        const { app } = await this.getQuestAndApplication(req.questId)
+        const elder = await this.getTribeMemberByUserId(
+            app.tribeId,
+            req.elderUserId
+        )
+        const tribe = await this.getTribe(app.tribeId)
+        // TODO make those methods private, leave only this one
+        if (tribe.chiefId === elder.id) {
+            this.approveByChief(req)
+        } else {
+            this.approveByShaman(req)
+        }
     }
     approveByChief = async (req: ChiefApprovalRequest) => {
         const { app } = await this.getQuestAndApplication(req.questId)
@@ -138,13 +154,51 @@ export class Initiation extends ContextUser {
         app.decline()
         await this.stores.applicationStore.save(app)
         await this.stores.questStore.save(quest)
-        this.notify<ApplicationDeclined>({
+        this.notify<ApplicationDeclinedMessage>({
             type: 'application-declined',
             payload: {
                 targetUserId: newMember.userId,
                 tribeName: tribe.name,
             },
         })
+    }
+
+    howWasIt = async (req: { questId: string }) => {
+        const quest = await this.getQuest(req.questId)
+        const members = await this.stores.memberStore.find({
+            id: quest.memberIds,
+        })
+        const membersViews = mapify(await this.getMembersViews(members))
+        const tribe = await this.getTribe(members[0].tribeId)
+        for (let member of members) {
+            const otherMember = members.find((m) => m.id !== member.id)
+            if (!otherMember) throw new Error('Not enough members')
+            if (member.id === tribe.chiefId || member.id === tribe.shamanId) {
+                this.notify<RequestApplicationFeedbackMessage>({
+                    type: 'request-application-feedback',
+                    payload: {
+                        applicantName: membersViews[otherMember.id].name,
+                        questId: quest.id,
+                        targetMemberId: member.id,
+                        targetUserId: member.userId,
+                        tribe: tribe.name,
+                    },
+                })
+            } else {
+                const elder =
+                    otherMember.id === tribe.chiefId ? 'chief' : 'shaman'
+                this.notify<RequestElderFeedbackMessage>({
+                    type: 'request-elder-feedback',
+                    payload: {
+                        elder,
+                        elderId: otherMember.id,
+                        elderName: membersViews[otherMember.id].name,
+                        targetMemberId: member.id,
+                        targetUserId: member.userId,
+                    },
+                })
+            }
+        }
     }
 
     private async getQuestAndApplication(questId: string) {
@@ -176,9 +230,10 @@ export class Initiation extends ContextUser {
         member.isCandidate = false
         await this.stores.memberStore.save(member)
         await this.stores.applicationStore.save(app)
-        this.notify<ApplicationApproved>({
+        this.notify<ApplicationApprovedMessage>({
             type: 'application-approved',
             payload: {
+                targetUserId: member.userId,
                 targetMemberId: member.id,
             },
         })
@@ -210,6 +265,7 @@ export class Initiation extends ContextUser {
 
 export interface ApplicationChangeRequest {
     questId: string
+    // TODO think about memberId instead, if it looks like we're moving it around anyway
     elderUserId: string
 }
 export type InitiationRequest = ApplicationChangeRequest
@@ -217,17 +273,40 @@ export type ChiefApprovalRequest = ApplicationChangeRequest
 export type ShamanApprovalRequest = ApplicationChangeRequest
 export type DeclineRequest = ApplicationChangeRequest
 
-export interface ApplicationApproved extends Message {
+export interface ApplicationApprovedMessage extends Message {
     type: 'application-approved'
     payload: {
+        targetUserId: string
         targetMemberId: string
     }
 }
-export interface ApplicationDeclined extends Message {
+export interface ApplicationDeclinedMessage extends Message {
     type: 'application-declined'
     payload: {
         targetUserId: string
         tribeName: string
+    }
+}
+
+export interface RequestApplicationFeedbackMessage extends Message {
+    type: 'request-application-feedback'
+    payload: {
+        targetUserId: string
+        targetMemberId: string
+        applicantName: string
+        questId: string
+        tribe: string
+    }
+}
+
+export interface RequestElderFeedbackMessage extends Message {
+    type: 'request-elder-feedback'
+    payload: {
+        targetUserId: string
+        targetMemberId: string
+        elder: 'chief' | 'shaman'
+        elderName: string
+        elderId: string
     }
 }
 

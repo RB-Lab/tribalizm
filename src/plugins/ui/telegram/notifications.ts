@@ -1,8 +1,15 @@
 import { Markup, Scenes, Telegraf } from 'telegraf'
+import { text } from 'telegram-test-api/node_modules/@types/express'
 import { ApplicationMessage } from '../../../use-cases/apply-tribe'
 import { QuestType } from '../../../use-cases/entities/quest'
-import { ApplicationDeclined } from '../../../use-cases/initiation'
-import { QuestChangeMessage } from '../../../use-cases/negotiate-quest'
+import {
+    ApplicationDeclinedMessage,
+    RequestApplicationFeedbackMessage,
+} from '../../../use-cases/initiation'
+import {
+    QuestAcceptedMessage,
+    QuestChangeMessage,
+} from '../../../use-cases/negotiate-quest'
 import { NotificationBus } from '../../../use-cases/utils/notification-bus'
 import {
     NewCoordinationQuestMessage,
@@ -47,7 +54,7 @@ export function attachNotifications(
             )
         }
     )
-    bus.subscribe<ApplicationDeclined>(
+    bus.subscribe<ApplicationDeclinedMessage>(
         'application-declined',
         async ({ payload }) => {
             const user = await telegramUsers.getCatDataByUserId(
@@ -84,11 +91,17 @@ export function attachNotifications(
                     proposal,
                 })
             } else {
+                let description = payload.description
+                if (!description) {
+                    if (payload.questType === QuestType.initiation) {
+                        description = i18n(user).initiation.questDescription()
+                    }
+                }
                 text = qnTexts.proposalRecieved({
                     who: payload.proposingMemberName,
                     proposal,
                     tribe: payload.tribe,
-                    description: payload.description,
+                    description: description,
                 })
             }
 
@@ -106,6 +119,69 @@ export function attachNotifications(
             bot.telegram.sendMessage(user.chatId, text, kb)
         }
     )
+
+    bus.subscribe<QuestAcceptedMessage>(
+        'quest-accepted',
+        async ({ payload }) => {
+            const user = await telegramUsers.getCatDataByUserId(
+                payload.targetUserId
+            )
+            const qnTexts = i18n(user).questNegotiation
+            const proposal = qnTexts.proposal({
+                date: new Date(payload.time),
+                place: payload.place,
+            })
+            let text: string
+            if (payload.members.length > 2) {
+                text = qnTexts.questAccepted({
+                    description: payload.description,
+                    proposal,
+                })
+            } else {
+                const who = payload.members.find(
+                    (m) => m.id !== payload.targetMemberId
+                )
+                if (!who)
+                    throw new Error(
+                        'Cannot agree on quest with no participants'
+                    )
+                text = qnTexts.questAcceptedPersonal({
+                    proposal,
+                    who: who.name,
+                })
+            }
+            bot.telegram.sendMessage(user.chatId, text)
+        }
+    )
+
+    bus.subscribe<RequestApplicationFeedbackMessage>(
+        'request-application-feedback',
+        async ({ payload }) => {
+            const user = await telegramUsers.getCatDataByUserId(
+                payload.targetUserId
+            )
+            const texts = i18n(user).initiation
+
+            const kb = Markup.inlineKeyboard([
+                Markup.button.callback(
+                    texts.accept(),
+                    `application-accept:${payload.targetMemberId}:${payload.questId}`
+                ),
+                Markup.button.callback(
+                    texts.decline(),
+                    `application-decline:${payload.targetMemberId}:${payload.questId}`
+                ),
+            ])
+
+            const text = texts.feedbackRequest({
+                name: payload.applicantName,
+                tribe: payload.tribe,
+            })
+
+            bot.telegram.sendMessage(user.chatId, text, kb)
+        }
+    )
+
     bus.subscribe<NewIntroductionQuestMessage>(
         'new-introduction-quest-message',
         async ({ payload }) => {

@@ -11,8 +11,8 @@ import {
 } from '../use-cases/entities/quest'
 import { User } from '../use-cases/entities/user'
 import {
-    ApplicationApproved,
-    ApplicationDeclined,
+    ApplicationApprovedMessage,
+    ApplicationDeclinedMessage,
     ElderMismatchError,
     Initiation,
     InitiationRequest,
@@ -189,7 +189,7 @@ describe('Initiation quests:', () => {
         it('notifies member on (express) approval', async () => {
             const world = await toChiefAproval()
             await world.tribeStore.save({ ...world.tribe, shamanId: null })
-            const onApprove = world.spyOnMessage<ApplicationApproved>(
+            const onApprove = world.spyOnMessage<ApplicationApprovedMessage>(
                 'application-approved'
             )
             await world.initiation.approveByChief({
@@ -197,9 +197,10 @@ describe('Initiation quests:', () => {
                 elderUserId: world.chiefUser.id,
             })
             expect(onApprove).toHaveBeenCalledWith(
-                jasmine.objectContaining<ApplicationApproved>({
+                jasmine.objectContaining<ApplicationApprovedMessage>({
                     type: 'application-approved',
                     payload: {
+                        targetUserId: world.newMember.userId,
                         targetMemberId: world.newMember.id,
                     },
                 })
@@ -273,7 +274,7 @@ describe('Initiation quests:', () => {
         })
         it('notifies a member on their approval', async () => {
             const world = await toShamanApproval()
-            const onApprove = world.spyOnMessage<ApplicationApproved>(
+            const onApprove = world.spyOnMessage<ApplicationApprovedMessage>(
                 'application-approved'
             )
 
@@ -282,9 +283,10 @@ describe('Initiation quests:', () => {
                 elderUserId: world.shamanUser.id,
             })
             expect(onApprove).toHaveBeenCalledWith(
-                jasmine.objectContaining<ApplicationApproved>({
+                jasmine.objectContaining<ApplicationApprovedMessage>({
                     type: 'application-approved',
                     payload: {
+                        targetUserId: world.newMember.userId,
                         targetMemberId: world.newMember.id,
                     },
                 })
@@ -341,7 +343,7 @@ describe('Initiation quests:', () => {
         })
         it('notifies non-member on application decline', async () => {
             const world = await toShamanApproval()
-            const onDecline = world.spyOnMessage<ApplicationDeclined>(
+            const onDecline = world.spyOnMessage<ApplicationDeclinedMessage>(
                 'application-declined'
             )
 
@@ -350,7 +352,7 @@ describe('Initiation quests:', () => {
                 elderUserId: world.shamanUser.id,
             })
             expect(onDecline).toHaveBeenCalledWith(
-                jasmine.objectContaining<ApplicationDeclined>({
+                jasmine.objectContaining<ApplicationDeclinedMessage>({
                     type: 'application-declined',
                     payload: {
                         targetUserId: world.user.id,

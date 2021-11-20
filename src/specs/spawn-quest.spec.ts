@@ -100,8 +100,14 @@ describe('Spawn new quest', () => {
                     questId: quest.id,
                     description: quest.description,
                     members: jasmine.arrayWithExactContents([
-                        { id: member1?.id, name: user1?.name },
-                        { id: member2?.id, name: user2?.name },
+                        jasmine.objectContaining({
+                            id: member1?.id,
+                            name: user1?.name,
+                        }),
+                        jasmine.objectContaining({
+                            id: member2?.id,
+                            name: user2?.name,
+                        }),
                     ]),
                 }),
             })

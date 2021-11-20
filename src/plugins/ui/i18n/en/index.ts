@@ -48,6 +48,7 @@ const en: BaseTranslation = {
         declinePrompt:
             'Please describe in a few words why did you decline an appliaction.',
         declineOk: 'Ok, appliaction has been declined',
+        approvedOk: "Ok, you've approved the application",
         questNotification:
             '{name}, {elder} of the {tribe} proposes to meet: \n {proposal}',
         elders: {
@@ -55,6 +56,11 @@ const en: BaseTranslation = {
             shaman: 'shaman',
         },
         candidate: 'candidate',
+        questDescription: 'initiation',
+        feedbackRequest:
+            "You've just met with {name:string}. Do you accept them in the tribe {tribe:string}?",
+        accept: '👍 Yes, accept!',
+        decline: '👎 No, decline.',
     },
     introduction: {
         questNotification:
@@ -78,6 +84,12 @@ const en: BaseTranslation = {
         edit: '🤔 Edit',
         proposeOther: '🤔 Suggest otherwise',
         proposalDone: '📨 Ok, proposal has been sent.',
+        proposalAgreed: "📨 Ok, I'll notify the other participant{{s}}",
+        proposalAgreedPersonal: "📨 Ok, I'll notify {who:string}",
+        questAccepted:
+            'All particiepan agreed to meet for "{description:string}" at: \n {proposal:string}',
+        questAcceptedPersonal:
+            '{who:string} aggred to meet at: \n {proposal:string}',
     },
     notifications: {
         tribeAppliaction: {

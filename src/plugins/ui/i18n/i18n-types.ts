@@ -129,6 +129,10 @@ export type Translation = {
 		 */
 		'declineOk': string
 		/**
+		 * Ok, you've approved the application
+		 */
+		'approvedOk': string
+		/**
 		 * {name}, {elder} of the {tribe} proposes to meet: 
 	 {proposal}
 		 * @param {unknown} elder
@@ -151,6 +155,24 @@ export type Translation = {
 		 * candidate
 		 */
 		'candidate': string
+		/**
+		 * initiation
+		 */
+		'questDescription': string
+		/**
+		 * You've just met with {name}. Do you accept them in the tribe {tribe}?
+		 * @param {string} name
+		 * @param {string} tribe
+		 */
+		'feedbackRequest': RequiredParams2<'name', 'tribe'>
+		/**
+		 * 👍 Yes, accept!
+		 */
+		'accept': string
+		/**
+		 * 👎 No, decline.
+		 */
+		'decline': string
 	}
 	'introduction': {	
 		/**
@@ -228,6 +250,29 @@ export type Translation = {
 		 * 📨 Ok, proposal has been sent.
 		 */
 		'proposalDone': string
+		/**
+		 * 📨 Ok, I'll notify the other participant{{s}}
+		 */
+		'proposalAgreed': string
+		/**
+		 * 📨 Ok, I'll notify {who}
+		 * @param {string} who
+		 */
+		'proposalAgreedPersonal': RequiredParams1<'who'>
+		/**
+		 * All particiepan agreed to meet for "{description}" at: 
+	 {proposal}
+		 * @param {string} description
+		 * @param {string} proposal
+		 */
+		'questAccepted': RequiredParams2<'description', 'proposal'>
+		/**
+		 * {who} aggred to meet at: 
+	 {proposal}
+		 * @param {string} proposal
+		 * @param {string} who
+		 */
+		'questAcceptedPersonal': RequiredParams2<'proposal', 'who'>
 	}
 	'notifications': {	
 		'tribeAppliaction': {	
@@ -379,6 +424,10 @@ export type TranslationFunctions = {
 		 */
 		'declineOk': () => LocalizedString
 		/**
+		 * Ok, you've approved the application
+		 */
+		'approvedOk': () => LocalizedString
+		/**
 		 * {name}, {elder} of the {tribe} proposes to meet: 
 	 {proposal}
 		 */
@@ -397,6 +446,22 @@ export type TranslationFunctions = {
 		 * candidate
 		 */
 		'candidate': () => LocalizedString
+		/**
+		 * initiation
+		 */
+		'questDescription': () => LocalizedString
+		/**
+		 * You've just met with {name}. Do you accept them in the tribe {tribe}?
+		 */
+		'feedbackRequest': (arg: { name: string, tribe: string }) => LocalizedString
+		/**
+		 * 👍 Yes, accept!
+		 */
+		'accept': () => LocalizedString
+		/**
+		 * 👎 No, decline.
+		 */
+		'decline': () => LocalizedString
 	}
 	'introduction': {	
 		/**
@@ -464,6 +529,24 @@ export type TranslationFunctions = {
 		 * 📨 Ok, proposal has been sent.
 		 */
 		'proposalDone': () => LocalizedString
+		/**
+		 * 📨 Ok, I'll notify the other participant{{s}}
+		 */
+		'proposalAgreed': (arg0: string | number | boolean) => LocalizedString
+		/**
+		 * 📨 Ok, I'll notify {who}
+		 */
+		'proposalAgreedPersonal': (arg: { who: string }) => LocalizedString
+		/**
+		 * All particiepan agreed to meet for "{description}" at: 
+	 {proposal}
+		 */
+		'questAccepted': (arg: { description: string, proposal: string }) => LocalizedString
+		/**
+		 * {who} aggred to meet at: 
+	 {proposal}
+		 */
+		'questAcceptedPersonal': (arg: { proposal: string, who: string }) => LocalizedString
 	}
 	'notifications': {	
 		'tribeAppliaction': {	
