@@ -66,14 +66,14 @@
 -   _Bar Tribe chief_
     -   → Do you accept candidate `Yes`, `No`
     -   ← Yes
-    -   → Ok, passing candidate to Shaman 🚩
+    -   → Ok, passing candidate to Shaman
 -   _New User_
     -   → You've just meat Bar Trime chief, how charismatic they are? ℹ️😩😕🤔🤩🔥
     -   ← 🤩
     -   → How wise they are? ℹ️🤪🤥🤔🥸🦉
     -   ← 🤔
     -   Ok, your opinion will be applied as soon as you join the tribe and other 4 opinions collected
--   _Bar Tribe shaman_
+-   _Bar Tribe shaman_ 🚩
     -   → New appliaction! (cover letter) `Accept`, `Decline`
     -   ← Accept
     -   → Enter date `...calendar...`

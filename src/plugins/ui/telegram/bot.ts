@@ -4,6 +4,7 @@ import { NotificationBus } from '../../../use-cases/utils/notification-bus'
 import { attachNotifications } from './notifications'
 import { initiationScreen } from './screens/initiation'
 import { questNegotiationScreen } from './screens/quest-negotiation'
+import { rateMemberScreen } from './screens/rate-member'
 import { rulesScreen } from './screens/rules'
 import { startScreenActions } from './screens/start'
 import { tribesListScreen } from './screens/tribes-list'
@@ -97,9 +98,15 @@ export async function makeBot(config: BotConfig) {
     initiationScreen.actions(bot)
     questNegotiationScreen.actions(bot)
     tribesListScreen.actions(bot)
+    rateMemberScreen.actions(bot, config.tribalism)
     startScreenActions(bot)
 
     attachNotifications(
+        bot,
+        config.notifcationsBus,
+        config.telegramUsersAdapter
+    )
+    rateMemberScreen.attachNotifications(
         bot,
         config.notifcationsBus,
         config.telegramUsersAdapter

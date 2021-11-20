@@ -4,6 +4,7 @@ import { ApplicationMessage } from '../../../use-cases/apply-tribe'
 import { QuestType } from '../../../use-cases/entities/quest'
 import {
     ApplicationDeclinedMessage,
+    RateElderMessage,
     RequestApplicationFeedbackMessage,
 } from '../../../use-cases/initiation'
 import {
@@ -85,7 +86,7 @@ export function attachNotifications(
                 // X, shaman|chief of the tribe Y proposed to meet: ...
                 const texts = i18n(user).initiation
                 text = texts.questNotification({
-                    elder: texts.elders[payload.elder](),
+                    elder: i18n(user).elders[payload.elder](),
                     name: payload.proposingMemberName,
                     tribe: payload.tribe,
                     proposal,

@@ -119,6 +119,16 @@ export type Translation = {
 		 */
 		'applicationSentShort': string
 	}
+	'elders': {	
+		/**
+		 * chief
+		 */
+		'chief': string
+		/**
+		 * shaman
+		 */
+		'shaman': string
+	}
 	'initiation': {	
 		/**
 		 * Please describe in a few words why did you decline an appliaction.
@@ -141,16 +151,6 @@ export type Translation = {
 		 * @param {unknown} tribe
 		 */
 		'questNotification': RequiredParams4<'elder', 'name', 'proposal', 'tribe'>
-		'elders': {	
-			/**
-			 * chief
-			 */
-			'chief': string
-			/**
-			 * shaman
-			 */
-			'shaman': string
-		}
 		/**
 		 * candidate
 		 */
@@ -193,6 +193,9 @@ export type Translation = {
 		 * January,February,March,April,May,June,July,August,September,October,November,December
 		 */
 		'months': string
+		/**
+		 * 0
+		 */
 		'startWeekDay': string
 	}
 	'questNegotiation': {	
@@ -305,6 +308,70 @@ export type Translation = {
 			'applicationDeclined': RequiredParams1<'tribe'>
 		}
 	}
+	'rateMember': {	
+		/**
+		 * You've just meat {tribe} {elder}, how charismatic they are?
+		 * @param {string} elder
+		 * @param {string} tribe
+		 */
+		'charismaPrompt': RequiredParams2<'elder', 'tribe'>
+		/**
+		 * How wise they are?
+		 */
+		'wisdomPrompt': string
+		/**
+		 * ℹ️
+		 */
+		'help': string
+		'charisma': {	
+			/**
+			 * 😩
+			 */
+			'0': string
+			/**
+			 * 😕
+			 */
+			'1': string
+			/**
+			 * 🤔
+			 */
+			'2': string
+			/**
+			 * 🤩
+			 */
+			'3': string
+			/**
+			 * 🔥
+			 */
+			'4': string
+		}
+		'wisdom': {	
+			/**
+			 * 🤪
+			 */
+			'0': string
+			/**
+			 * 🤥
+			 */
+			'1': string
+			/**
+			 * 🤔
+			 */
+			'2': string
+			/**
+			 * 🥸
+			 */
+			'3': string
+			/**
+			 * 🦉
+			 */
+			'4': string
+		}
+		/**
+		 * Ok, your opinion will be applied as soon as you join the tribe and other 4 opinions collected
+		 */
+		'done': string
+	}
 }
 
 export type TranslationFunctions = {
@@ -414,6 +481,16 @@ export type TranslationFunctions = {
 		 */
 		'applicationSentShort': () => LocalizedString
 	}
+	'elders': {	
+		/**
+		 * chief
+		 */
+		'chief': () => LocalizedString
+		/**
+		 * shaman
+		 */
+		'shaman': () => LocalizedString
+	}
 	'initiation': {	
 		/**
 		 * Please describe in a few words why did you decline an appliaction.
@@ -432,16 +509,6 @@ export type TranslationFunctions = {
 	 {proposal}
 		 */
 		'questNotification': (arg: { elder: unknown, name: unknown, proposal: unknown, tribe: unknown }) => LocalizedString
-		'elders': {	
-			/**
-			 * chief
-			 */
-			'chief': () => LocalizedString
-			/**
-			 * shaman
-			 */
-			'shaman': () => LocalizedString
-		}
 		/**
 		 * candidate
 		 */
@@ -479,6 +546,9 @@ export type TranslationFunctions = {
 		 * January,February,March,April,May,June,July,August,September,October,November,December
 		 */
 		'months': () => LocalizedString
+		/**
+		 * 0
+		 */
 		'startWeekDay': () => LocalizedString
 	}
 	'questNegotiation': {	
@@ -575,6 +645,68 @@ export type TranslationFunctions = {
 			 */
 			'applicationDeclined': (arg: { tribe: unknown }) => LocalizedString
 		}
+	}
+	'rateMember': {	
+		/**
+		 * You've just meat {tribe} {elder}, how charismatic they are?
+		 */
+		'charismaPrompt': (arg: { elder: string, tribe: string }) => LocalizedString
+		/**
+		 * How wise they are?
+		 */
+		'wisdomPrompt': () => LocalizedString
+		/**
+		 * ℹ️
+		 */
+		'help': () => LocalizedString
+		'charisma': {	
+			/**
+			 * 😩
+			 */
+			'0': () => LocalizedString
+			/**
+			 * 😕
+			 */
+			'1': () => LocalizedString
+			/**
+			 * 🤔
+			 */
+			'2': () => LocalizedString
+			/**
+			 * 🤩
+			 */
+			'3': () => LocalizedString
+			/**
+			 * 🔥
+			 */
+			'4': () => LocalizedString
+		}
+		'wisdom': {	
+			/**
+			 * 🤪
+			 */
+			'0': () => LocalizedString
+			/**
+			 * 🤥
+			 */
+			'1': () => LocalizedString
+			/**
+			 * 🤔
+			 */
+			'2': () => LocalizedString
+			/**
+			 * 🥸
+			 */
+			'3': () => LocalizedString
+			/**
+			 * 🦉
+			 */
+			'4': () => LocalizedString
+		}
+		/**
+		 * Ok, your opinion will be applied as soon as you join the tribe and other 4 opinions collected
+		 */
+		'done': () => LocalizedString
 	}
 }
 

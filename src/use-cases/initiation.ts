@@ -187,14 +187,15 @@ export class Initiation extends ContextUser {
             } else {
                 const elder =
                     otherMember.id === tribe.chiefId ? 'chief' : 'shaman'
-                this.notify<RequestElderFeedbackMessage>({
-                    type: 'request-elder-feedback',
+                this.notify<RateElderMessage>({
+                    type: 'rate-elder-message',
                     payload: {
                         elder,
                         elderId: otherMember.id,
-                        elderName: membersViews[otherMember.id].name,
+                        tribe: tribe.name,
                         targetMemberId: member.id,
                         targetUserId: member.userId,
+                        questId: quest.id,
                     },
                 })
             }
@@ -299,14 +300,15 @@ export interface RequestApplicationFeedbackMessage extends Message {
     }
 }
 
-export interface RequestElderFeedbackMessage extends Message {
-    type: 'request-elder-feedback'
+export interface RateElderMessage extends Message {
+    type: 'rate-elder-message'
     payload: {
         targetUserId: string
         targetMemberId: string
         elder: 'chief' | 'shaman'
-        elderName: string
+        tribe: string
         elderId: string
+        questId: string
     }
 }
 

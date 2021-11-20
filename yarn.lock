@@ -2503,10 +2503,10 @@ typegram@^3.1.5, typegram@^3.4.2:
   resolved "https://registry.yarnpkg.com/typegram/-/typegram-3.4.3.tgz#a1e212beaf6b43079a3774457b40d6eab1a93acf"
   integrity sha512-pH0TQJzCWM2+7y6yiBoQVNt7PO9ZvAu/lQukVx4sm68FIBBZEBWI+2MzuMcdbwrD5mD5NrEMAyml9N6DupUZag==
 
-typesafe-i18n@^2.46.7:
-  version "2.46.7"
-  resolved "https://registry.yarnpkg.com/typesafe-i18n/-/typesafe-i18n-2.46.7.tgz#d908d7e0b24a457928240a3f48b939b2e155b2ea"
-  integrity sha512-IWJ9MYlcC8WxGqyls8/McNfWVND9ukbUNVIiMbYRAG2zOVg7o3wRn/2OHRnmdb/tvRWnMQhGz4uIuOkJJi3sCg==
+typesafe-i18n@^2.52.2:
+  version "2.52.2"
+  resolved "https://registry.yarnpkg.com/typesafe-i18n/-/typesafe-i18n-2.52.2.tgz#533b077346647980ed9e4431f0a27dfeae544c51"
+  integrity sha512-A3gzQCwHgJ7OynJb/wUmx7kmdUw+p5rf+iHgcP9raLAjivH/pUeMKq0n8Kh3eFb9336EUC4nHcP2Z67epkvCWQ==
   dependencies:
     typesafe-utils "^1.16.2"
 

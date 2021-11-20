@@ -118,10 +118,11 @@ function debugBot(updates: BotUpdate[]) {
     if (process.env.chatDebug) {
         const upds = updates.map((u) => {
             const keys = getInlineKeys(u)
+            const keyLimit = 7
             if (keys.length) {
-                const end = keys.length > 4 ? '...' : ''
+                const end = keys.length > keyLimit ? '...' : ''
                 return `${u.message.text}\n[${keys
-                    .slice(0, 4)
+                    .slice(0, keyLimit)
                     .join('] [')}]${end}`
             }
             return u.message.text
@@ -130,7 +131,7 @@ function debugBot(updates: BotUpdate[]) {
     }
 }
 
-function debugKeyboard(lastUpdate: BotUpdate) {
+export function debugKeyboard(lastUpdate: BotUpdate) {
     if (process.env.chatDebug) {
         console.log((lastUpdate?.message?.reply_markup as any)?.inline_keyboard)
     }

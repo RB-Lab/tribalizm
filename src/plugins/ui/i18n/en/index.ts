@@ -44,6 +44,10 @@ const en: BaseTranslation = {
             '📨 Your application has been sent. Tribe chief will propose a meeting soon.',
         applicationSentShort: '📨 Application has been sent',
     },
+    elders: {
+        chief: 'chief',
+        shaman: 'shaman',
+    },
     initiation: {
         declinePrompt:
             'Please describe in a few words why did you decline an appliaction.',
@@ -51,10 +55,6 @@ const en: BaseTranslation = {
         approvedOk: "Ok, you've approved the application",
         questNotification:
             '{name}, {elder} of the {tribe} proposes to meet: \n {proposal}',
-        elders: {
-            chief: 'chief',
-            shaman: 'shaman',
-        },
         candidate: 'candidate',
         questDescription: 'initiation',
         feedbackRequest:
@@ -101,6 +101,15 @@ const en: BaseTranslation = {
             applicationDeclined:
                 'Your appliaction to the tribe "{tribe}" has been declined',
         },
+    },
+    rateMember: {
+        charismaPrompt:
+            "You've just meat {tribe:string} {elder:string}, how charismatic they are?",
+        wisdomPrompt: 'How wise they are?',
+        help: 'ℹ️',
+        charisma: { '0': '😩', '1': '😕', '2': '🤔', '3': '🤩', '4': '🔥' },
+        wisdom: { '0': '🤪', '1': '🤥', '2': '🤔', '3': '🥸', '4': '🦉' },
+        done: 'Ok, your opinion will be applied as soon as you join the tribe and other 4 opinions collected',
     },
 }
 

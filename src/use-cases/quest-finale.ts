@@ -1,5 +1,4 @@
-import { IQuest, QuestType } from './entities/quest'
-import { Storable } from './entities/store'
+import { QuestType } from './entities/quest'
 import { ContextUser } from './utils/context-user'
 import { findMaxTrait } from './utils/members-utils'
 import { IntroductionTask } from './utils/scheduler'
@@ -15,9 +14,8 @@ export class QuestFinale extends ContextUser {
             const allMembers = await this.stores.memberStore.find({
                 tribeId: member.tribeId,
             })
-            const allIntroQuests = await this.stores.questStore.getAllIntroQuests(
-                req.memberId
-            )
+            const allIntroQuests =
+                await this.stores.questStore.getAllIntroQuests(req.memberId)
             const nextOldMember = allMembers
                 .sort(() => Math.random() - 0.5)
                 .find(
@@ -73,5 +71,6 @@ interface Vote {
 export interface QuestFinaleRequest {
     memberId: string
     questId: string
+    // TODO get rid of array here?
     votes: Vote[]
 }

@@ -69,6 +69,7 @@ describe('Get into tribe [integration]', () => {
         const dates = getInlineKeyCallbacks(calendar).filter((cb) =>
             cb.includes('date')
         )
+        // NOTE this test will fail at the end of the month...
         const hour = getInlineKeyCallbacks(
             await world.chief.chatLast(dates[3], true)
         )[4]
@@ -88,6 +89,7 @@ describe('Get into tribe [integration]', () => {
         ])
         await world.chief.chat('confirm-proposal', true)
 
+        process.env.chatDebug = 'true'
         // new user recieves proposal
         const userUpdate = await world.newUser.chatLast()
         const userNotifButtons = getInlineKeyCallbacks(userUpdate)
@@ -118,7 +120,6 @@ describe('Get into tribe [integration]', () => {
             'redo-proposal',
         ])
         await world.newUser.chat('confirm-proposal', true)
-        process.env.chatDebug = 'true'
 
         // chief recieves candidate's new proposal
         const chiefUpdates2 = await world.chief.chat()
@@ -158,7 +159,24 @@ describe('Get into tribe [integration]', () => {
         )!
         await world.chief.chat(chiefAcceptButton, true)
 
-        // new user is asked opinion about chief's charisma & wisdom
+        // new user is asked to rate chief's charisma & wisdom
+        const nuChiefRateUpd = await world.newUser.chat()
+        expect(nuChiefRateUpd.length).toBe(1)
+        const rateChiefCharismaButtons = getInlineKeyCallbacks(
+            nuChiefRateUpd[0]
+        )
+        expect(rateChiefCharismaButtons.length).toBe(6)
+        const rateChiefWisdomUpd = await world.newUser.chatLast(
+            rateChiefCharismaButtons[5],
+            true
+        )
+        const rateChiefWisdomButtons = getInlineKeyCallbacks(rateChiefWisdomUpd)
+        expect(rateChiefWisdomButtons.length).toBe(6)
+        await world.newUser.chatLast(rateChiefWisdomButtons[3])
+        const cMember = await world.context.stores.memberStore.getById(
+            world.chief.member.id
+        )
+        expect(cMember?.votes.length).toBe(1)
     })
 
     it('Shows tribes list on location sharing', async () => {
