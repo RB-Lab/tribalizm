@@ -59,8 +59,8 @@ describe('Get into tribe [integration]', () => {
         const initQuest = await world.context.stores.questStore._last()
         const chiefNotButtons = getInlineKeyCallbacks(chiefNot)
         expect(chiefNotButtons).toEqual([
-            `propose-initiation:${world.chief.member.id}:${initQuest!.id}`,
-            `decline-application:${world.chief.member.id}:${initQuest!.id}`,
+            jasmine.stringMatching(`propose-initiation`),
+            jasmine.stringMatching(`decline-application`),
         ])
 
         // Chief proposes a meeting
@@ -89,7 +89,6 @@ describe('Get into tribe [integration]', () => {
         ])
         await world.chief.chat('confirm-proposal', true)
 
-        process.env.chatDebug = 'true'
         // new user recieves proposal
         const userUpdate = await world.newUser.chatLast()
         const userNotifButtons = getInlineKeyCallbacks(userUpdate)
@@ -177,6 +176,104 @@ describe('Get into tribe [integration]', () => {
             world.chief.member.id
         )
         expect(cMember?.votes.length).toBe(1)
+
+        // shaman recieves application
+        const shamanUpdates = await world.shaman.chat()
+        expect(shamanUpdates.length).toBe(1)
+        const shamanNotice = shamanUpdates[0]
+        expect(shamanNotice.message.text).toMatch(coverLetter)
+        const initQuest2 = await world.context.stores.questStore._last()
+        const shamanNotButtons = getInlineKeyCallbacks(shamanNotice)
+        expect(shamanNotButtons).toEqual([
+            jasmine.stringMatching(`propose-initiation`),
+            jasmine.stringMatching(`decline-application`),
+        ])
+
+        // shaman proposes a meeting
+        const shPropose = shamanNotButtons.find((b) => b.startsWith('propose'))
+        const shCalendar = await world.shaman.chatLast(shPropose!)
+        const shDates = getInlineKeyCallbacks(shCalendar).filter((cb) =>
+            cb.includes('date')
+        )
+        const shHour = getInlineKeyCallbacks(
+            await world.shaman.chatLast(shDates[3], true)
+        )[4]
+        const shMinutes = getInlineKeyCallbacks(
+            await world.shaman.chatLast(shHour, true)
+        )[2]
+        await world.shaman.chat(shMinutes, true)
+        const shProposalConfirmPrompt = await world.shaman.chatLast('Ku-Ku Ha')
+        const shProposalPromptButtons = getInlineKeyCallbacks(
+            shProposalConfirmPrompt
+        )
+        expect(shProposalPromptButtons).toEqual([
+            'confirm-proposal',
+            'redo-proposal',
+        ])
+        await world.shaman.chat('confirm-proposal', true)
+
+        // user gets shaman's proposal
+        const shamansProposalUpd = await world.newUser.chat()
+        expect(shamansProposalUpd.length).toBe(1)
+        const shamansProposalButtons = getInlineKeyCallbacks(
+            shamansProposalUpd[0]
+        )
+        expect(shamansProposalButtons).toEqual([
+            jasmine.stringMatching(`agree-quest`),
+            jasmine.stringMatching(`change-quest`),
+        ])
+        await world.newUser.chat(shamansProposalButtons[0])
+        // shaman recieves note that quest accepted
+        const shUserAgreedUpd = await world.shaman.chat()
+        expect(shUserAgreedUpd.length).toBe(1)
+
+        // time forward to the point when system asks about initiation
+
+        jasmine.clock().install()
+        const howWasInitTask2 = await world.context.stores.taskStore._last()
+        jasmine.clock().mockDate(new Date(howWasInitTask2!.time + 1000))
+        world.requestTaskQueue()
+        jasmine.clock().uninstall()
+
+        // new user is asked to rate shaman's charisma & wisdom
+        const nuShamanRateUpd = await world.newUser.chat()
+        expect(nuShamanRateUpd.length).toBe(1)
+        const rateShamanCharismaButtons = getInlineKeyCallbacks(
+            nuShamanRateUpd[0]
+        )
+        expect(rateShamanCharismaButtons.length).toBe(6)
+        const rateShamanWisdomUpd = await world.newUser.chatLast(
+            rateShamanCharismaButtons[5],
+            true
+        )
+        const rateShamanWisdomButtons =
+            getInlineKeyCallbacks(rateShamanWisdomUpd)
+        expect(rateShamanWisdomButtons.length).toBe(6)
+        await world.newUser.chatLast(rateShamanWisdomButtons[3])
+        const shMember = await world.context.stores.memberStore.getById(
+            world.shaman.member.id
+        )
+        expect(shMember?.votes.length).toBe(1)
+
+        // shaman is asked if they accept member
+        const shamanFeedbackUpd = await world.shaman.chat()
+        expect(shamanFeedbackUpd.length).toBe(1)
+        const shamanFeedbackButtons = getInlineKeyCallbacks(
+            shamanFeedbackUpd[0]
+        )
+        expect(shamanFeedbackButtons).toEqual([
+            jasmine.stringMatching('application-accept:'),
+            jasmine.stringMatching('application-decline:'),
+        ])
+        const shamanAcceptButton = shamanFeedbackButtons.find((b) =>
+            b.startsWith('application-accept:')
+        )!
+        await world.shaman.chat(shamanAcceptButton, true)
+        process.env.chatDebug = 'true'
+
+        // new user is notified on thier approval
+        const acceptedUpdate = await world.newUser.chat()
+        expect(acceptedUpdate.length).toBe(1)
     })
 
     it('Shows tribes list on location sharing', async () => {

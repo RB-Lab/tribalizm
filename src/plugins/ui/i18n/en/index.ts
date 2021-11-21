@@ -54,13 +54,15 @@ const en: BaseTranslation = {
         declineOk: 'Ok, appliaction has been declined',
         approvedOk: "Ok, you've approved the application",
         questNotification:
-            '{name}, {elder} of the {tribe} proposes to meet: \n {proposal}',
+            '{name:string}, {elder:string} of the {tribe:string} proposes to meet: \n {proposal:string}',
         candidate: 'candidate',
         questDescription: 'initiation',
         feedbackRequest:
             "You've just met with {name:string}. Do you accept them in the tribe {tribe:string}?",
         accept: '👍 Yes, accept!',
         decline: '👎 No, decline.',
+        appliactionApproved:
+            "🎉 Hooray! You've been accepted in {tribe:string} tribe! You'll meet with other members soon.",
     },
     introduction: {
         questNotification:

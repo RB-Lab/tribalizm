@@ -4,6 +4,7 @@ import { Tribalizm } from '../../../../use-cases/tribalism'
 import { NotificationBus } from '../../../../use-cases/utils/notification-bus'
 import { i18n } from '../../i18n/i18n-ctx'
 import { TelegramUsersAdapter } from '../users-adapter'
+import { makeCalbackDataParser } from './calback-parser'
 
 const parser = makeCalbackDataParser('rate-member', [
     'memberId',
@@ -13,35 +14,8 @@ const parser = makeCalbackDataParser('rate-member', [
     'charisma',
 ])
 
-// TODO add constarin so that T's values are only strings
-function makeCalbackDataParser<T>(cbName: string, keys: Array<keyof T>) {
-    return {
-        serialize: (data: T) => {
-            const cbData = keys
-                .map((k) => {
-                    const value = data[k]
-                    if (typeof value === 'string' && value.includes(':')) {
-                        throw new Error(
-                            `Cannot make callback data, invalid character: ${data[k]}`
-                        )
-                    }
-                    return value
-                })
-                .join(':')
-            return `${cbName}:${cbData}`
-        },
-        parse: (str: string) => {
-            const arr = str.replace(`${cbName}:`, '').split(':')
-            return keys.reduce<T>((r, k, i) => ({ ...r, [k]: arr[i] }), {} as T)
-        },
-        regex: () => {
-            return new RegExp(`${cbName}:(.+)`)
-        },
-    }
-}
-
 function actions(bot: Telegraf<Scenes.SceneContext>, tribalism: Tribalizm) {
-    bot.action(parser.regex(), (ctx) => {
+    bot.action(parser.regex, (ctx) => {
         const texts = i18n(ctx).rateMember
         const data = parser.parse(ctx.match[0])
 

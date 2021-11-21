@@ -145,10 +145,10 @@ export type Translation = {
 		/**
 		 * {name}, {elder} of the {tribe} proposes to meet: 
 	 {proposal}
-		 * @param {unknown} elder
-		 * @param {unknown} name
-		 * @param {unknown} proposal
-		 * @param {unknown} tribe
+		 * @param {string} elder
+		 * @param {string} name
+		 * @param {string} proposal
+		 * @param {string} tribe
 		 */
 		'questNotification': RequiredParams4<'elder', 'name', 'proposal', 'tribe'>
 		/**
@@ -173,6 +173,11 @@ export type Translation = {
 		 * 👎 No, decline.
 		 */
 		'decline': string
+		/**
+		 * 🎉 Hooray! You've been accepted in {tribe} tribe! You'll meet with other members soon.
+		 * @param {string} tribe
+		 */
+		'appliactionApproved': RequiredParams1<'tribe'>
 	}
 	'introduction': {	
 		/**
@@ -508,7 +513,7 @@ export type TranslationFunctions = {
 		 * {name}, {elder} of the {tribe} proposes to meet: 
 	 {proposal}
 		 */
-		'questNotification': (arg: { elder: unknown, name: unknown, proposal: unknown, tribe: unknown }) => LocalizedString
+		'questNotification': (arg: { elder: string, name: string, proposal: string, tribe: string }) => LocalizedString
 		/**
 		 * candidate
 		 */
@@ -529,6 +534,10 @@ export type TranslationFunctions = {
 		 * 👎 No, decline.
 		 */
 		'decline': () => LocalizedString
+		/**
+		 * 🎉 Hooray! You've been accepted in {tribe} tribe! You'll meet with other members soon.
+		 */
+		'appliactionApproved': (arg: { tribe: string }) => LocalizedString
 	}
 	'introduction': {	
 		/**

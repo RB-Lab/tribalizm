@@ -49,6 +49,7 @@ export class QuestFinale extends ContextUser {
         const members = await this.stores.memberStore.find({
             tribeId: member.tribeId,
         })
+
         const mostCharismatic = findMaxTrait(members, 'charisma')
         const mostWise = findMaxTrait(members, 'wisdom')
         const tribe = await this.getTribe(member.tribeId)

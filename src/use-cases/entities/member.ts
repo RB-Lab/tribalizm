@@ -53,6 +53,7 @@ export class Member implements IMember {
                 )
             }
         } else if (vote.type === 'quest-vote') {
+            // TODO make it 0-4
             if (vote.charisma > 9 || vote.charisma < 0) {
                 throw new VoteRangeError(
                     `Cannot set charisma to ${vote.charisma}: must be between 0 and 9`

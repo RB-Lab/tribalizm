@@ -1,9 +1,19 @@
 import { Markup, Scenes, Telegraf } from 'telegraf'
 import Calendar from 'telegraf-calendar-telegram'
 import { QuestType } from '../../../../use-cases/entities/quest'
+import {
+    QuestAcceptedMessage,
+    QuestChangeMessage,
+} from '../../../../use-cases/negotiate-quest'
 import { Tribalizm } from '../../../../use-cases/tribalism'
+import { NotificationBus } from '../../../../use-cases/utils/notification-bus'
+import {
+    NewCoordinationQuestMessage,
+    NewIntroductionQuestMessage,
+} from '../../../../use-cases/utils/quest-message'
 import { i18n } from '../../i18n/i18n-ctx'
 import { SceneState } from '../scene-state'
+import { TelegramUsersAdapter } from '../users-adapter'
 
 function scenes(tribalizm: Tribalizm) {
     const questNegotiation = new Scenes.BaseScene<Scenes.SceneContext>(
@@ -163,4 +173,109 @@ function actions(bot: Telegraf<Scenes.SceneContext>) {
     })
 }
 
-export const questNegotiationScreen = { actions, scenes }
+export function attachNotifications(
+    bot: Telegraf<Scenes.SceneContext>,
+    bus: NotificationBus,
+    telegramUsers: TelegramUsersAdapter
+) {
+    bus.subscribe<QuestChangeMessage>(
+        'quest-change-proposed',
+        async ({ payload }) => {
+            const user = await telegramUsers.getCatDataByUserId(
+                payload.targetUserId
+            )
+            const qnTexts = i18n(user).questNegotiation
+
+            const proposal = qnTexts.proposal({
+                date: new Date(payload.time),
+                place: payload.place,
+            })
+            let text = ''
+            if (payload.questType === QuestType.initiation && payload.elder) {
+                // X, shaman|chief of the tribe Y proposed to meet: ...
+                const texts = i18n(user).initiation
+                text = texts.questNotification({
+                    elder: i18n(user).elders[payload.elder](),
+                    name: payload.proposingMemberName,
+                    tribe: payload.tribe,
+                    proposal,
+                })
+            } else {
+                let description = payload.description
+                if (!description) {
+                    if (payload.questType === QuestType.initiation) {
+                        description = i18n(user).initiation.questDescription()
+                    }
+                }
+                text = qnTexts.proposalRecieved({
+                    who: payload.proposingMemberName,
+                    proposal,
+                    tribe: payload.tribe,
+                    description: description,
+                })
+            }
+
+            const kb = Markup.inlineKeyboard([
+                Markup.button.callback(
+                    qnTexts.confirm(),
+                    `agree-quest:${payload.targetMemberId}:${payload.questId}`
+                ),
+                Markup.button.callback(
+                    qnTexts.proposeOther(),
+                    `change-quest:${payload.targetMemberId}:${payload.questId}`
+                ),
+            ])
+
+            bot.telegram.sendMessage(user.chatId, text, kb)
+        }
+    )
+
+    bus.subscribe<QuestAcceptedMessage>(
+        'quest-accepted',
+        async ({ payload }) => {
+            const user = await telegramUsers.getCatDataByUserId(
+                payload.targetUserId
+            )
+            const qnTexts = i18n(user).questNegotiation
+            const proposal = qnTexts.proposal({
+                date: new Date(payload.time),
+                place: payload.place,
+            })
+            let text: string
+            if (payload.members.length > 2) {
+                text = qnTexts.questAccepted({
+                    description: payload.description,
+                    proposal,
+                })
+            } else {
+                const who = payload.members.find(
+                    (m) => m.id !== payload.targetMemberId
+                )
+                if (!who)
+                    throw new Error(
+                        'Cannot agree on quest with no participants'
+                    )
+                text = qnTexts.questAcceptedPersonal({
+                    proposal,
+                    who: who.name,
+                })
+            }
+            bot.telegram.sendMessage(user.chatId, text)
+        }
+    )
+
+    bus.subscribe<NewIntroductionQuestMessage>(
+        'new-introduction-quest-message',
+        async ({ payload }) => {
+            // X, member of the tribe Y proposed to meet
+        }
+    )
+    bus.subscribe<NewCoordinationQuestMessage>(
+        'new-coordination-quest-message',
+        async ({ payload }) => {
+            // new quest Y! Meet with X to solve it
+        }
+    )
+}
+
+export const questNegotiationScreen = { actions, scenes, attachNotifications }

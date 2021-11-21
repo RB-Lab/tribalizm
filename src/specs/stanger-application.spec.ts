@@ -33,8 +33,9 @@ describe('Stranger application', () => {
                     targetUserId: world.chief.userId,
                     tribeName: world.tribe.name,
                     coverLetter: world.defReq.coverLetter,
-                    qeuestId: jasmine.any(String),
+                    questId: jasmine.any(String),
                     userName: world.user.name,
+                    elder: 'chief',
                 },
             })
         )

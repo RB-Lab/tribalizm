@@ -73,7 +73,7 @@
     -   → How wise they are? ℹ️🤪🤥🤔🥸🦉
     -   ← 🤔
     -   Ok, your opinion will be applied as soon as you join the tribe and other 4 opinions collected
--   _Bar Tribe shaman_ 🚩
+-   _Bar Tribe shaman_
     -   → New appliaction! (cover letter) `Accept`, `Decline`
     -   ← Accept
     -   → Enter date `...calendar...`
@@ -107,7 +107,7 @@
     -   ← Yes
     -   → Ok, cadidate accepted in tribe!
 -   _New User_
-    -   → Hooray! You've been accepted in Bar Tribe!! You'll meet with other members soon.
+    -   → Hooray! You've been accepted in Bar Tribe!! You'll meet with other members soon. 🚩
 -   _Old member 1_
     -   → New member in Bar Tribe! Let's arrange an introduction meeting!
     -   → Enter date `...calendar...`

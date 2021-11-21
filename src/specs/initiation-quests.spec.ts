@@ -144,7 +144,8 @@ describe('Initiation quests:', () => {
                         tribeName: world.tribe.name,
                         coverLetter: world.application.coverLetter,
                         userName: world.user.name,
-                        qeuestId: newQuest.id,
+                        questId: newQuest.id,
+                        elder: 'shaman',
                     },
                 })
             )
@@ -200,6 +201,7 @@ describe('Initiation quests:', () => {
                 jasmine.objectContaining<ApplicationApprovedMessage>({
                     type: 'application-approved',
                     payload: {
+                        tribe: world.tribe.name,
                         targetUserId: world.newMember.userId,
                         targetMemberId: world.newMember.id,
                     },
@@ -286,6 +288,7 @@ describe('Initiation quests:', () => {
                 jasmine.objectContaining<ApplicationApprovedMessage>({
                     type: 'application-approved',
                     payload: {
+                        tribe: world.tribe.name,
                         targetUserId: world.newMember.userId,
                         targetMemberId: world.newMember.id,
                     },

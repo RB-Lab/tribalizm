@@ -45,9 +45,10 @@ export class TribeApplication extends ContextUser {
                 targetUserId: chief.userId,
                 targetMemberId: chief.id,
                 tribeName: tribe.name,
-                qeuestId: quest.id,
+                questId: quest.id,
                 coverLetter: app.coverLetter,
                 userName: user.name,
+                elder: 'chief',
             },
         })
     }
@@ -65,7 +66,8 @@ export interface ApplicationMessage extends Message {
         targetUserId: string
         targetMemberId: string
         tribeName: string
-        qeuestId: string
+        questId: string
+        elder: 'chief' | 'shaman'
         userName: string
         coverLetter: string
     }

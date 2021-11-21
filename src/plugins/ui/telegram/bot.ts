@@ -1,7 +1,6 @@
 import { Scenes, session, Telegraf } from 'telegraf'
 import { Tribalizm } from '../../../use-cases/tribalism'
 import { NotificationBus } from '../../../use-cases/utils/notification-bus'
-import { attachNotifications } from './notifications'
 import { initiationScreen } from './screens/initiation'
 import { questNegotiationScreen } from './screens/quest-negotiation'
 import { rateMemberScreen } from './screens/rate-member'
@@ -101,7 +100,12 @@ export async function makeBot(config: BotConfig) {
     rateMemberScreen.actions(bot, config.tribalism)
     startScreenActions(bot)
 
-    attachNotifications(
+    questNegotiationScreen.attachNotifications(
+        bot,
+        config.notifcationsBus,
+        config.telegramUsersAdapter
+    )
+    initiationScreen.attachNotifications(
         bot,
         config.notifcationsBus,
         config.telegramUsersAdapter

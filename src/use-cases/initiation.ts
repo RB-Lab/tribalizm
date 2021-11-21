@@ -34,9 +34,8 @@ export class Initiation extends ContextUser {
             app.tribeId,
             req.elderUserId
         )
-        const tribe = await this.getTribe(app.tribeId)
         // TODO make those methods private, leave only this one
-        if (tribe.chiefId === elder.id) {
+        if (app.chiefId === elder.id) {
             this.approveByChief(req)
         } else {
             this.approveByShaman(req)
@@ -77,9 +76,10 @@ export class Initiation extends ContextUser {
                     targetUserId: shaman.userId,
                     targetMemberId: shaman.id,
                     tribeName: tribe.name,
-                    qeuestId: newQuest.id,
+                    questId: newQuest.id,
                     coverLetter: app.coverLetter,
                     userName: user.name,
+                    elder: 'shaman',
                 },
             })
         } else {
@@ -231,9 +231,11 @@ export class Initiation extends ContextUser {
         member.isCandidate = false
         await this.stores.memberStore.save(member)
         await this.stores.applicationStore.save(app)
+        const tribe = await this.getTribe(app.tribeId)
         this.notify<ApplicationApprovedMessage>({
             type: 'application-approved',
             payload: {
+                tribe: tribe.name,
                 targetUserId: member.userId,
                 targetMemberId: member.id,
             },
@@ -279,6 +281,7 @@ export interface ApplicationApprovedMessage extends Message {
     payload: {
         targetUserId: string
         targetMemberId: string
+        tribe: string
     }
 }
 export interface ApplicationDeclinedMessage extends Message {

@@ -1,8 +1,17 @@
 import { Markup, Scenes, Telegraf } from 'telegraf'
+import { ApplicationMessage } from '../../../../use-cases/apply-tribe'
 import { QuestType } from '../../../../use-cases/entities/quest'
+import {
+    ApplicationApprovedMessage,
+    ApplicationDeclinedMessage,
+    RequestApplicationFeedbackMessage,
+} from '../../../../use-cases/initiation'
 import { Tribalizm } from '../../../../use-cases/tribalism'
+import { NotificationBus } from '../../../../use-cases/utils/notification-bus'
 import { i18n } from '../../i18n/i18n-ctx'
 import { SceneState } from '../scene-state'
+import { TelegramUsersAdapter } from '../users-adapter'
+import { makeCalbackDataParser } from './calback-parser'
 
 function scenes(tribalizm: Tribalizm) {
     const declineInitiaton = new Scenes.BaseScene<Scenes.SceneContext>(
@@ -56,29 +65,156 @@ function scenes(tribalizm: Tribalizm) {
     return [declineInitiaton, appDecline, appAccept]
 }
 
+const proposeParser = makeCalbackDataParser('propose-initiation', [
+    'memberId',
+    'questId',
+    'elder',
+])
+const declineParser = makeCalbackDataParser('decline-application', [
+    'memberId',
+    'questId',
+])
+
+const acceptParser = makeCalbackDataParser('application-accept', [
+    'memberId',
+    'questId',
+])
+const appDeclineParser = makeCalbackDataParser('application-decline', [
+    'memberId',
+    'questId',
+])
+
 function actions(bot: Telegraf<Scenes.SceneContext>) {
-    bot.action(/propose-initiation:(.+)/, (ctx) => {
-        const [memberId, questId] = ctx.match[1].split(':')
+    bot.action(proposeParser.regex, (ctx) => {
+        const data = proposeParser.parse(ctx.match[0])
         ctx.scene.enter('quest-negotiation', {
-            questId,
-            memberId,
-            chiefInitiation: true,
+            questId: data.questId,
+            memberId: data.memberId,
+            chiefInitiation: data.elder === 'chief',
+            shamanInitiation: data.elder === 'shaman',
         })
     })
 
     // this is from the get-go, @see notifications/ApplicationMessage
-    bot.action(/decline-application:(.+)/, (ctx) => {
-        const [memberId, questId] = ctx.match[1].split(':')
-        ctx.scene.enter('declline-application', { questId, memberId })
+    bot.action(declineParser.regex, (ctx) => {
+        const data = declineParser.parse(ctx.match[0])
+        ctx.scene.enter('declline-application', data)
     })
 
-    bot.action(/application-accept:(.+)/, (ctx) => {
-        const [memberId, questId] = ctx.match[1].split(':')
-        ctx.scene.enter('application-accept', { questId, memberId })
+    bot.action(acceptParser.regex, (ctx) => {
+        const data = acceptParser.parse(ctx.match[0])
+        ctx.scene.enter('application-accept', data)
     })
-    bot.action(/application-decline:(.+)/, (ctx) => {
-        const [memberId, questId] = ctx.match[1].split(':')
-        ctx.scene.enter('application-decline', { questId, memberId })
+    bot.action(appDeclineParser.regex, (ctx) => {
+        const data = appDeclineParser.parse(ctx.match[0])
+        ctx.scene.enter('application-decline', data)
     })
 }
-export const initiationScreen = { scenes, actions }
+
+export function attachNotifications(
+    bot: Telegraf<Scenes.SceneContext>,
+    bus: NotificationBus,
+    telegramUsers: TelegramUsersAdapter
+) {
+    bus.subscribe<ApplicationMessage>(
+        'application-message',
+        async ({ payload }) => {
+            const elder = await telegramUsers.getCatDataByUserId(
+                payload.targetUserId
+            )
+            const texts = i18n(elder).notifications.tribeAppliaction
+
+            const keyboard = Markup.inlineKeyboard([
+                Markup.button.callback(
+                    texts.assignInitiation(),
+                    proposeParser.serialize({
+                        memberId: payload.targetMemberId,
+                        questId: payload.questId,
+                        elder: payload.elder,
+                    })
+                ),
+                Markup.button.callback(
+                    texts.decline(),
+                    declineParser.serialize({
+                        memberId: payload.targetMemberId,
+                        questId: payload.questId,
+                    })
+                ),
+            ])
+
+            bot.telegram.sendMessage(
+                elder.chatId,
+                `<b>${texts.title({
+                    tribe: payload.tribeName,
+                })}</b>\n\n${texts.applicant({
+                    username: `<i>${payload.userName}</i>`,
+                })}\n${texts.coverLetter()}\n${payload.coverLetter}`,
+                { parse_mode: 'HTML', reply_markup: keyboard.reply_markup }
+            )
+        }
+    )
+    bus.subscribe<ApplicationDeclinedMessage>(
+        'application-declined',
+        async ({ payload }) => {
+            const user = await telegramUsers.getCatDataByUserId(
+                payload.targetUserId
+            )
+            const texts = i18n(user).notifications.tribeAppliaction
+
+            bot.telegram.sendMessage(
+                user.chatId,
+                texts.applicationDeclined({ tribe: payload.tribeName })
+            )
+        }
+    )
+    bus.subscribe<RequestApplicationFeedbackMessage>(
+        'request-application-feedback',
+        async ({ payload }) => {
+            const user = await telegramUsers.getCatDataByUserId(
+                payload.targetUserId
+            )
+            const texts = i18n(user).initiation
+
+            const kb = Markup.inlineKeyboard([
+                Markup.button.callback(
+                    texts.accept(),
+                    acceptParser.serialize({
+                        memberId: payload.targetMemberId,
+                        questId: payload.questId,
+                    })
+                ),
+                Markup.button.callback(
+                    texts.decline(),
+                    appDeclineParser.serialize({
+                        memberId: payload.targetMemberId,
+                        questId: payload.questId,
+                    })
+                ),
+            ])
+
+            const text = texts.feedbackRequest({
+                name: payload.applicantName,
+                tribe: payload.tribe,
+            })
+
+            bot.telegram.sendMessage(user.chatId, text, kb)
+        }
+    )
+
+    bus.subscribe<ApplicationApprovedMessage>(
+        'application-approved',
+        async ({ payload }) => {
+            const user = await telegramUsers.getCatDataByUserId(
+                payload.targetUserId
+            )
+            const texts = i18n(user).initiation
+
+            bot.telegram.sendMessage(
+                user.chatId,
+                texts.appliactionApproved({ tribe: payload.tribe })
+            )
+        }
+    )
+}
+
+export const initiationScreen = { scenes, actions, attachNotifications }

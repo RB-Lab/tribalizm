@@ -35,6 +35,7 @@ export class InMemoryStore<T> implements Store<T> {
             id,
         }
         this._store[id] = toSotre
+
         return Promise.resolve(this._instantiate(toSotre))
     }
     saveBulk = (docs: T[]) => {

@@ -94,12 +94,13 @@ export class TribeApplication {
         this.bus.notify<ApplicationMessage>({
             type: 'application-message',
             payload: {
-                qeuestId: '--todo--',
+                questId: '--todo--',
                 targetUserId: user.id,
                 targetMemberId: '--todo--',
                 tribeName: names.find(([id]) => id === req.tribeId)![1],
                 coverLetter: req.coverLetter,
                 userName: user.username!,
+                elder: 'chief',
             },
         })
     }
