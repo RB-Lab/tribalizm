@@ -1,18 +1,14 @@
-import TelegramServer from 'telegram-test-api'
-import { createContext } from '../test-context'
-import { makeBot } from '../../plugins/ui/telegram/bot'
-import { StoreTelegramUsersAdapter } from '../../plugins/ui/telegram/users-adapter'
-import {
-    getInlineKeyCallbacks,
-    getKeyboardButtons,
-    wrapClient,
-} from './bot-utils'
+import { Awaited } from '../../ts-utils'
 import { City } from '../../use-cases/entities/city'
 import { Tribe } from '../../use-cases/entities/tribe'
-import { Awaited } from '../../ts-utils'
-import { Member } from '../../use-cases/entities/member'
-import { TaskDiscpatcher } from '../../use-cases/utils/task-dispatcher'
 import { Scheduler } from '../../use-cases/utils/scheduler'
+import { TaskDiscpatcher } from '../../use-cases/utils/task-dispatcher'
+import { createContext } from '../test-context'
+import {
+    createTelegramContext,
+    getInlineKeyCallbacks,
+    getKeyboardButtons,
+} from './bot-utils'
 
 function xdescribe(...args: any[]) {}
 describe('Get into tribe [integration]', () => {
@@ -255,6 +251,8 @@ describe('Get into tribe [integration]', () => {
         )
         expect(shMember?.votes.length).toBe(1)
 
+        process.env.chatDebug = 'true'
+
         // shaman is asked if they accept member
         const shamanFeedbackUpd = await world.shaman.chat()
         expect(shamanFeedbackUpd.length).toBe(1)
@@ -269,7 +267,6 @@ describe('Get into tribe [integration]', () => {
             b.startsWith('application-accept:')
         )!
         await world.shaman.chat(shamanAcceptButton, true)
-        process.env.chatDebug = 'true'
 
         // new user is notified on thier approval
         const acceptedUpdate = await world.newUser.chat()
@@ -304,59 +301,13 @@ describe('Get into tribe [integration]', () => {
 
 async function setup() {
     // process.env.chatDebug = 'true'
-    const token = '-test-bot-token'
-    const server = new TelegramServer({ port: 9001 })
-    await server.start()
 
     const context = await createContext()
+    const { server, addTribeMember, makeClient, bot } =
+        await createTelegramContext(context)
 
-    const bot = await makeBot({
-        notifcationsBus: context.async.notififcationBus,
-        token,
-        tribalism: context.tribalism,
-        webHook: {
-            port: 9002,
-            path: '/tg-hook',
-        },
-        telegramUsersAdapter: new StoreTelegramUsersAdapter(
-            context.stores.userStore
-        ),
-        telegramURL: server.config.apiURL,
-    })
     const scheduler = new Scheduler(context.stores.taskStore)
     const taskDiscpatcher = new TaskDiscpatcher(context.tribalism, scheduler)
-
-    const newUser = wrapClient(
-        server,
-        server.getClient(token, {
-            firstName: 'Newbie',
-            userName: 'Applicant',
-            chatId: 3,
-            userId: 3,
-        })
-    )
-    const chief = wrapClient(
-        server,
-        server.getClient(token, {
-            firstName: 'BarBar Monster',
-            userName: 'Tribe Chief',
-            chatId: 1,
-            userId: 1,
-        })
-    )
-    const shaman = wrapClient(
-        server,
-        server.getClient(token, {
-            firstName: 'Barlog',
-            userName: 'Tribe Shaman',
-            chatId: 2,
-            userId: 2,
-        })
-    )
-    await chief.chat('/start')
-    const chiefUser = await context.stores.userStore._last()
-    await shaman.chat('/start')
-    const shamanUser = await context.stores.userStore._last()
 
     const city = await context.stores.cityStore.save(
         new City({
@@ -375,32 +326,24 @@ async function setup() {
             description: 'We BAR BAR!',
         }),
     ])
-    const chiefMember = await context.stores.memberStore.save(
-        new Member({
-            tribeId: tribes[1].id,
-            userId: chiefUser!.id,
-            isCandidate: false,
-            charisma: 10,
-            wisdom: 5,
-        })
+
+    const chief = await addTribeMember(
+        makeClient('BarBar Monster', 'Tribe Chief'),
+        tribes[1].id
     )
-    const shamanMember = await context.stores.memberStore.save(
-        new Member({
-            tribeId: tribes[1].id,
-            userId: shamanUser!.id,
-            isCandidate: false,
-            charisma: 5,
-            wisdom: 10,
-        })
+    const shaman = await addTribeMember(
+        makeClient('Barlog', 'Tribe Shaman'),
+        tribes[1].id
     )
+    const newUser = makeClient('Newbie', 'Applicant')
+
     await context.stores.tribeStore.save({
         ...tribes[1],
-        chiefId: chiefMember.id,
-        shamanId: shamanMember.id,
+        chiefId: chief.member.id,
+        shamanId: shaman.member.id,
     })
 
     return {
-        bot,
         requestTaskQueue: async () => {
             if (process.env.chatDebug) {
                 console.log(
@@ -409,16 +352,8 @@ async function setup() {
             }
             await taskDiscpatcher.run()
         },
-        chief: {
-            ...chief,
-            member: chiefMember,
-            user: chiefUser,
-        },
-        shaman: {
-            ...shaman,
-            member: shamanMember,
-            user: shamanUser,
-        },
+        chief,
+        shaman,
         newUser,
         city,
         tribes,

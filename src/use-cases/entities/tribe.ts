@@ -16,6 +16,7 @@ export interface ITribeData {
 export interface ITribe extends ITribeData {}
 
 export type RequiredParams = Pick<ITribe, 'name' | 'cityId'>
+export type SavedTribe = ITribeData & Storable
 
 export class Tribe implements ITribe {
     id: string | null
@@ -26,7 +27,7 @@ export class Tribe implements ITribe {
     vocabulary: TribeType
     chiefId: string | null
     shamanId: string | null
-    constructor(params: RequiredParams & Partial<ITribeData & Storable>) {
+    constructor(params: RequiredParams & Partial<SavedTribe>) {
         this.id = params.id || null
         this.chiefId = params.chiefId || null
         this.shamanId = params.shamanId || null

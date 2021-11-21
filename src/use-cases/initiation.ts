@@ -164,7 +164,7 @@ export class Initiation extends ContextUser {
     }
 
     howWasIt = async (req: { questId: string }) => {
-        const quest = await this.getQuest(req.questId)
+        const { app, quest } = await this.getQuestAndApplication(req.questId)
         const members = await this.stores.memberStore.find({
             id: quest.memberIds,
         })
@@ -173,7 +173,7 @@ export class Initiation extends ContextUser {
         for (let member of members) {
             const otherMember = members.find((m) => m.id !== member.id)
             if (!otherMember) throw new Error('Not enough members')
-            if (member.id === tribe.chiefId || member.id === tribe.shamanId) {
+            if (member.id === app.chiefId || member.id === app.shamanId) {
                 this.notify<RequestApplicationFeedbackMessage>({
                     type: 'request-application-feedback',
                     payload: {
@@ -186,7 +186,7 @@ export class Initiation extends ContextUser {
                 })
             } else {
                 const elder =
-                    otherMember.id === tribe.chiefId ? 'chief' : 'shaman'
+                    otherMember.id === app.chiefId ? 'chief' : 'shaman'
                 this.notify<RateElderMessage>({
                     type: 'rate-elder-message',
                     payload: {

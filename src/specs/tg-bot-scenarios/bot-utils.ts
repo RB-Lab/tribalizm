@@ -1,5 +1,9 @@
 import TelegramServer from 'telegram-test-api'
+import { makeBot } from '../../plugins/ui/telegram/bot'
+import { StoreTelegramUsersAdapter } from '../../plugins/ui/telegram/users-adapter'
 import { Awaited, notEmpty } from '../../ts-utils'
+import { Member } from '../../use-cases/entities/member'
+import { createContext } from '../test-context'
 
 type TelegramClient = ReturnType<TelegramServer['getClient']>
 type UpdatePromise = ReturnType<TelegramClient['getUpdates']>
@@ -145,4 +149,59 @@ export function log(...args: any[]) {
     console.log(`==========  ${mark}  =========`)
     console.log(...args)
     console.log('=============================')
+}
+
+export async function createTelegramContext(
+    context: Awaited<ReturnType<typeof createContext>>
+) {
+    const token = '-test-bot-token'
+    const server = new TelegramServer({ port: 9001 })
+    await server.start()
+
+    const bot = await makeBot({
+        notifcationsBus: context.async.notififcationBus,
+        token,
+        tribalism: context.tribalism,
+        webHook: {
+            port: 9002,
+            path: '/tg-hook',
+        },
+        telegramUsersAdapter: new StoreTelegramUsersAdapter(
+            context.stores.userStore
+        ),
+        telegramURL: server.config.apiURL,
+    })
+
+    function makeClient(user: string, chat: string) {
+        makeClient.counter++
+        return wrapClient(
+            server,
+            server.getClient(token, {
+                firstName: user,
+                userName: chat,
+                chatId: makeClient.counter,
+                userId: makeClient.counter,
+            })
+        )
+    }
+    makeClient.counter = 0
+
+    async function addTribeMember(
+        client: ReturnType<typeof wrapClient>,
+        tribeId: string
+    ) {
+        await client.chat('/start')
+        const user = await context.stores.userStore._last()
+
+        const member = await context.stores.memberStore.save(
+            new Member({
+                tribeId,
+                userId: user!.id,
+                isCandidate: false,
+            })
+        )
+        return { ...client, user, member }
+    }
+
+    return { server, bot, makeClient, addTribeMember }
 }
