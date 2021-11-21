@@ -65,6 +65,10 @@ const en: BaseTranslation = {
             "🎉 Hooray! You've been accepted in {tribe:string} tribe! You'll meet with other members soon.",
     },
     introduction: {
+        newMemberNotice:
+            "🎉 New member {name:string} in {tribe:string}! Let's arrange an introduction meeting!",
+        okay: "🤗 Yes, let's meet!",
+        questDescription: 'introduction meeting',
         questNotification:
             '{name}, member of the {tribe} proposes to meet: \n {proposal}',
     },
@@ -105,8 +109,10 @@ const en: BaseTranslation = {
         },
     },
     rateMember: {
-        charismaPrompt:
+        elderCharismaPrompt:
             "You've just meat {tribe:string} {elder:string}, how charismatic they are?",
+        charismaPrompt:
+            "You've just meat {name: string}, how charismatic they are?",
         wisdomPrompt: 'How wise they are?',
         help: 'ℹ️',
         charisma: { '0': '😩', '1': '😕', '2': '🤔', '3': '🤩', '4': '🔥' },

@@ -2,9 +2,10 @@ import { mapify } from '../ts-utils'
 import { ApplicationMessage } from './apply-tribe'
 import { ApplicationPhase, IApplication } from './entities/application'
 import { Quest, QuestType } from './entities/quest'
+import { Storable } from './entities/store'
 import { ContextUser } from './utils/context-user'
 import { Message } from './utils/message'
-import { IntroductionTask } from './utils/scheduler'
+import { HowWasQuestTask, IntroductionTask } from './utils/scheduler'
 
 export class Initiation extends ContextUser {
     startInitiation = async (req: InitiationRequest) => {
@@ -163,8 +164,10 @@ export class Initiation extends ContextUser {
         })
     }
 
-    howWasIt = async (req: { questId: string }) => {
-        const { app, quest } = await this.getQuestAndApplication(req.questId)
+    howWasIt = async (task: HowWasQuestTask & Storable) => {
+        const { app, quest } = await this.getQuestAndApplication(
+            task.payload.questId
+        )
         const members = await this.stores.memberStore.find({
             id: quest.memberIds,
         })
@@ -200,6 +203,8 @@ export class Initiation extends ContextUser {
                 })
             }
         }
+
+        await this.scheduler.markDone(task.id)
     }
 
     private async getQuestAndApplication(questId: string) {

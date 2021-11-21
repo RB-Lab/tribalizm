@@ -11,7 +11,7 @@ import {
 } from './bot-utils'
 
 function xdescribe(...args: any[]) {}
-describe('Get into tribe [integration]', () => {
+xdescribe('Get into tribe [integration]', () => {
     let world: Awaited<ReturnType<typeof setup>>
     beforeEach(async () => {
         world = await setup()
@@ -251,8 +251,6 @@ describe('Get into tribe [integration]', () => {
         )
         expect(shMember?.votes.length).toBe(1)
 
-        process.env.chatDebug = 'true'
-
         // shaman is asked if they accept member
         const shamanFeedbackUpd = await world.shaman.chat()
         expect(shamanFeedbackUpd.length).toBe(1)
@@ -271,6 +269,107 @@ describe('Get into tribe [integration]', () => {
         // new user is notified on thier approval
         const acceptedUpdate = await world.newUser.chat()
         expect(acceptedUpdate.length).toBe(1)
+
+        // time forward to the point when intro task was alocated
+        jasmine.clock().install()
+        const introTask = await world.context.stores.taskStore._last()
+        jasmine.clock().mockDate(new Date(introTask!.time + 1000))
+        world.requestTaskQueue()
+        jasmine.clock().uninstall()
+
+        // the old user recieves invitation to make an intro quest
+        const oldieUpds = await world.oldie1.chat()
+        expect(oldieUpds.length).toBe(1)
+
+        // only now we can add oldie2, because intro tasks assigned randomly
+        const oldie2 = await world.addOldie2()
+
+        const oldieOk = getInlineKeyCallbacks(oldieUpds[0])[0]
+        const oldieCalendar = await world.oldie1.chatLast(oldieOk)
+        const olDates = getInlineKeyCallbacks(oldieCalendar).filter((cb) =>
+            cb.includes('date')
+        )
+        const olHour = getInlineKeyCallbacks(
+            await world.oldie1.chatLast(olDates[6]!, true)
+        )[6]
+        const olMinutes = getInlineKeyCallbacks(
+            await world.oldie1.chatLast(olHour, true)
+        )[0]
+        await world.oldie1.chat(olMinutes, true)
+        const olConfirm = getInlineKeyCallbacks(
+            await world.oldie1.chatLast('Go Bla-blakr bar!')
+        )
+        await world.oldie1.chat(olConfirm[0], true)
+
+        // new member recieves invitation on intro quest
+        const introUpd = await world.newUser.chat()
+        expect(introUpd.length).toBe(1)
+        const introAgree = getInlineKeyCallbacks(introUpd[0])[0]
+        await world.newUser.chat(introAgree)
+
+        // oldie notified that newbie agreed
+        expect((await world.oldie1.chat()).length).toBe(1)
+
+        // time forward to the point when intro task was alocated
+        jasmine.clock().install()
+        const introRateTask = await world.context.stores.taskStore._last()
+        jasmine.clock().mockDate(new Date(introRateTask!.time + 1000))
+        world.requestTaskQueue()
+        jasmine.clock().uninstall()
+
+        // newbie is asked to rate oldie's charisma & wisdom
+        const oldRateUpd = await world.newUser.chat()
+        expect(oldRateUpd.length).toBe(1)
+        const rateOldieCharismaButtons = getInlineKeyCallbacks(oldRateUpd[0])
+        expect(rateOldieCharismaButtons.length).toBe(6)
+        const rateOldieWisdomUpd = await world.newUser.chatLast(
+            rateOldieCharismaButtons[5],
+            true
+        )
+        const rateOldieWisdomButtons = getInlineKeyCallbacks(rateOldieWisdomUpd)
+        expect(rateOldieWisdomButtons.length).toBe(6)
+        await world.newUser.chatLast(rateOldieWisdomButtons[3])
+        const oldieMember = await world.context.stores.memberStore.getById(
+            world.oldie1.member.id
+        )
+        expect(oldieMember?.votes.length).toBe(1)
+
+        process.env.chatDebug = 'true'
+        // oldie is asked to rate newbie's charisma & wisdom
+        const newbieRateUpd = await world.oldie1.chat()
+        expect(newbieRateUpd.length).toBe(1)
+        const rateNewbieCharismaButtons = getInlineKeyCallbacks(
+            newbieRateUpd[0]
+        )
+        expect(rateNewbieCharismaButtons.length).toBe(6)
+        const rateNewbieWisdomUpd = await world.oldie1.chatLast(
+            rateNewbieCharismaButtons[5],
+            true
+        )
+        const rateNewbieWisdomButtons =
+            getInlineKeyCallbacks(rateNewbieWisdomUpd)
+        expect(rateNewbieWisdomButtons.length).toBe(6)
+        await world.oldie1.chatLast(rateNewbieWisdomButtons[3])
+        const newbieieMember = await world.context.stores.memberStore.getById(
+            newUserMember.id
+        )
+        expect(newbieieMember?.votes.length).toBe(1)
+
+        // now oldie 2 is notified on intro quest
+
+        // time forward to the point when intro task was alocated
+        jasmine.clock().install()
+        const intro2Task = await world.context.stores.taskStore._last()
+        jasmine.clock().mockDate(new Date(intro2Task!.time + 1000))
+        world.requestTaskQueue()
+        jasmine.clock().uninstall()
+
+        world.context.stores.userStore.__show(['id', 'name'])
+        world.context.stores.memberStore.__show(['id', 'userId'])
+        world.context.stores.taskStore.__show(['done', 'type', 'payload'])
+
+        const oldie2Upds = await world.oldie1.chat()
+        expect(oldie2Upds.length).toBe(1)
     })
 
     it('Shows tribes list on location sharing', async () => {
@@ -335,6 +434,10 @@ async function setup() {
         makeClient('Barlog', 'Tribe Shaman'),
         tribes[1].id
     )
+    const oldie1 = await addTribeMember(
+        makeClient('Oldie Bar', 'Old User 1'),
+        tribes[1].id
+    )
     const newUser = makeClient('Newbie', 'Applicant')
 
     await context.stores.tribeStore.save({
@@ -346,14 +449,26 @@ async function setup() {
     return {
         requestTaskQueue: async () => {
             if (process.env.chatDebug) {
+                const tasks = await context.stores.taskStore.find({
+                    done: false,
+                })
                 console.log(
-                    `--- tasks updates requested, now is ${new Date()} ---`
+                    `--- Now is ${new Date()}. Dispatching tasks: ${
+                        tasks.length
+                    } ---`
                 )
             }
             await taskDiscpatcher.run()
         },
+        addOldie2: async () => {
+            await addTribeMember(
+                makeClient('Oldie Garr', 'Old User 2'),
+                tribes[1].id
+            )
+        },
         chief,
         shaman,
+        oldie1,
         newUser,
         city,
         tribes,

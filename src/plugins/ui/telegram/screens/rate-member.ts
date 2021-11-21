@@ -1,5 +1,6 @@
 import { Markup, Scenes, Telegraf } from 'telegraf'
 import { RateElderMessage } from '../../../../use-cases/initiation'
+import { RateMemberMessage } from '../../../../use-cases/quest-finale'
 import { Tribalizm } from '../../../../use-cases/tribalism'
 import { NotificationBus } from '../../../../use-cases/utils/notification-bus'
 import { i18n } from '../../i18n/i18n-ctx'
@@ -82,10 +83,40 @@ export function attachNotifications(
             })
             bot.telegram.sendMessage(
                 user.chatId,
-                texts.charismaPrompt({
+                texts.elderCharismaPrompt({
                     elder: i18n(user).elders[payload.elder](),
                     tribe: payload.tribe,
                 }),
+                Markup.inlineKeyboard([
+                    Markup.button.callback(texts.help(), 'help-topic:charisma'),
+                    ...keys,
+                ])
+            )
+        }
+    )
+    bus.subscribe<RateMemberMessage>(
+        'rate-member-message',
+        async ({ payload }) => {
+            const user = await telegramUsers.getCatDataByUserId(
+                payload.targetUserId
+            )
+            const texts = i18n(user).rateMember
+            const keys = [0, 1, 2, 3, 4].map((score) => {
+                const text = (texts.charisma as any)[String(score)]()
+                return Markup.button.callback(
+                    text,
+                    parser.serialize({
+                        memberId: payload.targetMemberId,
+                        score,
+                        voteFor: payload.memberId,
+                        questId: payload.questId,
+                        charisma: null,
+                    })
+                )
+            })
+            bot.telegram.sendMessage(
+                user.chatId,
+                texts.charismaPrompt({ name: payload.memberName }),
                 Markup.inlineKeyboard([
                     Markup.button.callback(texts.help(), 'help-topic:charisma'),
                     ...keys,

@@ -7,10 +7,7 @@ import {
 } from '../../../../use-cases/negotiate-quest'
 import { Tribalizm } from '../../../../use-cases/tribalism'
 import { NotificationBus } from '../../../../use-cases/utils/notification-bus'
-import {
-    NewCoordinationQuestMessage,
-    NewIntroductionQuestMessage,
-} from '../../../../use-cases/utils/quest-message'
+import { NewCoordinationQuestMessage } from '../../../../use-cases/utils/quest-message'
 import { i18n } from '../../i18n/i18n-ctx'
 import { SceneState } from '../scene-state'
 import { TelegramUsersAdapter } from '../users-adapter'
@@ -206,6 +203,9 @@ export function attachNotifications(
                     if (payload.questType === QuestType.initiation) {
                         description = i18n(user).initiation.questDescription()
                     }
+                    if (payload.questType === QuestType.introduction) {
+                        description = i18n(user).introduction.questDescription()
+                    }
                 }
                 text = qnTexts.proposalRecieved({
                     who: payload.proposingMemberName,
@@ -261,13 +261,6 @@ export function attachNotifications(
                 })
             }
             bot.telegram.sendMessage(user.chatId, text)
-        }
-    )
-
-    bus.subscribe<NewIntroductionQuestMessage>(
-        'new-introduction-quest-message',
-        async ({ payload }) => {
-            // X, member of the tribe Y proposed to meet
         }
     )
     bus.subscribe<NewCoordinationQuestMessage>(

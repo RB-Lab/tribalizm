@@ -181,6 +181,20 @@ export type Translation = {
 	}
 	'introduction': {	
 		/**
+		 * 🎉 New member {name} in {tribe}! Let's arrange an introduction meeting!
+		 * @param {string} name
+		 * @param {string} tribe
+		 */
+		'newMemberNotice': RequiredParams2<'name', 'tribe'>
+		/**
+		 * 🤗 Yes, let's meet!
+		 */
+		'okay': string
+		/**
+		 * introduction meeting
+		 */
+		'questDescription': string
+		/**
 		 * {name}, member of the {tribe} proposes to meet: 
 	 {proposal}
 		 * @param {unknown} name
@@ -319,7 +333,12 @@ export type Translation = {
 		 * @param {string} elder
 		 * @param {string} tribe
 		 */
-		'charismaPrompt': RequiredParams2<'elder', 'tribe'>
+		'elderCharismaPrompt': RequiredParams2<'elder', 'tribe'>
+		/**
+		 * You've just meat {name}, how charismatic they are?
+		 * @param {string} name
+		 */
+		'charismaPrompt': RequiredParams1<'name'>
 		/**
 		 * How wise they are?
 		 */
@@ -541,6 +560,18 @@ export type TranslationFunctions = {
 	}
 	'introduction': {	
 		/**
+		 * 🎉 New member {name} in {tribe}! Let's arrange an introduction meeting!
+		 */
+		'newMemberNotice': (arg: { name: string, tribe: string }) => LocalizedString
+		/**
+		 * 🤗 Yes, let's meet!
+		 */
+		'okay': () => LocalizedString
+		/**
+		 * introduction meeting
+		 */
+		'questDescription': () => LocalizedString
+		/**
 		 * {name}, member of the {tribe} proposes to meet: 
 	 {proposal}
 		 */
@@ -659,7 +690,11 @@ export type TranslationFunctions = {
 		/**
 		 * You've just meat {tribe} {elder}, how charismatic they are?
 		 */
-		'charismaPrompt': (arg: { elder: string, tribe: string }) => LocalizedString
+		'elderCharismaPrompt': (arg: { elder: string, tribe: string }) => LocalizedString
+		/**
+		 * You've just meat {name}, how charismatic they are?
+		 */
+		'charismaPrompt': (arg: { name: string }) => LocalizedString
 		/**
 		 * How wise they are?
 		 */

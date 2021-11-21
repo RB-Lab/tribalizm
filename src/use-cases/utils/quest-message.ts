@@ -5,20 +5,10 @@ export interface NewCoordinationQuestMessage extends Message {
     payload: CoordinationPayload
 }
 
-export interface NewIntroductionQuestMessage extends Message {
-    type: 'new-introduction-quest-message'
-    payload: IntroductionPaylaod
-}
-
 interface QuestPayload {
     targetUserId: string
     targetMemberId: string
     questId: string
-}
-interface IntroductionPaylaod extends QuestPayload {
-    userName: string
-    time: number
-    place: string
 }
 interface CoordinationPayload extends QuestPayload {
     description: string

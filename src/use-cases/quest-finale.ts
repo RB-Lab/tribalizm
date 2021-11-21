@@ -1,7 +1,10 @@
+import { mapify } from '../ts-utils'
 import { QuestType } from './entities/quest'
+import { Storable } from './entities/store'
 import { ContextUser } from './utils/context-user'
 import { findMaxTrait } from './utils/members-utils'
-import { IntroductionTask } from './utils/scheduler'
+import { Message } from './utils/message'
+import { HowWasQuestTask, IntroductionTask } from './utils/scheduler'
 
 export class QuestFinale extends ContextUser {
     finalyze = async (req: QuestFinaleRequest) => {
@@ -61,6 +64,30 @@ export class QuestFinale extends ContextUser {
         await this.stores.questStore.save(quest)
         // TODO COMMIT
     }
+
+    howWasIt = async (task: HowWasQuestTask & Storable) => {
+        const quest = await this.getQuest(task.payload.questId)
+        const members = await this.stores.memberStore.find({
+            id: quest.memberIds,
+        })
+        const membersViews = mapify(await this.getMembersViews(members))
+        for (let member of members) {
+            const otherMember = members.find((m) => m.id !== member.id)
+            if (!otherMember) throw new Error('Not enough members')
+            this.notify<RateMemberMessage>({
+                type: 'rate-member-message',
+                payload: {
+                    targetMemberId: member.id,
+                    targetUserId: member.userId,
+                    questId: quest.id,
+                    memberName: membersViews[otherMember.id].name,
+                    memberId: otherMember.id,
+                },
+            })
+        }
+
+        await this.scheduler.markDone(task.id)
+    }
 }
 
 interface Vote {
@@ -74,4 +101,15 @@ export interface QuestFinaleRequest {
     questId: string
     // TODO get rid of array here?
     votes: Vote[]
+}
+
+export interface RateMemberMessage extends Message {
+    type: 'rate-member-message'
+    payload: {
+        targetMemberId: string
+        targetUserId: string
+        questId: string
+        memberName: string
+        memberId: string
+    }
 }
