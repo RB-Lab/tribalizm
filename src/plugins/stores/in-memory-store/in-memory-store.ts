@@ -3,13 +3,20 @@ import { Store } from '../../../use-cases/entities/store'
 interface Storable {
     id: string
 }
+
 export class InMemoryStore<T> implements Store<T> {
     protected _store: Record<string, any> = {}
     private _getId = () => Math.random().toString().slice(2)
-    private _class?: new (record: any) => T
-    protected _instantiate = (record: any) => {
-        const instance = this._class ? new this._class(record) : { ...record }
-        return instance as T & Storable
+    protected _class?: new (record: any) => T
+    protected _classTable?: Record<string, new (record: any) => T>
+    protected _instantiate = <TT extends T>(record: any) => {
+        let _class = this._class
+        // "single table inheritance" can instantiate different classes, based on type field
+        if (this._classTable && this._classTable[record.type]) {
+            _class = this._classTable[record.type]
+        }
+        const instance = _class ? new _class(record) : { ...record }
+        return instance as TT & Storable
     }
     private _serialize = (doc: any) => {
         return getKeys(doc).reduce((res, key) => {
@@ -24,11 +31,7 @@ export class InMemoryStore<T> implements Store<T> {
         console.log(`${this.constructor.name}: `, ...args)
     }
 
-    constructor(_class?: new (record: any) => T) {
-        this._class = _class
-    }
-
-    save = (doc: T | (T & Storable)) => {
+    save = <TT extends T>(doc: TT | (TT & Storable)) => {
         const id = 'id' in doc && doc.id ? doc.id : this._getId()
         const toSotre = {
             ...this._serialize(doc),
@@ -36,9 +39,9 @@ export class InMemoryStore<T> implements Store<T> {
         }
         this._store[id] = toSotre
 
-        return Promise.resolve(this._instantiate(toSotre))
+        return Promise.resolve(this._instantiate<TT>(toSotre))
     }
-    saveBulk = (docs: T[]) => {
+    saveBulk = <TT extends T>(docs: TT[]) => {
         return Promise.all(docs.map(this.save))
     }
     getById = (id: string) => {

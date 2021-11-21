@@ -1,6 +1,7 @@
 import { ContextUser } from './utils/context-user'
 import {
     IndeclinableError,
+    isCoordinationQuest,
     QuestIncompleteError,
     QuestStatus,
     QuestType,
@@ -35,7 +36,9 @@ export class QuestNegotiation extends ContextUser {
                     targetUserId: targetMember.userId,
                     questId: quest.id,
                     questType: quest.type,
-                    description: quest.description,
+                    description: isCoordinationQuest(quest)
+                        ? quest.description
+                        : undefined,
                     time: req.time,
                     place: req.place,
                     proposingMemberId: req.memberId,
@@ -66,7 +69,9 @@ export class QuestNegotiation extends ContextUser {
                     type: 'quest-accepted',
                     payload: {
                         targetMemberId: member.id,
-                        description: quest.description,
+                        description: isCoordinationQuest(quest)
+                            ? quest.description
+                            : undefined,
                         targetUserId: member.userId,
                         members: memberViews,
                         // checked above
@@ -92,6 +97,12 @@ export class QuestNegotiation extends ContextUser {
     declineQuest = async (req: QuestDeclineRequest) => {
         const quest = await this.getQuest(req.questId)
         quest.decline(req.memberId)
+        // TODO should be possible also decline introduction quests
+        if (!isCoordinationQuest(quest)) {
+            throw new IndeclinableError(
+                `Cannot re-spawn non-coordination quest ${quest.id} (${quest.type})`
+            )
+        }
         let ideaId: string
         if (quest.parentQuestId) {
             ideaId = await getRootIdea(
@@ -161,7 +172,9 @@ export class QuestNegotiation extends ContextUser {
         return {
             id: quest.id,
             type: quest.type,
-            description: quest.description,
+            description: isCoordinationQuest(quest)
+                ? quest.description
+                : undefined,
             participants: membersView,
         }
     }
@@ -173,7 +186,7 @@ export interface QuestChangeMessage extends Message {
         targetMemberId: string
         targetUserId: string
         questId: string
-        description: string
+        description?: string
         time: number
         place: string
         tribe: string
@@ -187,7 +200,7 @@ export interface QuestChangeMessage extends Message {
 export interface QuestAcceptedMessage extends Message {
     type: 'quest-accepted'
     payload: {
-        description: string
+        description?: string
         questId: string
         targetMemberId: string
         targetUserId: string

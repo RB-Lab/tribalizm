@@ -1,8 +1,13 @@
 import {
+    Gathering,
     IGathering,
     GatheringtStore,
 } from '../../../use-cases/entities/gathering'
 import { InMemoryStore } from './in-memory-store'
 
-export class InMemoryGatheringStore extends InMemoryStore<IGathering>
-    implements GatheringtStore {}
+export class InMemoryGatheringStore
+    extends InMemoryStore<IGathering>
+    implements GatheringtStore
+{
+    _class = Gathering
+}

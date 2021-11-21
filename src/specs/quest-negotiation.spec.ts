@@ -1,5 +1,6 @@
 import { Member } from '../use-cases/entities/member'
 import {
+    CoordinationQuest,
     IndeclinableError,
     InvalidAcceptanceTime,
     InvalidTimeProposal,
@@ -98,7 +99,7 @@ describe('Quest negotiation', () => {
                 payload: jasmine.objectContaining<
                     QuestAcceptedMessage['payload']
                 >({
-                    description: quest!.description,
+                    description: (quest as any).description,
                     place: quest!.place!,
                     questId: quest!.id,
                     time: quest!.time!,
@@ -289,8 +290,9 @@ async function setUp() {
     const [member1, member2] = members
     const [user1, user2] = users
     const quest = await context.stores.questStore.save(
-        new Quest({
+        new CoordinationQuest({
             ideaId: idea.id,
+            parentQuestId: null,
             description: 'great quest!',
             memberIds: [member1.id, member2.id],
             time: Date.now() + 100_500_000,

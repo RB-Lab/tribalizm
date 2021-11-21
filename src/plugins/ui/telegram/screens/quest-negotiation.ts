@@ -244,7 +244,8 @@ export function attachNotifications(
             let text: string
             if (payload.members.length > 2) {
                 text = qnTexts.questAccepted({
-                    description: payload.description,
+                    // TODO add some default description? (this is kinda impossible keys anyway)
+                    description: payload.description || '',
                     proposal,
                 })
             } else {

@@ -1,5 +1,6 @@
 import {
     IQuest,
+    questTypesMap,
     QuestStatus,
     QuestStore,
     QuestType,
@@ -7,6 +8,7 @@ import {
 import { MongoStore } from './mongo-store'
 
 export class MongoQuestStore extends MongoStore<IQuest> implements QuestStore {
+    _classTable = questTypesMap
     getActiveQuestsCount = async (memberIds: string[]) => {
         const cursor = this._collection.find({
             memberIds: { $elemMatch: { $in: memberIds } },

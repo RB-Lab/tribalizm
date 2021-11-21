@@ -1,7 +1,7 @@
 import { mapify } from '../ts-utils'
 import { ApplicationMessage } from './apply-tribe'
 import { ApplicationPhase, IApplication } from './entities/application'
-import { Quest, QuestType } from './entities/quest'
+import { InitiationQuest, isInitiationQuest, QuestType } from './entities/quest'
 import { Storable } from './entities/store'
 import { ContextUser } from './utils/context-user'
 import { Message } from './utils/message'
@@ -62,7 +62,7 @@ export class Initiation extends ContextUser {
         if (tribe.shamanId && tribe.shamanId !== tribe.chiefId) {
             const shaman = await this.getMember(tribe.shamanId)
             const newQuest = await this.stores.questStore.save(
-                new Quest({
+                new InitiationQuest({
                     type: QuestType.initiation,
                     memberIds: [shaman.id, app.memberId],
                     applicationId: app.id,
@@ -209,9 +209,9 @@ export class Initiation extends ContextUser {
 
     private async getQuestAndApplication(questId: string) {
         const quest = await this.getQuest(questId)
-        if (!quest.applicationId) {
+        if (!isInitiationQuest(quest)) {
             throw new WrongQuestError(
-                `Quest ${quest.id} has no application attached`
+                `Quest ${quest.id} is not an initiation quest`
             )
         }
         const app = await this.getApplication(quest.applicationId)

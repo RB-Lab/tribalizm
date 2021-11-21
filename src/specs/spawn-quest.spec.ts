@@ -1,4 +1,5 @@
 import {
+    CoordinationQuest,
     IQuestData,
     NotYourQuest,
     Quest,
@@ -43,7 +44,7 @@ describe('Spawn new quest', () => {
         const newQuest = await world.getSpawnedQuest()
         expect(newQuest).toBeTruthy()
         expect(newQuest).toEqual(
-            jasmine.objectContaining<IQuestData>({
+            jasmine.objectContaining<CoordinationQuest>({
                 ideaId: null,
                 description: world.defautlSpawnRequest.description,
                 parentQuestId: world.quest.id,
@@ -61,8 +62,9 @@ describe('Spawn new quest', () => {
         await world.questSpawn.spawnQuest({
             description,
             memberId: quest.memberIds[0],
-            parentQuestId: quest.id,
+            parentQuestId: quest.id!,
         })
+        // @ts-ignore
         const newQuest = (await world.questStore.find({ description }))[0]
         expect(newQuest).toBeTruthy()
         expect(newQuest.memberIds.length).toEqual(2)
@@ -163,7 +165,8 @@ async function setUp() {
     const voting = new Voting(context)
     const [member1, member2] = members
     const quest = await context.stores.questStore.save(
-        new Quest({
+        new CoordinationQuest({
+            parentQuestId: null,
             ideaId: idea.id,
             memberIds: [member1.id, member2.id],
             description: 'parent quest',
@@ -196,9 +199,10 @@ async function setUp() {
         getSpawnedQuest: async () => {
             return (
                 await context.stores.questStore.find({
+                    //@ts-ignore
                     description: defautlSpawnRequest.description,
                 })
-            )[0]
+            )[0] as CoordinationQuest
         },
         spyOnMessage: makeMessageSpy(context.async.notififcationBus),
     }

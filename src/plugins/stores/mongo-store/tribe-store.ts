@@ -1,4 +1,6 @@
-import { ITribe, TribeStore } from '../../../use-cases/entities/tribe'
+import { Tribe, ITribe, TribeStore } from '../../../use-cases/entities/tribe'
 import { MongoStore } from './mongo-store'
 
-export class MongoTribeStore extends MongoStore<ITribe> implements TribeStore {}
+export class MongoTribeStore extends MongoStore<ITribe> implements TribeStore {
+    _class = Tribe
+}

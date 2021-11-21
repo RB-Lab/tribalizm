@@ -117,7 +117,7 @@ const en: BaseTranslation = {
         help: 'ℹ️',
         charisma: { '0': '😩', '1': '😕', '2': '🤔', '3': '🤩', '4': '🔥' },
         wisdom: { '0': '🤪', '1': '🤥', '2': '🤔', '3': '🥸', '4': '🦉' },
-        done: 'Ok, your opinion will be applied as soon as you join the tribe and other 4 opinions collected',
+        done: 'Got it! Your scores will be applied soon',
     },
 }
 

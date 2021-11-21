@@ -4,6 +4,7 @@ import {
     ApplicationPhase,
 } from '../use-cases/entities/application'
 import {
+    InitiationQuest,
     IQuest,
     Quest,
     QuestStatus,
@@ -48,7 +49,7 @@ describe('Initiation quests:', () => {
                 })
             )
             const quest = await world.questStore.save(
-                new Quest({
+                new InitiationQuest({
                     applicationId: badApp.id,
                 })
             )

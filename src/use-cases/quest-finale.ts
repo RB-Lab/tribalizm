@@ -1,5 +1,5 @@
 import { mapify } from '../ts-utils'
-import { QuestType } from './entities/quest'
+import { isIntroductionQuest, QuestType } from './entities/quest'
 import { Storable } from './entities/store'
 import { ContextUser } from './utils/context-user'
 import { findMaxTrait } from './utils/members-utils'
@@ -13,7 +13,7 @@ export class QuestFinale extends ContextUser {
         const member = await this.getMember(req.memberId)
         // TODO BEGIN transaction
         // TODO 🤔 this looks like it doesn't belong here...
-        if (quest.type === QuestType.introduction) {
+        if (isIntroductionQuest(quest) && req.memberId === quest.newMemberId) {
             const allMembers = await this.stores.memberStore.find({
                 tribeId: member.tribeId,
             })

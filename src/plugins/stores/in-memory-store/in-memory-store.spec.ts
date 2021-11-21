@@ -2,13 +2,13 @@ import { InMemoryStore } from './in-memory-store'
 
 describe('In memory store', () => {
     it('stores a value', async () => {
-        const store = new InMemoryStore<Foo>(Foo)
+        const store = new FooStore()
         const foo = new Foo({ bar: 'ololo' })
         const savedFoo = await store.save(foo)
         await expectAsync(store.getById(savedFoo.id)).toBeResolvedTo(savedFoo)
     })
     it('updates a value', async () => {
-        const store = new InMemoryStore<Foo>(Foo)
+        const store = new FooStore()
         const foo = new Foo({ bar: 'ololo' })
         const savedFoo = await store.save(foo)
         const update = new Foo({
@@ -29,13 +29,13 @@ describe('In memory store', () => {
                 this.nor = doc.nor
             }
         }
-        const store = new InMemoryStore<FooBar>(FooBar)
+        const store = new InMemoryStore<FooBar>()
         const foo = new FooBar({ nor: 'ololo' })
         const savedFoo = await store.save(foo)
         await expectAsync(store.getById(savedFoo.id)).toBeResolvedTo(savedFoo)
     })
     it('saves bulk', async () => {
-        const store = new InMemoryStore<Foo>(Foo)
+        const store = new FooStore()
         const ololo = new Foo({ bar: 'ololo' })
         const baz = new Foo({ bar: 'baz' })
         const saved = await store.saveBulk([ololo, baz])
@@ -44,7 +44,7 @@ describe('In memory store', () => {
         expect(got).toEqual(saved)
     })
     it('finds values', async () => {
-        const store = new InMemoryStore<Foo>(Foo)
+        const store = new FooStore()
         const ololo = new Foo({ id: '1', bar: 'ololo' })
         const ololo2 = new Foo({ id: '2', bar: 'ololo' })
         await store.saveBulk([ololo, ololo2])
@@ -54,7 +54,7 @@ describe('In memory store', () => {
         ])
     })
     it('finds with AND', async () => {
-        const store = new InMemoryStore<Foo>(Foo)
+        const store = new FooStore()
         const ololo = new Foo({ id: '1', bar: 'ololo' })
         const ololo2 = new Foo({ id: '2', bar: 'ololo' })
         await store.saveBulk([ololo, ololo2])
@@ -63,7 +63,7 @@ describe('In memory store', () => {
         ).toBeResolvedTo([ololo])
     })
     it('finds with OR', async () => {
-        const store = new InMemoryStore<Foo>(Foo)
+        const store = new FooStore()
         const ololo = new Foo({ id: '1', bar: 'ololo' })
         const ololo2 = new Foo({ id: '2', bar: 'ololo' })
         const ololo3 = new Foo({ id: '3', bar: 'ololo' })
@@ -74,7 +74,7 @@ describe('In memory store', () => {
     })
 
     it('can work with objects', async () => {
-        const store = new InMemoryStore<Foo>(Foo)
+        const store = new FooStore()
         const ololo = new Foo({ id: '1', bar: 'ololo', baz: { foo: 1 } })
         const ololo2 = new Foo({ id: '2', bar: 'ololo', baz: { foo: 2 } })
         const ololo3 = new Foo({
@@ -88,6 +88,10 @@ describe('In memory store', () => {
         ).toBeResolvedTo([ololo2, ololo3])
     })
 })
+
+class FooStore extends InMemoryStore<Foo> {
+    _class = Foo
+}
 
 class Foo {
     private _id: string | null

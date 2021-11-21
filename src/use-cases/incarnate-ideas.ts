@@ -1,5 +1,5 @@
 import { SavedQuestIdea } from './entities/brainstorm'
-import { Quest } from './entities/quest'
+import { CoordinationQuest, Quest } from './entities/quest'
 import { NewCoordinationQuestMessage } from './utils/quest-message'
 import { ContextUser } from './utils/context-user'
 import { getBestFreeMember, minQuests } from './utils/members-utils'
@@ -105,7 +105,8 @@ export class IdeasIncarnation extends ContextUser {
             [first.id]
         )
 
-        return new Quest({
+        return new CoordinationQuest({
+            parentQuestId: null,
             ideaId: idea.id,
             description: idea.description,
             time: oneWeekAhead,

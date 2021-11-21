@@ -16,21 +16,29 @@ export interface QuestStore extends Store<IQuest> {
      */
     getAllIntroQuests: (memberId: string) => Promise<Array<IQuest & Storable>>
 }
+export enum QuestType {
+    coordination = 'coordination',
+    initiation = 'initiation',
+    introduction = 'introduction',
+}
+
+export enum QuestStatus {
+    proposed = 'proposed',
+    accepted = 'accepted',
+    declined = 'declined',
+    done = 'done',
+}
 
 export interface IQuestData {
     id: string | null
-    ideaId: string | null
     type: QuestType
     status: QuestStatus
-    description: string
     /** timestamp when quest to take place */
     time: number | null
     place: string | null
     memberIds: string[]
     acceptedIds: string[]
     finishedIds: string[]
-    parentQuestId: string | null
-    applicationId: string | null
 }
 
 export interface IQuest extends IQuestData {
@@ -42,33 +50,27 @@ export interface IQuest extends IQuestData {
     addAssignee: (memberId: string) => void
     finish: (memberId: string) => void
 }
+export type SavedQuest = IQuestData & Storable
+
 export class Quest implements IQuest {
     public id: string | null
-    public ideaId: string | null
     public type: QuestType
     public status: QuestStatus
-    public description: string
     public time: number | null
     public place: string | null
     public memberIds: string[]
     public acceptedIds: string[]
     public finishedIds: string[]
-    public parentQuestId: string | null
-    public applicationId: string | null
 
-    constructor(params: Partial<IQuestData & Storable> = {}) {
+    constructor(params: Partial<SavedQuest> = {}) {
         this.id = params.id || null
-        this.ideaId = params.ideaId || null
         this.type = params.type || QuestType.coordination
         this.status = params.status || QuestStatus.proposed
-        this.description = params.description || ''
         this.time = params.time || null
         this.place = params.place || null
-        this.applicationId = params.applicationId || null
         this.memberIds = params.memberIds || []
         this.acceptedIds = params.acceptedIds || []
         this.finishedIds = params.finishedIds || []
-        this.parentQuestId = params.parentQuestId || null
     }
 
     propose = (time: number, place: string, memberId: string) => {
@@ -133,6 +135,65 @@ export class Quest implements IQuest {
     }
 }
 
+export type InitiationQuestParams = Partial<SavedQuest> & {
+    applicationId: string
+}
+export class InitiationQuest extends Quest {
+    applicationId: string
+    type = QuestType.initiation
+    constructor(params: InitiationQuestParams) {
+        super(params)
+        this.applicationId = params.applicationId
+    }
+}
+
+export function isInitiationQuest(quest: IQuest): quest is InitiationQuest {
+    return quest.type === QuestType.initiation
+}
+
+export type IntroductionQuestParams = Partial<SavedQuest> & {
+    newMemberId: string
+}
+export class IntroductionQuest extends Quest {
+    newMemberId: string
+    type = QuestType.introduction
+    constructor(params: IntroductionQuestParams) {
+        super(params)
+        this.newMemberId = params.newMemberId
+    }
+}
+
+export function isIntroductionQuest(quest: IQuest): quest is IntroductionQuest {
+    return quest.type === QuestType.introduction
+}
+
+export type CoordinationQuestParams = Partial<SavedQuest> & {
+    description: string
+    ideaId: string | null
+    parentQuestId: string | null
+}
+export class CoordinationQuest extends Quest {
+    description: string
+    ideaId: string | null
+    parentQuestId: string | null
+    type = QuestType.coordination
+    constructor(params: CoordinationQuestParams) {
+        super(params)
+        this.description = params.description
+        this.ideaId = params.ideaId
+        this.parentQuestId = params.parentQuestId
+    }
+}
+export function isCoordinationQuest(quest: IQuest): quest is CoordinationQuest {
+    return quest.type === QuestType.coordination
+}
+
+export const questTypesMap = {
+    [QuestType.initiation]: InitiationQuest,
+    [QuestType.introduction]: IntroductionQuest,
+    [QuestType.coordination]: CoordinationQuest,
+}
+
 export class InvalidTimeProposal extends Error {
     constructor(msg: string) {
         super(msg)
@@ -159,17 +220,4 @@ export class QuestIncompleteError extends Error {
     constructor(msg: string) {
         super(msg)
     }
-}
-
-export enum QuestType {
-    coordination = 'coordination',
-    initiation = 'initiation',
-    introduction = 'introduction',
-}
-
-export enum QuestStatus {
-    proposed = 'proposed',
-    accepted = 'accepted',
-    declined = 'declined',
-    done = 'done',
 }

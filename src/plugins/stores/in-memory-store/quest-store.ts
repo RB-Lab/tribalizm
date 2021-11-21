@@ -2,11 +2,15 @@ import {
     IQuest,
     QuestStore,
     QuestType,
+    questTypesMap,
 } from '../../../use-cases/entities/quest'
 import { InMemoryStore } from './in-memory-store'
 
-export class InMemoryQuestStore extends InMemoryStore<IQuest>
-    implements QuestStore {
+export class InMemoryQuestStore
+    extends InMemoryStore<IQuest>
+    implements QuestStore
+{
+    _classTable = questTypesMap
     getActiveQuestsCount = async (memberIds: string[]) => {
         const res: Record<string, number> = {}
         Object.values(this._store).forEach((quest: IQuest) => {

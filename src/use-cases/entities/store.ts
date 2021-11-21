@@ -2,9 +2,11 @@ export interface Storable {
     id: string
 }
 export interface Store<T> {
-    save: (doc: T | (T & Storable)) => Promise<T & Storable>
+    save: <TT extends T>(doc: TT | (TT & Storable)) => Promise<TT & Storable>
     // FIXME saveBulk should also perform updates
-    saveBulk: (docs: Array<T | (Storable & T)>) => Promise<Array<T & Storable>>
+    saveBulk: <TT extends T>(
+        docs: Array<TT | (TT & Storable)>
+    ) => Promise<Array<TT & Storable>>
     getById: (id: string) => Promise<(T & Storable) | null>
     // TODO devide onto storable object and object data, so that you won't try
     //      to find stuff by methods

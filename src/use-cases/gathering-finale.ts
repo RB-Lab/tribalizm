@@ -1,3 +1,4 @@
+import { isCoordinationQuest } from './entities/quest'
 import { ContextUser } from './utils/context-user'
 import { findMaxTrait } from './utils/members-utils'
 
@@ -9,6 +10,11 @@ export class GatheringFinale extends ContextUser {
         const addCoordinators = async (parentQuestId: string | null) => {
             if (parentQuestId) {
                 const quest = await this.getQuest(parentQuestId)
+                if (!isCoordinationQuest(quest)) {
+                    throw new Error(
+                        `Cannot re-spawn non-coordination quest ${quest.id} (${quest.type})`
+                    )
+                }
                 quest.memberIds.forEach((id) => coordinators.add(id))
                 await addCoordinators(quest.parentQuestId)
             }

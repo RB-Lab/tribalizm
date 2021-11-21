@@ -9,7 +9,12 @@ import {
 } from '../use-cases/entities/application'
 import { Coordinates } from '../use-cases/entities/location'
 import { SavedMember } from '../use-cases/entities/member'
-import { IQuest, QuestStatus, QuestType } from '../use-cases/entities/quest'
+import {
+    InitiationQuest,
+    IQuest,
+    QuestStatus,
+    QuestType,
+} from '../use-cases/entities/quest'
 import { Tribe } from '../use-cases/entities/tribe'
 import { User } from '../use-cases/entities/user'
 import { createContext } from './test-context'
@@ -62,7 +67,7 @@ describe('Stranger application', () => {
         const app = await world.applicationStore._last()
 
         expect(quest).toEqual(
-            jasmine.objectContaining<IQuest>({
+            jasmine.objectContaining<InitiationQuest>({
                 type: QuestType.initiation,
                 status: QuestStatus.proposed,
                 applicationId: app!.id,

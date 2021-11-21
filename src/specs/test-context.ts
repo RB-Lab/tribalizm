@@ -47,16 +47,16 @@ import { NotificationBus } from '../use-cases/utils/notification-bus'
 import { Voting } from '../use-cases/vote-idea'
 
 function createInmemroyStores() {
-    const ideaStore = new InMemoryIdeaStore(QuestIdea)
-    const brainstormStore = new InMemoryBrainstormStore(Brainstorm)
-    const applicationStore = new InMemoryApplicationStore(Application)
-    const memberStore = new InMemoryMemberStore(Member)
-    const questStore = new InMemoryQuestStore(Quest)
-    const tribeStore = new InMemoryTribeStore(Tribe)
-    const userStore = new InMemoryUserStore(User)
+    const ideaStore = new InMemoryIdeaStore()
+    const brainstormStore = new InMemoryBrainstormStore()
+    const applicationStore = new InMemoryApplicationStore()
+    const memberStore = new InMemoryMemberStore()
+    const questStore = new InMemoryQuestStore()
+    const tribeStore = new InMemoryTribeStore()
+    const userStore = new InMemoryUserStore()
     const taskStore = new InMemoryTaskStore()
-    const gatheringStore = new InMemoryGatheringStore(Gathering)
-    const cityStore = new InMemoryCityStore(City)
+    const gatheringStore = new InMemoryGatheringStore()
+    const cityStore = new InMemoryCityStore()
     return {
         ideaStore,
         brainstormStore,
@@ -82,47 +82,38 @@ async function createMongoStores() {
     const database = client.db('test_db-1')
 
     const ideasCollection = await database.createCollection('idea')
-    const ideaStore = new MongoIdeaStore(ideasCollection, QuestIdea)
+    const ideaStore = new MongoIdeaStore(ideasCollection)
     const brainstormsCollection = await database.createCollection('brainstorm')
-    const brainstormStore = new MongoBrainstormStore(
-        brainstormsCollection,
-        Brainstorm
-    )
+    const brainstormStore = new MongoBrainstormStore(brainstormsCollection)
     const applicationsCollection = await database.createCollection(
         'applications'
     )
-    const applicationStore = new MongoApplicationStore(
-        applicationsCollection,
-        Application
-    )
+    const applicationStore = new MongoApplicationStore(applicationsCollection)
     const membersCollection = await database.createCollection('members')
-    const memberStore = new MongoMemberStore(membersCollection, Member)
+    const memberStore = new MongoMemberStore(membersCollection)
     const questsCollection = await database.createCollection('quests')
-    const questStore = new MongoQuestStore(questsCollection, Quest)
+    const questStore = new MongoQuestStore(questsCollection)
     const tribesCollection = await database.createCollection('tribes')
-    const tribeStore = new MongoTribeStore(tribesCollection, Tribe)
+    const tribeStore = new MongoTribeStore(tribesCollection)
     const usersCollection = await database.createCollection('users')
-    const userStore = new MongoUserStore(usersCollection, User)
+    const userStore = new MongoUserStore(usersCollection)
     const tasksCollection = await database.createCollection('tasks')
     const taskStore = new MongoTaskStore(tasksCollection)
     const gatheringsCollection = await database.createCollection('gatherings')
-    const gatheringStore = new MongoGatheringStore(
-        gatheringsCollection,
-        Gathering
-    )
+    const gatheringStore = new MongoGatheringStore(gatheringsCollection)
     const citiesCollection = await database.createCollection('cities')
-    const cityStore = new MongoCityStore(citiesCollection, City)
+    const cityStore = new MongoCityStore(citiesCollection)
     return {
-        ideaStore,
-        brainstormStore,
-        applicationStore,
-        memberStore,
-        questStore,
-        tribeStore,
-        userStore,
-        taskStore,
-        gatheringStore,
-        cityStore,
+        ideaStore: ideaStore as any as InMemoryIdeaStore,
+        brainstormStore: brainstormStore as any as InMemoryBrainstormStore,
+        applicationStore: applicationStore as any as InMemoryApplicationStore,
+        memberStore: memberStore as any as InMemoryMemberStore,
+        questStore: questStore as any as InMemoryQuestStore,
+        tribeStore: tribeStore as any as InMemoryTribeStore,
+        userStore: userStore as any as InMemoryUserStore,
+        taskStore: taskStore as any as InMemoryTaskStore,
+        gatheringStore: gatheringStore as any as InMemoryGatheringStore,
+        cityStore: cityStore as any as InMemoryCityStore,
     }
 }
 

@@ -1,5 +1,5 @@
 import { IGathering } from '../use-cases/entities/gathering'
-import { Quest } from '../use-cases/entities/quest'
+import { CoordinationQuest, Quest } from '../use-cases/entities/quest'
 import {
     GatheringDeclare,
     GatheringMessage,
@@ -97,7 +97,8 @@ async function setUp() {
     const [member0, member1] = members
 
     const quest = await context.stores.questStore.save(
-        new Quest({
+        new CoordinationQuest({
+            parentQuestId: null,
             ideaId: idea.id,
             memberIds: [member0.id, member1.id],
             description: 'parent quest',

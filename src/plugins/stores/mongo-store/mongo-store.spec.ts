@@ -96,7 +96,7 @@ async function setUp() {
     await client.connect()
     const database = client.db('test_db-1')
     const collection = await database.createCollection('foos')
-    return new MongoStore<Foo>(collection, Foo)
+    return new MongoStore<Foo>(collection)
 }
 
 class Foo {

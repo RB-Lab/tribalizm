@@ -1,4 +1,4 @@
-import { Quest, QuestType } from './entities/quest'
+import { IntroductionQuest, Quest, QuestType } from './entities/quest'
 import { Storable } from './entities/store'
 import { ContextUser } from './utils/context-user'
 import { Message } from './utils/message'
@@ -11,8 +11,8 @@ export class IntroductionQuests extends ContextUser {
         const user = await this.getUser(newMember.userId)
         const tribe = await this.getTribe(oldMember.tribeId)
         const quest = await this.stores.questStore.save(
-            new Quest({
-                type: QuestType.introduction,
+            new IntroductionQuest({
+                newMemberId: newMember.id,
                 memberIds: [oldMember.id, newMember.id],
             })
         )

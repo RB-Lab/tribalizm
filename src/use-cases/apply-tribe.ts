@@ -1,6 +1,6 @@
 import { Application } from './entities/application'
 import { Member } from './entities/member'
-import { Quest, QuestType } from './entities/quest'
+import { InitiationQuest, Quest, QuestType } from './entities/quest'
 import { ContextUser } from './utils/context-user'
 import { Message } from './utils/message'
 
@@ -33,7 +33,7 @@ export class TribeApplication extends ContextUser {
         )
 
         const quest = await this.stores.questStore.save(
-            new Quest({
+            new InitiationQuest({
                 type: QuestType.initiation,
                 memberIds: [tribe.chiefId, app.memberId],
                 applicationId: app.id,

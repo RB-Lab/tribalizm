@@ -1,7 +1,12 @@
 import { Context } from '../use-cases/utils/context'
 import { Brainstorm, QuestIdea } from '../use-cases/entities/brainstorm'
 import { Member } from '../use-cases/entities/member'
-import { Quest, QuestStatus, QuestType } from '../use-cases/entities/quest'
+import {
+    CoordinationQuest,
+    Quest,
+    QuestStatus,
+    QuestType,
+} from '../use-cases/entities/quest'
 import { Tribe } from '../use-cases/entities/tribe'
 import { IdeasIncarnation } from '../use-cases/incarnate-ideas'
 import { NewCoordinationQuestMessage } from '../use-cases/utils/quest-message'
@@ -25,6 +30,7 @@ describe('When brainstorm is over', () => {
 
             await world.incarnation.incarnateIdeas(world.task)
             const quests = await world.questStore.find({
+                // @ts-ignore
                 ideaId: ideas.map((i) => i.id),
             })
             expect(quests.length).toEqual(3)
@@ -345,9 +351,10 @@ async function setUp(settings: Settings = {}) {
     async function getQuestByIdeaN(ideaN: number) {
         const idea = getIdeaByN(ideaN)
         const quests = await context.stores.questStore.find({
+            // @ts-ignore
             ideaId: idea.id,
         })
-        return quests[0]
+        return quests[0] as CoordinationQuest
     }
 
     return {

@@ -1,10 +1,15 @@
-import { IMember, MemberStore } from '../../../use-cases/entities/member'
+import {
+    Member,
+    IMember,
+    MemberStore,
+} from '../../../use-cases/entities/member'
 import { MongoStore } from './mongo-store'
 
 export class MongoMemberStore
     extends MongoStore<IMember>
     implements MemberStore
 {
+    _class = Member
     //FIXME optimize this shit with DB usage
     countTribeMembers(ids: string): Promise<number>
     countTribeMembers(ids: string[]): Promise<Record<string, number>>

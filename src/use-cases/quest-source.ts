@@ -1,10 +1,13 @@
 import { SavedQuestIdea } from './entities/brainstorm'
-import { NotYourQuest, Quest } from './entities/quest'
+import {
+    CoordinationQuest,
+    isCoordinationQuest,
+    NotYourQuest,
+} from './entities/quest'
 import { ContextUser } from './utils/context-user'
-import { getBestFreeMember } from './utils/members-utils'
 import { getRootIdea } from './utils/get-root-idea'
+import { getBestFreeMember } from './utils/members-utils'
 import { NewCoordinationQuestMessage } from './utils/quest-message'
-import { EntityNotFound } from './utils/not-found-error'
 
 export class QuestSource extends ContextUser {
     /**
@@ -13,12 +16,18 @@ export class QuestSource extends ContextUser {
      */
     reQuest = async (req: ReQuestRequest) => {
         const parentQuest = await this.getQuest(req.parentQuestId)
+        if (!isCoordinationQuest(parentQuest)) {
+            throw new Error(
+                `Cannot re-spawn non-coordination quest ${parentQuest.id} (${parentQuest.type})`
+            )
+        }
         if (!parentQuest.memberIds.includes(req.memberId)) {
             throw new NotYourQuest(
                 `Member ${req.memberId} is not assigned to quest ${parentQuest.id}`
             )
         }
-        const quest = new Quest({
+        const quest = new CoordinationQuest({
+            ideaId: parentQuest.ideaId,
             time: req.time,
             place: req.place,
             description: req.description,
@@ -47,7 +56,8 @@ export class QuestSource extends ContextUser {
         )
 
         const quest = await this.stores.questStore.save(
-            new Quest({
+            new CoordinationQuest({
+                ideaId: null, // TODO 🤔 maybe propagate idea, instead of crawl it back?
                 time: oneWeekAhead,
                 description: req.description,
                 memberIds: members.map((m) => m.id),

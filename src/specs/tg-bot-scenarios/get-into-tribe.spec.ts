@@ -11,7 +11,7 @@ import {
 } from './bot-utils'
 
 function xdescribe(...args: any[]) {}
-xdescribe('Get into tribe [integration]', () => {
+describe('Get into tribe [integration]', () => {
     let world: Awaited<ReturnType<typeof setup>>
     beforeEach(async () => {
         world = await setup()
@@ -138,7 +138,7 @@ xdescribe('Get into tribe [integration]', () => {
         jasmine.clock().install()
         const howWasInitTask = await world.context.stores.taskStore._last()
         jasmine.clock().mockDate(new Date(howWasInitTask!.time + 1000))
-        world.requestTaskQueue()
+        await world.requestTaskQueue()
         jasmine.clock().uninstall()
 
         // chief is asked if they accept member
@@ -228,7 +228,7 @@ xdescribe('Get into tribe [integration]', () => {
         jasmine.clock().install()
         const howWasInitTask2 = await world.context.stores.taskStore._last()
         jasmine.clock().mockDate(new Date(howWasInitTask2!.time + 1000))
-        world.requestTaskQueue()
+        await world.requestTaskQueue()
         jasmine.clock().uninstall()
 
         // new user is asked to rate shaman's charisma & wisdom
@@ -274,7 +274,7 @@ xdescribe('Get into tribe [integration]', () => {
         jasmine.clock().install()
         const introTask = await world.context.stores.taskStore._last()
         jasmine.clock().mockDate(new Date(introTask!.time + 1000))
-        world.requestTaskQueue()
+        await world.requestTaskQueue()
         jasmine.clock().uninstall()
 
         // the old user recieves invitation to make an intro quest
@@ -314,7 +314,7 @@ xdescribe('Get into tribe [integration]', () => {
         jasmine.clock().install()
         const introRateTask = await world.context.stores.taskStore._last()
         jasmine.clock().mockDate(new Date(introRateTask!.time + 1000))
-        world.requestTaskQueue()
+        await world.requestTaskQueue()
         jasmine.clock().uninstall()
 
         // newbie is asked to rate oldie's charisma & wisdom
@@ -334,7 +334,6 @@ xdescribe('Get into tribe [integration]', () => {
         )
         expect(oldieMember?.votes.length).toBe(1)
 
-        process.env.chatDebug = 'true'
         // oldie is asked to rate newbie's charisma & wisdom
         const newbieRateUpd = await world.oldie1.chat()
         expect(newbieRateUpd.length).toBe(1)
@@ -361,14 +360,10 @@ xdescribe('Get into tribe [integration]', () => {
         jasmine.clock().install()
         const intro2Task = await world.context.stores.taskStore._last()
         jasmine.clock().mockDate(new Date(intro2Task!.time + 1000))
-        world.requestTaskQueue()
+        await world.requestTaskQueue()
         jasmine.clock().uninstall()
 
-        world.context.stores.userStore.__show(['id', 'name'])
-        world.context.stores.memberStore.__show(['id', 'userId'])
-        world.context.stores.taskStore.__show(['done', 'type', 'payload'])
-
-        const oldie2Upds = await world.oldie1.chat()
+        const oldie2Upds = await oldie2.chat()
         expect(oldie2Upds.length).toBe(1)
     })
 
@@ -461,7 +456,7 @@ async function setup() {
             await taskDiscpatcher.run()
         },
         addOldie2: async () => {
-            await addTribeMember(
+            return await addTribeMember(
                 makeClient('Oldie Garr', 'Old User 2'),
                 tribes[1].id
             )

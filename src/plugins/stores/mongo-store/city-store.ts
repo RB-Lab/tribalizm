@@ -1,8 +1,9 @@
-import { CityStore, ICity } from '../../../use-cases/entities/city'
+import { City, CityStore, ICity } from '../../../use-cases/entities/city'
 import { Coordinates } from '../../../use-cases/entities/location'
 import { MongoStore } from './mongo-store'
 
 export class MongoCityStore extends MongoStore<ICity> implements CityStore {
+    _class = City
     findByCoordinates = async (coordinates: Coordinates) => {
         // FIXME make it work with actual coordinates
         const res = await this._collection.findOne({

@@ -8,7 +8,7 @@ export interface NewCoordinationQuestMessage extends Message {
 interface QuestPayload {
     targetUserId: string
     targetMemberId: string
-    questId: string
+    questId: string | null
 }
 interface CoordinationPayload extends QuestPayload {
     description: string

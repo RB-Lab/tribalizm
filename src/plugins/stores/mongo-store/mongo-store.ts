@@ -7,27 +7,32 @@ interface Storable {
 const defaultPage = { fields: 'id', limit: 100, order: 'asc' as 'asc' | 'desc' }
 
 export class MongoStore<T> implements Store<T> {
-    private _class?: new (record: any) => T
+    protected _class?: new (record: any) => T
+    protected _classTable?: Record<string, new (record: any) => T>
     protected _collection: Collection<T>
-    protected _instantiate = (record: any) => {
+    protected _instantiate = <TT extends T>(record: any) => {
         let doc = record
         if ('_id' in doc) {
             doc.id = String(doc._id)
             delete doc._id
         }
-        const instance = this._class ? new this._class(doc) : { ...doc }
-        return instance as T & Storable
+        let _class = this._class
+        // "single table inheritance" can instantiate different classes, based on type field
+        if (this._classTable && this._classTable[record.type]) {
+            _class = this._classTable[record.type]
+        }
+        const instance = _class ? new _class(doc) : { ...doc }
+        return instance as TT & Storable
     }
     protected _log = (...args: any[]) => {
         console.log(`${this.constructor.name}: `, ...args)
     }
 
-    constructor(collection: Collection, _class?: new (record: any) => T) {
-        this._class = _class
+    constructor(collection: Collection) {
         this._collection = collection
     }
 
-    save = async (doc: T | (T & Storable)) => {
+    save = async <TT extends T>(doc: TT | (TT & Storable)) => {
         if (stored(doc)) {
             const { id, ...rest } = doc
             const res = await this._collection.updateOne(
@@ -44,10 +49,10 @@ export class MongoStore<T> implements Store<T> {
             throw new Error("Didn't save for some reason")
         }
 
-        return this._instantiate({ ...res.ops[0], id: res.insertedId })
+        return this._instantiate<TT>({ ...res.ops[0], id: res.insertedId })
     }
-    saveBulk = async (docs: Array<T | (Storable & T)>) => {
-        const updates: Array<Storable & T> = []
+    saveBulk = async <TT extends T>(docs: Array<TT | (TT & Storable)>) => {
+        const updates: Array<TT & Storable> = []
         const inserts: T[] = []
         for (let doc of docs) {
             if (stored(doc)) {
@@ -56,7 +61,7 @@ export class MongoStore<T> implements Store<T> {
                 inserts.push(doc)
             }
         }
-        const res: Array<Storable & T> = []
+        const res: Array<TT & Storable> = []
         if (inserts.length) {
             const insRes = await this._collection.insertMany(inserts as any)
             insRes.ops.forEach((doc) => {

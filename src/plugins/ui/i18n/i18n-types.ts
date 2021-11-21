@@ -392,7 +392,7 @@ export type Translation = {
 			'4': string
 		}
 		/**
-		 * Ok, your opinion will be applied as soon as you join the tribe and other 4 opinions collected
+		 * Got it! Your scores will be applied soon
 		 */
 		'done': string
 	}
@@ -748,7 +748,7 @@ export type TranslationFunctions = {
 			'4': () => LocalizedString
 		}
 		/**
-		 * Ok, your opinion will be applied as soon as you join the tribe and other 4 opinions collected
+		 * Got it! Your scores will be applied soon
 		 */
 		'done': () => LocalizedString
 	}
