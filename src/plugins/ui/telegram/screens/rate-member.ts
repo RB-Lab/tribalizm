@@ -4,6 +4,7 @@ import { RateMemberMessage } from '../../../../use-cases/quest-finale'
 import { Tribalizm } from '../../../../use-cases/tribalism'
 import { NotificationBus } from '../../../../use-cases/utils/notification-bus'
 import { i18n } from '../../i18n/i18n-ctx'
+import { TribeCtx } from '../tribe-ctx'
 import { TelegramUsersAdapter } from '../users-adapter'
 import { makeCalbackDataParser } from './calback-parser'
 
@@ -15,13 +16,13 @@ const parser = makeCalbackDataParser('rate-member', [
     'charisma',
 ])
 
-function actions(bot: Telegraf<Scenes.SceneContext>, tribalism: Tribalizm) {
+function actions(bot: Telegraf<TribeCtx>) {
     bot.action(parser.regex, (ctx) => {
         const texts = i18n(ctx).rateMember
         const data = parser.parse(ctx.match[0])
 
         if (data.charisma) {
-            tribalism.questFinale.finalyze({
+            ctx.tribalizm.questFinale.finalyze({
                 memberId: data.memberId,
                 questId: data.questId,
                 votes: [
@@ -57,7 +58,7 @@ function actions(bot: Telegraf<Scenes.SceneContext>, tribalism: Tribalizm) {
 }
 
 export function attachNotifications(
-    bot: Telegraf<Scenes.SceneContext>,
+    bot: Telegraf<TribeCtx>,
     bus: NotificationBus,
     telegramUsers: TelegramUsersAdapter
 ) {

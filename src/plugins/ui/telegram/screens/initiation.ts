@@ -1,6 +1,5 @@
 import { Markup, Scenes, Telegraf } from 'telegraf'
 import { ApplicationMessage } from '../../../../use-cases/apply-tribe'
-import { QuestType } from '../../../../use-cases/entities/quest'
 import {
     ApplicationApprovedMessage,
     ApplicationDeclinedMessage,
@@ -10,11 +9,12 @@ import { Tribalizm } from '../../../../use-cases/tribalism'
 import { NotificationBus } from '../../../../use-cases/utils/notification-bus'
 import { i18n } from '../../i18n/i18n-ctx'
 import { SceneState } from '../scene-state'
+import { TribeCtx } from '../tribe-ctx'
 import { TelegramUsersAdapter } from '../users-adapter'
 import { makeCalbackDataParser } from './calback-parser'
 
-function scenes(tribalizm: Tribalizm) {
-    const declineInitiaton = new Scenes.BaseScene<Scenes.SceneContext>(
+function scenes() {
+    const declineInitiaton = new Scenes.BaseScene<TribeCtx>(
         'declline-application'
     )
     const sceneState = new SceneState<{ questId: string; memberId: string }>()
@@ -27,18 +27,16 @@ function scenes(tribalizm: Tribalizm) {
         const texts = i18n(ctx).initiation
         ctx.reply(texts.declineOk())
         // TODO should use the text maybe?
-        tribalizm.initiation.decline({
+        ctx.tribalizm.initiation.decline({
             questId: sceneState.get(ctx, 'questId'),
             elderUserId: ctx.state.userId,
         })
         ctx.scene.leave()
     })
 
-    const appDecline = new Scenes.BaseScene<Scenes.SceneContext>(
-        'application-decline'
-    )
-    appDecline.enter((ctx) => {
-        tribalizm.initiation.decline({
+    const appDecline = new Scenes.BaseScene<TribeCtx>('application-decline')
+    appDecline.enter(async (ctx) => {
+        await ctx.tribalizm.initiation.decline({
             questId: sceneState.get(ctx, 'questId'),
             elderUserId: ctx.state.userId,
         })
@@ -48,11 +46,9 @@ function scenes(tribalizm: Tribalizm) {
         )
     })
 
-    const appAccept = new Scenes.BaseScene<Scenes.SceneContext>(
-        'application-accept'
-    )
+    const appAccept = new Scenes.BaseScene<TribeCtx>('application-accept')
     appAccept.enter((ctx) => {
-        tribalizm.initiation.approveByElder({
+        ctx.tribalizm.initiation.approveByElder({
             questId: sceneState.get(ctx, 'questId'),
             elderUserId: ctx.state.userId,
         })
@@ -84,7 +80,7 @@ const appDeclineParser = makeCalbackDataParser('application-decline', [
     'questId',
 ])
 
-function actions(bot: Telegraf<Scenes.SceneContext>) {
+function actions(bot: Telegraf<TribeCtx>) {
     bot.action(proposeParser.regex, (ctx) => {
         const data = proposeParser.parse(ctx.match[0])
         ctx.scene.enter('quest-negotiation', {
@@ -112,7 +108,7 @@ function actions(bot: Telegraf<Scenes.SceneContext>) {
 }
 
 export function attachNotifications(
-    bot: Telegraf<Scenes.SceneContext>,
+    bot: Telegraf<TribeCtx>,
     bus: NotificationBus,
     telegramUsers: TelegramUsersAdapter
 ) {

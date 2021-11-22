@@ -13,7 +13,7 @@
     -   Old member 1
     -   Old member 2
 
-## Main scenario
+## ✅ Main scenario
 
 -   _New User_
     -   ← /start's the bot
@@ -107,7 +107,7 @@
     -   ← Yes
     -   → Ok, cadidate accepted in tribe!
 -   _New User_
-    -   → Hooray! You've been accepted in Bar Tribe!! You'll meet with other members soon. 🚩
+    -   → Hooray! You've been accepted in Bar Tribe!! You'll meet with other members soon.
 -   _Old member 1_
     -   → New member in Bar Tribe! Let's arrange an introduction meeting!
     -   → Enter date `...calendar...`
@@ -158,7 +158,7 @@
     -   ← [...shared location...]
     -   → tribes list: Foo Tribe `Apply` Bar Tribe `Apply`
 
-### Phase missmatch error
+### ✅ Phase missmatch error
 
 [...after first part of initiation...]
 
@@ -169,7 +169,7 @@
     -   ← No
     -   → Wrong phase error
 
-### Declined by chief
+### ✅ Declined by chief
 
 [...after first part of initiation...]
 

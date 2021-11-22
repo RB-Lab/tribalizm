@@ -1,6 +1,7 @@
 import { Scenes, session, Telegraf } from 'telegraf'
-import { Tribalizm } from '../../../use-cases/tribalism'
+import { Tribalizm, wrapWithErrorHandler } from '../../../use-cases/tribalism'
 import { NotificationBus } from '../../../use-cases/utils/notification-bus'
+import { i18n } from '../i18n/i18n-ctx'
 import { initiationScreen } from './screens/initiation'
 import { introQuests } from './screens/intro-quests'
 import { questNegotiationScreen } from './screens/quest-negotiation'
@@ -8,6 +9,7 @@ import { rateMemberScreen } from './screens/rate-member'
 import { rulesScreen } from './screens/rules'
 import { startScreenActions } from './screens/start'
 import { tribesListScreen } from './screens/tribes-list'
+import { TribeCtx } from './tribe-ctx'
 import { TelegramUsersAdapter } from './users-adapter'
 
 interface LocalHookConfig {
@@ -29,6 +31,7 @@ interface PublicHookConfig {
     domain: string
 }
 interface BotConfig {
+    reportError?: (err: unknown) => Promise<void> | void
     telegramUsersAdapter: TelegramUsersAdapter
     webHook: LocalHookConfig | PublicHookConfig
     tribalism: Tribalizm
@@ -36,70 +39,92 @@ interface BotConfig {
     notifcationsBus: NotificationBus
     telegramURL?: string
 }
+
 export async function makeBot(config: BotConfig) {
     if (config.token === undefined) {
         throw new Error('BOT_TOKEN must be provided!')
     }
 
-    let bot: Telegraf<Scenes.SceneContext>
+    const reportError = config.reportError || (() => {})
+
+    let bot: Telegraf<TribeCtx>
 
     if (config.telegramURL) {
-        bot = new Telegraf<Scenes.SceneContext>(config.token, {
+        bot = new Telegraf<TribeCtx>(config.token, {
             telegram: { apiRoot: config.telegramURL },
         })
     } else {
-        bot = new Telegraf<Scenes.SceneContext>(config.token)
+        bot = new Telegraf<TribeCtx>(config.token)
     }
 
     bot.use(async (ctx, next) => {
-        if (!ctx.chat || !ctx.from) {
-            throw new Error("Can't authenticate user without chat data")
-        }
-        ctx.state.userId = await config.telegramUsersAdapter.getUserIdByChatId(
-            ctx.chat.id
-        )
-
-        if (!ctx.state.userId) {
-            const name =
-                ctx.from.first_name +
-                (ctx.from.last_name ? ` ${ctx.from.last_name}` : '')
-            ctx.state.userId = await config.telegramUsersAdapter.createUser(
-                name,
-                {
-                    chatId: String(ctx.chat.id),
-                    locale: ctx.from.language_code,
-                    username: ctx.from.username,
+        async function reportContextError(err: unknown) {
+            const texts = i18n(ctx).errors
+            if (typeof err == 'object' && err?.constructor?.name) {
+                const errorMessage = (texts as any)[err.constructor.name]
+                if (errorMessage) {
+                    ctx.reply(errorMessage())
+                } else {
+                    ctx.reply(texts.common())
                 }
-            )
+            } else {
+                ctx.reply(texts.common())
+            }
+            await reportError(err)
         }
+        ctx.tribalizm = wrapWithErrorHandler(
+            config.tribalism,
+            reportContextError
+        )
+        ctx.reportError = reportContextError
         next()
     })
-    bot.use(session())
 
-    // TODO don't forget to handle all exceptions:
-    //      - those with specifc class should be handled somewhere below
-    //      - genereic Errors will porpagate up to here and must be reported
-    bot.catch((err, ctx) => {
-        console.error('============================')
-        console.error(err)
-        console.error('============================')
-        ctx.reply(String(err))
+    bot.use(async (ctx, next) => {
+        if (!ctx.chat || !ctx.from) {
+            ctx.reportError(
+                new Error("Can't authenticate user without chat data")
+            )
+            return
+        }
+        try {
+            ctx.state.userId =
+                await config.telegramUsersAdapter.getUserIdByChatId(ctx.chat.id)
+            if (!ctx.state.userId) {
+                const name =
+                    ctx.from.first_name +
+                    (ctx.from.last_name ? ` ${ctx.from.last_name}` : '')
+                ctx.state.userId = await config.telegramUsersAdapter.createUser(
+                    name,
+                    {
+                        chatId: String(ctx.chat.id),
+                        locale: ctx.from.language_code,
+                        username: ctx.from.username,
+                    }
+                )
+            }
+            next()
+        } catch (err) {
+            ctx.reportError(err)
+        }
     })
 
-    const stage = new Scenes.Stage<Scenes.SceneContext>([
-        ...rulesScreen.scenes(),
-        ...tribesListScreen.scenes(config.tribalism),
-        ...questNegotiationScreen.scenes(config.tribalism),
-        ...initiationScreen.scenes(config.tribalism),
+    bot.use(session())
+
+    const stage = new Scenes.Stage([
+        ...(rulesScreen.scenes() as any),
+        ...tribesListScreen.scenes(),
+        ...questNegotiationScreen.scenes(),
+        ...initiationScreen.scenes(),
     ])
-    bot.use(stage.middleware())
+    bot.use(stage.middleware() as any)
 
     rulesScreen.actions(bot)
     initiationScreen.actions(bot)
     questNegotiationScreen.actions(bot)
     tribesListScreen.actions(bot)
-    rateMemberScreen.actions(bot, config.tribalism)
-    introQuests.actions(bot, config.tribalism)
+    rateMemberScreen.actions(bot)
+    introQuests.actions(bot)
     startScreenActions(bot)
 
     questNegotiationScreen.attachNotifications(

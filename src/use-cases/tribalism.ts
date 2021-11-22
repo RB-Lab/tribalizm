@@ -30,3 +30,29 @@ export interface Tribalizm {
     questSource: Omit<QuestSource, keyof ContextUser>
     voting: Omit<Voting, keyof ContextUser>
 }
+
+export function wrapWithErrorHandler(
+    tribalism: Tribalizm,
+    handler: (error: Error) => void
+) {
+    return Object.entries(tribalism).reduce((tr, [key, useCase]) => {
+        return { ...tr, [key]: proxy(useCase) }
+    }, {}) as Tribalizm
+    function proxy(obj: any) {
+        return Object.entries(obj).reduce((r, [k, v]) => {
+            if (typeof v === 'function') {
+                const fn = function (...args: any[]) {
+                    const value = v.apply(obj, args)
+                    if ('catch' in value && typeof value.catch === 'function') {
+                        return new Promise((resolve, reject) =>
+                            value.then(resolve).catch(reject)
+                        ).catch(handler)
+                    }
+                    return value
+                }
+                return { ...r, [k]: fn }
+            }
+            return { ...r, [k]: v }
+        }, {})
+    }
+}

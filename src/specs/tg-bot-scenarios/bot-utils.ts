@@ -170,6 +170,11 @@ export async function createTelegramContext(
             context.stores.userStore
         ),
         telegramURL: server.config.apiURL,
+        reportError: (err) => {
+            if (process.env.chatDebug) {
+                console.error(err)
+            }
+        },
     })
 
     function makeClient(user: string, chat: string) {

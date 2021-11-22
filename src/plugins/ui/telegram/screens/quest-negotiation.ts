@@ -10,12 +10,11 @@ import { NotificationBus } from '../../../../use-cases/utils/notification-bus'
 import { NewCoordinationQuestMessage } from '../../../../use-cases/utils/quest-message'
 import { i18n } from '../../i18n/i18n-ctx'
 import { SceneState } from '../scene-state'
+import { TribeCtx } from '../tribe-ctx'
 import { TelegramUsersAdapter } from '../users-adapter'
 
-function scenes(tribalizm: Tribalizm) {
-    const questNegotiation = new Scenes.BaseScene<Scenes.SceneContext>(
-        'quest-negotiation'
-    )
+function scenes() {
+    const questNegotiation = new Scenes.BaseScene<TribeCtx>('quest-negotiation')
 
     const hours = '08,09,10,11,12,13,14,15,16,17,18,19,20,21,22,23'.split(',')
 
@@ -90,18 +89,18 @@ function scenes(tribalizm: Tribalizm) {
         const date = sceneState.get(ctx, 'date')
         const place = sceneState.get(ctx, 'place')
         if (sceneState.get(ctx, 'chiefInitiation')) {
-            await tribalizm.initiation.startInitiation({
+            await ctx.tribalizm.initiation.startInitiation({
                 questId: sceneState.get(ctx, 'questId'),
                 elderUserId: ctx.state.userId,
             })
         }
         if (sceneState.get(ctx, 'shamanInitiation')) {
-            await tribalizm.initiation.startShamanInitiation({
+            await ctx.tribalizm.initiation.startShamanInitiation({
                 questId: sceneState.get(ctx, 'questId'),
                 elderUserId: ctx.state.userId,
             })
         }
-        await tribalizm.questNegotiation.proposeChange({
+        await ctx.tribalizm.questNegotiation.proposeChange({
             place: place,
             // TODO here don't forget to offset user's time zone!
             //      use "tz-db", timezone name is in cities database
@@ -129,13 +128,15 @@ function scenes(tribalizm: Tribalizm) {
         })
     })
 
-    const agree = new Scenes.BaseScene<Scenes.SceneContext>('quest-agree')
+    const agree = new Scenes.BaseScene<TribeCtx>('quest-agree')
     const agreeState = new SceneState<{ questId: string; memberId: string }>()
     agree.enter(async (ctx) => {
         const questId = agreeState.get(ctx, 'questId')
         const memberId = agreeState.get(ctx, 'memberId')
-        await tribalizm.questNegotiation.acceptQuest({ memberId, questId })
-        const quest = await tribalizm.questNegotiation.questDetails({ questId })
+        await ctx.tribalizm.questNegotiation.acceptQuest({ memberId, questId })
+        const quest = await ctx.tribalizm.questNegotiation.questDetails({
+            questId,
+        })
         const texts = i18n(ctx).questNegotiation
         let text: string
         if (quest.participants.length > 2) {
@@ -152,7 +153,7 @@ function scenes(tribalizm: Tribalizm) {
 
     return [questNegotiation, agree]
 }
-function actions(bot: Telegraf<Scenes.SceneContext>) {
+function actions(bot: Telegraf<TribeCtx>) {
     bot.action(/change-quest:(.+)/, (ctx) => {
         const [memberId, questId] = ctx.match[1].split(':')
         ctx.scene.enter('quest-negotiation', {
@@ -171,7 +172,7 @@ function actions(bot: Telegraf<Scenes.SceneContext>) {
 }
 
 export function attachNotifications(
-    bot: Telegraf<Scenes.SceneContext>,
+    bot: Telegraf<TribeCtx>,
     bus: NotificationBus,
     telegramUsers: TelegramUsersAdapter
 ) {

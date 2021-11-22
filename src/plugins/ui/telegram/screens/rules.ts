@@ -1,5 +1,6 @@
 import { Markup, Scenes, Telegraf } from 'telegraf'
 import { i18n } from '../../i18n/i18n-ctx'
+import { TribeCtx } from '../tribe-ctx'
 
 function scenes() {
     const helpScene = new Scenes.BaseScene<Scenes.SceneContext>('help')
@@ -75,7 +76,7 @@ function scenes() {
     return [helpScene]
 }
 
-function actions(bot: Telegraf<Scenes.SceneContext>) {
+function actions(bot: Telegraf<TribeCtx>) {
     bot.action('rules', (ctx) => {
         ctx.scene.enter('help')
     })

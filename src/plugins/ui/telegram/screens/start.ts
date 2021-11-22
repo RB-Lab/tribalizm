@@ -2,13 +2,14 @@ import { Markup, Scenes, Telegraf } from 'telegraf'
 import L from '../../i18n/i18n-node'
 import { toLocale } from '../../i18n/i18n-ctx'
 import { TelegramUsersAdapter } from '../users-adapter'
+import { TribeCtx } from '../tribe-ctx'
 
 /**
  * Handles `/start` command which is issued whenever new user decides to interact with the bot
  * @param bot Telegraf instance
  * @param telegramUsers users provider plugin to User's store
  */
-export function startScreenActions(bot: Telegraf<Scenes.SceneContext>) {
+export function startScreenActions(bot: Telegraf<TribeCtx>) {
     bot.start(async (ctx) => {
         const l = toLocale(ctx.message.from.language_code)
         const texts = L[l].start

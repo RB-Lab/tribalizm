@@ -2,11 +2,10 @@ import { Markup, Scenes, Telegraf } from 'telegraf'
 import { Tribalizm } from '../../../../use-cases/tribalism'
 import { TribeInfo } from '../../../../use-cases/tribes-show'
 import { i18n } from '../../i18n/i18n-ctx'
+import { TribeCtx } from '../tribe-ctx'
 
-function scenes(tribalizm: Tribalizm) {
-    const locationScene = new Scenes.BaseScene<Scenes.SceneContext>(
-        'set-location'
-    )
+function scenes() {
+    const locationScene = new Scenes.BaseScene<TribeCtx>('set-location')
 
     locationScene.enter((ctx) => {
         const texts = i18n(ctx).tribesList
@@ -23,7 +22,7 @@ function scenes(tribalizm: Tribalizm) {
 
     locationScene.on('location', async (ctx) => {
         ;(ctx.scene.state as any).location = ctx.message.location
-        const tribes = await tribalizm.tribesShow.getLocalTribes({
+        const tribes = await ctx.tribalizm.tribesShow.getLocalTribes({
             coordinates: ctx.message.location,
             limit: 3,
         })
@@ -33,7 +32,7 @@ function scenes(tribalizm: Tribalizm) {
     locationScene.on('text', async (ctx) => {
         const texts = i18n(ctx).tribesList
         ;(ctx.scene.state as any).citySearchString = ctx.message.text
-        const tribes = await tribalizm.tribesShow.getLocalTribes({
+        const tribes = await ctx.tribalizm.tribesShow.getLocalTribes({
             coordinates: null,
             citySearchString: ctx.message.text,
             limit: 3,
@@ -70,19 +69,17 @@ function scenes(tribalizm: Tribalizm) {
         })
     }
 
-    const applyTribeScene = new Scenes.BaseScene<Scenes.SceneContext>(
-        'apply-tribe'
-    )
+    const applyTribeScene = new Scenes.BaseScene<TribeCtx>('apply-tribe')
     applyTribeScene.enter(async (ctx) => {
         const texts = i18n(ctx).tribesList
-        const tribe = await tribalizm.tribesShow.getTribeInfo({
+        const tribe = await ctx.tribalizm.tribesShow.getTribeInfo({
             tribeId: (ctx.scene.state as any).tribeId,
         })
         ctx.reply(texts.applyText({ tribe: tribe.name }))
     })
     applyTribeScene.on('text', async (ctx) => {
         const texts = i18n(ctx).tribesList
-        await tribalizm.tribeApplication.appyToTribe({
+        await ctx.tribalizm.tribeApplication.appyToTribe({
             coverLetter: ctx.message.text,
             tribeId: (ctx.scene.state as any).tribeId,
             userId: ctx.state.userId,
@@ -95,7 +92,7 @@ function scenes(tribalizm: Tribalizm) {
     return [locationScene, applyTribeScene]
 }
 
-function actions(bot: Telegraf<Scenes.SceneContext>) {
+function actions(bot: Telegraf<TribeCtx>) {
     bot.action('list-tribes', (ctx) => {
         ctx.scene.enter('set-location')
     })

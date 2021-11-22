@@ -396,6 +396,42 @@ export type Translation = {
 		 */
 		'done': string
 	}
+	'errors': {	
+		'UpdateFinishedBrainstormError': string
+		'SelfVotingIdeaError': string
+		'DoubelVotingError': string
+		'UpdateFinishedIdeaError': string
+		'InvalidTimeProposal': string
+		'InvalidAcceptanceTime': string
+		'NotYourQuest': string
+		'IndeclinableError': string
+		'QuestIncompleteError': string
+		'NotParticipated': string
+		'VoteRangeError': string
+		'SelfVotingError': string
+		'ApplicationTransitionError': string
+		'NoChiefTribeError': string
+		'EntityNotFound': string
+		'NotYourTribe': string
+		'NoIdeaError': string
+		'AlreadyHaveChief': string
+		'ElderMismatchError': string
+		'WrongQuestError': string
+		'NoChiefSetError': string
+		'NoShamanSetError': string
+		/**
+		 * 🚫 Sorry, you cannot change application process now
+		 */
+		'WrongPhaseError': string
+		'VotingNotStartedError': string
+		'ExternalMemberVoteError': string
+		'NotEnoughMembers': string
+		'NotAChiefError': string
+		/**
+		 * 😩 Oooops! Something awfull happend.
+		 */
+		'common': string
+	}
 }
 
 export type TranslationFunctions = {
@@ -751,6 +787,42 @@ export type TranslationFunctions = {
 		 * Got it! Your scores will be applied soon
 		 */
 		'done': () => LocalizedString
+	}
+	'errors': {	
+		'UpdateFinishedBrainstormError': () => LocalizedString
+		'SelfVotingIdeaError': () => LocalizedString
+		'DoubelVotingError': () => LocalizedString
+		'UpdateFinishedIdeaError': () => LocalizedString
+		'InvalidTimeProposal': () => LocalizedString
+		'InvalidAcceptanceTime': () => LocalizedString
+		'NotYourQuest': () => LocalizedString
+		'IndeclinableError': () => LocalizedString
+		'QuestIncompleteError': () => LocalizedString
+		'NotParticipated': () => LocalizedString
+		'VoteRangeError': () => LocalizedString
+		'SelfVotingError': () => LocalizedString
+		'ApplicationTransitionError': () => LocalizedString
+		'NoChiefTribeError': () => LocalizedString
+		'EntityNotFound': () => LocalizedString
+		'NotYourTribe': () => LocalizedString
+		'NoIdeaError': () => LocalizedString
+		'AlreadyHaveChief': () => LocalizedString
+		'ElderMismatchError': () => LocalizedString
+		'WrongQuestError': () => LocalizedString
+		'NoChiefSetError': () => LocalizedString
+		'NoShamanSetError': () => LocalizedString
+		/**
+		 * 🚫 Sorry, you cannot change application process now
+		 */
+		'WrongPhaseError': () => LocalizedString
+		'VotingNotStartedError': () => LocalizedString
+		'ExternalMemberVoteError': () => LocalizedString
+		'NotEnoughMembers': () => LocalizedString
+		'NotAChiefError': () => LocalizedString
+		/**
+		 * 😩 Oooops! Something awfull happend.
+		 */
+		'common': () => LocalizedString
 	}
 }
 

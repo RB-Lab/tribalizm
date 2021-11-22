@@ -20,7 +20,7 @@ describe('Get into tribe [integration]', () => {
         await world.tearDown()
     })
 
-    fit('apply to tribe, initiate new member, introduce to tribe', async () => {
+    it('apply to tribe, initiate new member, introduce to tribe', async () => {
         // /start
         const update = await world.newUser.chatLast('/start')
         const callbacks = getInlineKeyCallbacks(update)
@@ -66,6 +66,7 @@ describe('Get into tribe [integration]', () => {
             cb.includes('date')
         )
         // NOTE this test will fail at the end of the month...
+        // to fix that it's probably better use jasmine.clocks for the whole suite
         const hour = getInlineKeyCallbacks(
             await world.chief.chatLast(dates[3], true)
         )[4]
@@ -368,6 +369,7 @@ describe('Get into tribe [integration]', () => {
     })
 
     it('Shows tribes list on location sharing', async () => {
+        pending('need to implement location query')
         await world.newUser.chatLast('/start')
         const response = await world.newUser.chatLast('list-tribes')
         // should have button for sharing location
@@ -381,15 +383,88 @@ describe('Get into tribe [integration]', () => {
         await world.newUser.chat('list-tribes')
         const lastTribeReply = await world.newUser.chatLast(world.city.name)
         await world.newUser.chat(getInlineKeyCallbacks(lastTribeReply)[0])
-
         await world.newUser.chat('I want to FOO!!')
         const chiefUpdates = await world.chief.chatLast()
         const buttons = getInlineKeyCallbacks(chiefUpdates)
         const decline = buttons.find((b) => b.startsWith('decline'))
         await world.chief.chat(decline!)
         await world.chief.chat('Because fuck off!')
-        const updates = await world.newUser.client.getUpdates()
-        expect(updates.result.length).toBe(1)
+        const updates = await world.newUser.chat()
+        expect(updates.length).toBe(1)
+    })
+
+    it('Shows errors (phase mismatch)', async () => {
+        await world.newUser.chatLast('/start')
+        await world.newUser.chat('list-tribes')
+        const tribesListUpdate = await world.newUser.chat(world.city.name)
+        const tribeListItem = tribesListUpdate[tribesListUpdate.length - 1]
+        const applyButton = getInlineKeyCallbacks(tribeListItem)[0]
+        await world.newUser.chatLast(applyButton)
+        await world.newUser.chat('I want to FOO!!')
+        const chiefUpdates = await world.chief.chat()
+        const chiefNote = chiefUpdates[0]
+        const chiefNotButtons = getInlineKeyCallbacks(chiefNote)
+
+        // Chief set's date
+        const propose = chiefNotButtons.find((b) => b.startsWith('propose'))
+        const calendar = await world.chief.chatLast(propose!)
+        const dates = getInlineKeyCallbacks(calendar).filter((cb) =>
+            cb.includes('date')
+        )
+        const hour = getInlineKeyCallbacks(
+            await world.chief.chatLast(dates[3], true)
+        )[4]
+        const minutes = getInlineKeyCallbacks(
+            await world.chief.chatLast(hour, true)
+        )[2]
+        await world.chief.chat(minutes, true)
+        const proposalConfirmPrompt = await world.chief.chatLast(
+            'Lets meet at Awesome Place Inn'
+        )
+        const proposalPromptButtons = getInlineKeyCallbacks(
+            proposalConfirmPrompt
+        )
+        expect(proposalPromptButtons).toEqual([
+            'confirm-proposal',
+            'redo-proposal',
+        ])
+        await world.chief.chat('confirm-proposal', true)
+
+        // new user agrees
+        const userUpdate = await world.newUser.chatLast()
+        const userNotifButtons = getInlineKeyCallbacks(userUpdate)
+        const agreeBtn = userNotifButtons.find((b) => b.startsWith('agree'))
+        await world.newUser.chatLast(agreeBtn)
+
+        // chief notified on confirmation
+        await world.chief.chat()
+        // time forward to the point when system asks about initiation
+        jasmine.clock().install()
+        const howWasInitTask = await world.context.stores.taskStore._last()
+        jasmine.clock().mockDate(new Date(howWasInitTask!.time + 1000))
+        await world.requestTaskQueue()
+        jasmine.clock().uninstall()
+
+        // chief accepts member
+        const chiefFeedbackUpd = await world.chief.chat()
+        const chiefFeedbackButtons = getInlineKeyCallbacks(chiefFeedbackUpd[0])
+        const chiefAcceptButton = chiefFeedbackButtons.find((b) =>
+            b.startsWith('application-accept:')
+        )!
+        await world.chief.chat(chiefAcceptButton, true)
+        // new user is asked to rate chief...
+        await world.newUser.chat()
+
+        // Now Chief changes their mind, but it's handed over to Shaman
+        const chiefDeclineButton = chiefFeedbackButtons.find((b) =>
+            b.startsWith('application-decline')
+        )!
+        console.log(chiefDeclineButton)
+
+        await world.chief.client.sendCallback(
+            world.chief.client.makeCallbackQuery(chiefDeclineButton)
+        )
+        await world.chief.chat()
     })
 })
 
