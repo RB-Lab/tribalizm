@@ -180,7 +180,7 @@
 -   _New User_
     -   → Sorry, yoour application has been declined
 
-### Express initation (shaman = null)
+### ✅ Express initation (shaman = null)
 
 [...after first part of initiation...]
 

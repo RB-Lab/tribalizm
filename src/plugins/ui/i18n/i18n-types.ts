@@ -417,10 +417,13 @@ export type Translation = {
 		'AlreadyHaveChief': string
 		'ElderMismatchError': string
 		'WrongQuestError': string
+		/**
+		 * 🤨 Hmm... this tribe has no chief.
+		 */
 		'NoChiefSetError': string
 		'NoShamanSetError': string
 		/**
-		 * 🚫 Sorry, you cannot change application process now
+		 * 🚫 Sorry, you cannot change application process now.
 		 */
 		'WrongPhaseError': string
 		'VotingNotStartedError': string
@@ -809,10 +812,13 @@ export type TranslationFunctions = {
 		'AlreadyHaveChief': () => LocalizedString
 		'ElderMismatchError': () => LocalizedString
 		'WrongQuestError': () => LocalizedString
+		/**
+		 * 🤨 Hmm... this tribe has no chief.
+		 */
 		'NoChiefSetError': () => LocalizedString
 		'NoShamanSetError': () => LocalizedString
 		/**
-		 * 🚫 Sorry, you cannot change application process now
+		 * 🚫 Sorry, you cannot change application process now.
 		 */
 		'WrongPhaseError': () => LocalizedString
 		'VotingNotStartedError': () => LocalizedString

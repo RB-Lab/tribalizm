@@ -9,6 +9,7 @@ import {
     getInlineKeyCallbacks,
     getKeyboardButtons,
 } from './bot-utils'
+import { IMember } from '../../use-cases/entities/member'
 
 function xdescribe(...args: any[]) {}
 describe('Get into tribe [integration]', () => {
@@ -142,6 +143,24 @@ describe('Get into tribe [integration]', () => {
         await world.requestTaskQueue()
         jasmine.clock().uninstall()
 
+        // new user is asked to rate chief's charisma & wisdom
+        const nuChiefRateUpd = await world.newUser.chat()
+        expect(nuChiefRateUpd.length).toBe(1)
+        const rateChiefCharismaButtons = getInlineKeyCallbacks(
+            nuChiefRateUpd[0]
+        )
+        expect(rateChiefCharismaButtons.length).toBe(6)
+        const rateChiefWisdomUpd = await world.newUser.chatLast(
+            rateChiefCharismaButtons[5],
+            true
+        )
+        const votesBefore = world.chief.member.votes.length
+
+        const rateChiefWisdomButtons = getInlineKeyCallbacks(rateChiefWisdomUpd)
+        expect(rateChiefWisdomButtons.length).toBe(6)
+        await world.newUser.chatLast(rateChiefWisdomButtons[3])
+        expect(world.chief.member.votes.length).toBe(votesBefore + 1)
+
         // chief is asked if they accept member
         const chiefFeedbackUpd = await world.chief.chat()
         expect(chiefFeedbackUpd.length).toBe(1)
@@ -155,31 +174,11 @@ describe('Get into tribe [integration]', () => {
         )!
         await world.chief.chat(chiefAcceptButton, true)
 
-        // new user is asked to rate chief's charisma & wisdom
-        const nuChiefRateUpd = await world.newUser.chat()
-        expect(nuChiefRateUpd.length).toBe(1)
-        const rateChiefCharismaButtons = getInlineKeyCallbacks(
-            nuChiefRateUpd[0]
-        )
-        expect(rateChiefCharismaButtons.length).toBe(6)
-        const rateChiefWisdomUpd = await world.newUser.chatLast(
-            rateChiefCharismaButtons[5],
-            true
-        )
-        const rateChiefWisdomButtons = getInlineKeyCallbacks(rateChiefWisdomUpd)
-        expect(rateChiefWisdomButtons.length).toBe(6)
-        await world.newUser.chatLast(rateChiefWisdomButtons[3])
-        const cMember = await world.context.stores.memberStore.getById(
-            world.chief.member.id
-        )
-        expect(cMember?.votes.length).toBe(1)
-
         // shaman recieves application
         const shamanUpdates = await world.shaman.chat()
         expect(shamanUpdates.length).toBe(1)
         const shamanNotice = shamanUpdates[0]
         expect(shamanNotice.message.text).toMatch(coverLetter)
-        const initQuest2 = await world.context.stores.questStore._last()
         const shamanNotButtons = getInlineKeyCallbacks(shamanNotice)
         expect(shamanNotButtons).toEqual([
             jasmine.stringMatching(`propose-initiation`),
@@ -243,14 +242,12 @@ describe('Get into tribe [integration]', () => {
             rateShamanCharismaButtons[5],
             true
         )
+        const shVotesBefore = world.shaman.member.votes.length
         const rateShamanWisdomButtons =
             getInlineKeyCallbacks(rateShamanWisdomUpd)
         expect(rateShamanWisdomButtons.length).toBe(6)
         await world.newUser.chatLast(rateShamanWisdomButtons[3])
-        const shMember = await world.context.stores.memberStore.getById(
-            world.shaman.member.id
-        )
-        expect(shMember?.votes.length).toBe(1)
+        expect(world.shaman.member.votes.length).toBe(shVotesBefore + 1)
 
         // shaman is asked if they accept member
         const shamanFeedbackUpd = await world.shaman.chat()
@@ -459,12 +456,84 @@ describe('Get into tribe [integration]', () => {
         const chiefDeclineButton = chiefFeedbackButtons.find((b) =>
             b.startsWith('application-decline')
         )!
-        console.log(chiefDeclineButton)
 
         await world.chief.client.sendCallback(
             world.chief.client.makeCallbackQuery(chiefDeclineButton)
         )
         await world.chief.chat()
+    })
+    fit('Accepts member without shaman initiation, if tribe has no shaman', async () => {
+        await world.newUser.chatLast('/start')
+        await world.newUser.chat('list-tribes')
+        const tribesListUpdate = await world.newUser.chat(world.city.name)
+        const tribeListItem = tribesListUpdate[tribesListUpdate.length - 1]
+        const applyButton = getInlineKeyCallbacks(tribeListItem)[0]
+        await world.newUser.chatLast(applyButton)
+        await world.newUser.chat('I want to FOO!!')
+        const chiefUpdates = await world.chief.chat()
+        const chiefNote = chiefUpdates[0]
+        const chiefNotButtons = getInlineKeyCallbacks(chiefNote)
+
+        // Chief set's date
+        const propose = chiefNotButtons.find((b) => b.startsWith('propose'))
+        const calendar = await world.chief.chatLast(propose!)
+        const dates = getInlineKeyCallbacks(calendar).filter((cb) =>
+            cb.includes('date')
+        )
+        const hour = getInlineKeyCallbacks(
+            await world.chief.chatLast(dates[3], true)
+        )[4]
+        const minutes = getInlineKeyCallbacks(
+            await world.chief.chatLast(hour, true)
+        )[2]
+        await world.chief.chat(minutes, true)
+        const proposalConfirmPrompt = await world.chief.chatLast(
+            'Lets meet at Awesome Place Inn'
+        )
+        const proposalPromptButtons = getInlineKeyCallbacks(
+            proposalConfirmPrompt
+        )
+        expect(proposalPromptButtons).toEqual([
+            'confirm-proposal',
+            'redo-proposal',
+        ])
+        await world.chief.chat('confirm-proposal', true)
+
+        process.env.chatDebug = 'true'
+        // new user agrees
+        const userUpdate = await world.newUser.chatLast()
+        const userNotifButtons = getInlineKeyCallbacks(userUpdate)
+        const agreeBtn = userNotifButtons.find((b) => b.startsWith('agree'))
+        await world.newUser.chatLast(agreeBtn)
+
+        // chief notified on confirmation
+        await world.chief.chat()
+        // time forward to the point when system asks about initiation
+        jasmine.clock().install()
+        const howWasInitTask = await world.context.stores.taskStore._last()
+        jasmine.clock().mockDate(new Date(howWasInitTask!.time + 1000))
+        await world.requestTaskQueue()
+        jasmine.clock().uninstall()
+        // new user is asked to rate chief...
+        const rateUpd = await world.newUser.chat()
+        const charismaButtons = getInlineKeyCallbacks(rateUpd[0])
+        const wisdomUpd = await world.newUser.chatLast(charismaButtons[5], true)
+        const wisdomButtons = getInlineKeyCallbacks(wisdomUpd)
+        await world.newUser.chatLast(wisdomButtons[3])
+
+        world.tribes[1].shamanId = null
+        await world.context.stores.tribeStore.save(world.tribes[1])
+        // chief accepts member
+        const chiefFeedbackUpd = await world.chief.chat()
+        const chiefFeedbackButtons = getInlineKeyCallbacks(chiefFeedbackUpd[0])
+        const chiefAcceptButton = chiefFeedbackButtons.find((b) =>
+            b.startsWith('application-accept:')
+        )!
+        await world.chief.chat(chiefAcceptButton, true)
+
+        // new user is notified on their accepance
+        const upd = await world.newUser.chat()
+        expect(upd.length).toBe(1)
     })
 })
 
@@ -500,10 +569,12 @@ async function setup() {
         makeClient('BarBar Monster', 'Tribe Chief'),
         tribes[1].id
     )
+    await addVotes(chief.member, 5, 3)
     const shaman = await addTribeMember(
         makeClient('Barlog', 'Tribe Shaman'),
         tribes[1].id
     )
+    await addVotes(shaman.member, 3, 5)
     const oldie1 = await addTribeMember(
         makeClient('Oldie Bar', 'Old User 1'),
         tribes[1].id
@@ -515,6 +586,21 @@ async function setup() {
         chiefId: chief.member.id,
         shamanId: shaman.member.id,
     })
+
+    async function addVotes(member: IMember, c: number, w: number) {
+        const arr = Array(5).fill(0)
+        arr.forEach(() => {
+            member.castVote({
+                casted: 0,
+                charisma: c,
+                wisdom: w,
+                memberId: 'dd',
+                questId: 'dfw',
+                type: 'quest-vote',
+            })
+        })
+        context.stores.memberStore.save(member)
+    }
 
     return {
         requestTaskQueue: async () => {
