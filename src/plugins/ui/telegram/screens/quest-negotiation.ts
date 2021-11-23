@@ -91,13 +91,13 @@ function scenes() {
         if (sceneState.get(ctx, 'chiefInitiation')) {
             await ctx.tribalizm.initiation.startInitiation({
                 questId: sceneState.get(ctx, 'questId'),
-                elderUserId: ctx.state.userId,
+                elderUserId: ctx.user.userId,
             })
         }
         if (sceneState.get(ctx, 'shamanInitiation')) {
             await ctx.tribalizm.initiation.startShamanInitiation({
                 questId: sceneState.get(ctx, 'questId'),
-                elderUserId: ctx.state.userId,
+                elderUserId: ctx.user.userId,
             })
         }
         await ctx.tribalizm.questNegotiation.proposeChange({
@@ -179,7 +179,7 @@ export function attachNotifications(
     bus.subscribe<QuestChangeMessage>(
         'quest-change-proposed',
         async ({ payload }) => {
-            const user = await telegramUsers.getChatDataByUserId(
+            const user = await telegramUsers.getTelegramUserForTribalism(
                 payload.targetUserId
             )
             const qnTexts = i18n(user).questNegotiation
@@ -234,7 +234,7 @@ export function attachNotifications(
     bus.subscribe<QuestAcceptedMessage>(
         'quest-accepted',
         async ({ payload }) => {
-            const user = await telegramUsers.getChatDataByUserId(
+            const user = await telegramUsers.getTelegramUserForTribalism(
                 payload.targetUserId
             )
             const qnTexts = i18n(user).questNegotiation

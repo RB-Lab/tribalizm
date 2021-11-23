@@ -11,7 +11,7 @@ import { rulesScreen } from './screens/rules'
 import { startScreenActions } from './screens/start'
 import { tribesListScreen } from './screens/tribes-list'
 import { TribeCtx } from './tribe-ctx'
-import { TelegramUsersAdapter } from './users-adapter'
+import { TelegramUser, TelegramUsersAdapter } from './users-adapter'
 
 interface LocalHookConfig {
     /** port & path are used to start a server inside a bot */
@@ -91,20 +91,21 @@ export async function makeBot(config: BotConfig) {
             return
         }
         try {
-            ctx.state.userId =
-                await config.telegramUsersAdapter.getUserIdByChatId(ctx.chat.id)
-            if (!ctx.state.userId) {
+            let user = await config.telegramUsersAdapter.getUserByChatId(
+                ctx.chat.id
+            )
+            if (user) {
+                ctx.user = user
+            }
+            if (!user) {
                 const name =
                     ctx.from.first_name +
                     (ctx.from.last_name ? ` ${ctx.from.last_name}` : '')
-                ctx.state.userId = await config.telegramUsersAdapter.createUser(
-                    name,
-                    {
-                        chatId: String(ctx.chat.id),
-                        locale: ctx.from.language_code,
-                        username: ctx.from.username,
-                    }
-                )
+                ctx.user = await config.telegramUsersAdapter.createUser(name, {
+                    chatId: String(ctx.chat.id),
+                    locale: ctx.from.language_code,
+                    username: ctx.from.username,
+                })
             }
             next()
         } catch (err) {

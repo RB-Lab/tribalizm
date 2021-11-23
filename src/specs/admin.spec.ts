@@ -57,16 +57,22 @@ describe('Admin', () => {
     })
     it('notifies chief about a brainstorm', async () => {
         const world = await setUp()
-        const { user, member } = await world.makeUserAndTribe()
+        const { user, tribe } = await world.makeUserAndTribe()
         const onMessage =
             world.spyOnMessage<TimeToStormMessage>('time-to-storm')
-        await world.admin.notifyBrainstorm({ memberId: member.id })
+
+        await world.admin.addTribeMemer({
+            tribeId: tribe.id,
+            userId: user.id,
+        })
+        const member = await world.memberStore._last()
+        await world.admin.notifyBrainstorm({ memberId: member!.id })
         expect(onMessage).toHaveBeenCalledOnceWith(
             jasmine.objectContaining<TimeToStormMessage>({
                 type: 'time-to-storm',
                 payload: {
                     targetUserId: user.id,
-                    targetMemberId: member.id,
+                    targetMemberId: member!.id,
                 },
             })
         )
@@ -89,13 +95,7 @@ async function setUp() {
                 cityId: 'spb',
             })
         )
-        const member = await context.stores.memberStore.save(
-            new Member({
-                tribeId: tribe.id,
-                userId: user.id,
-            })
-        )
-        return { user, tribe, member }
+        return { user, tribe }
     }
 
     return {

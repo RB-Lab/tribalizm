@@ -1,6 +1,10 @@
 import TelegramServer from 'telegram-test-api'
+import { InMemoryStore } from '../../plugins/stores/in-memory-store/in-memory-store'
 import { makeBot } from '../../plugins/ui/telegram/bot'
-import { StoreTelegramUsersAdapter } from '../../plugins/ui/telegram/users-adapter'
+import {
+    ITelegramUser,
+    StoreTelegramUsersAdapter,
+} from '../../plugins/ui/telegram/users-adapter'
 import { Awaited, notEmpty } from '../../ts-utils'
 import { Member } from '../../use-cases/entities/member'
 import { createContext } from '../test-context'
@@ -151,6 +155,8 @@ export function log(...args: any[]) {
     console.log('=============================')
 }
 
+class TgUserStore extends InMemoryStore<ITelegramUser> {}
+
 export async function createTelegramContext(
     context: Awaited<ReturnType<typeof createContext>>
 ) {
@@ -167,7 +173,8 @@ export async function createTelegramContext(
             path: '/tg-hook',
         },
         telegramUsersAdapter: new StoreTelegramUsersAdapter(
-            context.stores.userStore
+            context.stores.userStore,
+            new TgUserStore()
         ),
         telegramURL: server.config.apiURL,
         reportError: (err) => {

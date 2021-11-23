@@ -1,9 +1,43 @@
-import {
-    ProvdierDataTelegram,
-    StoredUser,
-    User,
-    UserStore,
-} from '../../../use-cases/entities/user'
+import { Storable, Store } from '../../../use-cases/entities/store'
+import { User, UserStore } from '../../../use-cases/entities/user'
+
+export interface TelegramUserStore extends Store<ITelegramUser> {}
+
+interface UserState {
+    type: 'string'
+}
+
+export interface ITelegramUser {
+    userId: string
+    chatId: string
+    username?: string
+    locale?: string
+    state?: UserState
+}
+
+export type SavetdTelegramUser = ITelegramUser & Storable
+
+export class TelegramUser implements SavetdTelegramUser {
+    private store: TelegramUserStore
+    id: string
+    userId: string
+    chatId: string
+    username?: string
+    locale?: string
+    state?: UserState
+    constructor(store: TelegramUserStore, data: SavetdTelegramUser) {
+        this.id = data.id
+        this.userId = data.userId
+        this.chatId = data.chatId
+        this.username = data.username
+        this.locale = data.locale
+        this.store = store
+    }
+    async setState(state: UserState) {
+        this.state = state
+        this.store.save({ ...this, state })
+    }
+}
 
 export interface TelegramUsersAdapter {
     /**
@@ -11,47 +45,47 @@ export interface TelegramUsersAdapter {
      */
     createUser: (
         name: string,
-        providerData: ProvdierDataTelegram
-    ) => Promise<string>
-    getUserIdByChatId: (chatId: string | number) => Promise<string | null>
-    getChatDataByUserId: (
-        userId: string
-    ) => Promise<{ locale: string; chatId: string }>
+        providerData: Omit<ITelegramUser, 'userId'>
+    ) => Promise<TelegramUser>
+    getUserByChatId: (chatId: string | number) => Promise<TelegramUser | null>
+    getTelegramUserForTribalism: (userId: string) => Promise<TelegramUser>
 }
 
 export class StoreTelegramUsersAdapter implements TelegramUsersAdapter {
     private userStore: UserStore
-    constructor(userStore: UserStore) {
+    private tgUserStore: TelegramUserStore
+    constructor(userStore: UserStore, telegramUserStore: TelegramUserStore) {
         this.userStore = userStore
+        this.tgUserStore = telegramUserStore
     }
-    async createUser(name: string, providerData: ProvdierDataTelegram) {
-        return (
-            await this.userStore.save(
-                new User({
-                    name,
-                    provider: {
-                        telegram: providerData,
-                    },
-                })
-            )
-        ).id
-    }
-    async getUserIdByChatId(chatId: string | number) {
-        const users = await this.userStore.find({
-            provider: { telegram: { chatId: String(chatId) } },
+    async createUser(name: string, tgData: Omit<ITelegramUser, 'userId'>) {
+        // TODO begin transaction
+        const user = await this.userStore.save(
+            new User({
+                name,
+            })
+        )
+        const savedUser = await this.tgUserStore.save({
+            chatId: tgData.chatId,
+            userId: user.id,
+            locale: tgData.locale,
+            username: tgData.username,
         })
-        return users.length ? users[0].id : null
+        return new TelegramUser(this.tgUserStore, savedUser)
     }
-    async getChatDataByUserId(userId: string) {
-        const user = await this.userStore.getById(userId)
-        if (!user?.provider.telegram) {
-            throw new Error(`User ${userId} does not use telegram`)
+    async getUserByChatId(chatId: string | number) {
+        const users = await this.tgUserStore.find({ chatId: String(chatId) })
+        return users.length
+            ? new TelegramUser(this.tgUserStore, users[0])
+            : null
+    }
+    async getTelegramUserForTribalism(tribalismUserId: string) {
+        const users = await this.tgUserStore.find({ userId: tribalismUserId })
+
+        if (!users.length) {
+            throw new Error(`User ${tribalismUserId} does not use telegram`)
         }
 
-        // for some reason it doesn't change type after check...
-        return {
-            locale: user.provider.telegram.locale || 'en',
-            chatId: user.provider.telegram.chatId,
-        }
+        return new TelegramUser(this.tgUserStore, users[0])
     }
 }

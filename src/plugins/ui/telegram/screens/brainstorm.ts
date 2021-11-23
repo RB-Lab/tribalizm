@@ -7,7 +7,6 @@ import {
     BrainstormStartedMessage,
 } from '../../../../use-cases/brainstorm-lifecycle'
 import { NotificationBus } from '../../../../use-cases/utils/notification-bus'
-import { StormNotify } from '../../../../use-cases/utils/scheduler'
 import { i18n } from '../../i18n/i18n-ctx'
 import { TribeCtx } from '../tribe-ctx'
 import { TelegramUsersAdapter } from '../users-adapter'
@@ -23,7 +22,7 @@ function attachNotifications(
     telegramUsers: TelegramUsersAdapter
 ) {
     bus.subscribe<TimeToStormMessage>('time-to-storm', async ({ payload }) => {
-        const user = await telegramUsers.getChatDataByUserId(
+        const user = await telegramUsers.getTelegramUserForTribalism(
             payload.targetUserId
         )
         const texts = i18n(user).brainstorm
@@ -41,7 +40,7 @@ function attachNotifications(
     bus.subscribe<BrainstormDeclarationMessage>(
         'new-brainstorm',
         async ({ payload }) => {
-            const user = await telegramUsers.getChatDataByUserId(
+            const user = await telegramUsers.getTelegramUserForTribalism(
                 payload.targetUserId
             )
             const texts = i18n(user).brainstorm
@@ -54,7 +53,7 @@ function attachNotifications(
     bus.subscribe<BrainstormNoticeMessage>(
         'brainstorm-notice',
         async ({ payload }) => {
-            const user = await telegramUsers.getChatDataByUserId(
+            const user = await telegramUsers.getTelegramUserForTribalism(
                 payload.targetUserId
             )
             const texts = i18n(user).brainstorm
@@ -67,7 +66,7 @@ function attachNotifications(
     bus.subscribe<BrainstormStartedMessage>(
         'brainstorm-started',
         async ({ payload }) => {
-            const user = await telegramUsers.getChatDataByUserId(
+            const user = await telegramUsers.getTelegramUserForTribalism(
                 payload.targetUserId
             )
             const texts = i18n(user).brainstorm

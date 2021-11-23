@@ -20,7 +20,7 @@ describe('Brainstorm [integration]', () => {
         await world.tearDown()
     })
 
-    fit('Main scenario', async () => {
+    it('Main scenario', async () => {
         process.env.chatDebug = 'true'
         // Chief arranges brainstorm
         await world.admin.notifyBrainstorm({ memberId: world.chief.member.id })

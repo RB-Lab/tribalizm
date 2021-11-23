@@ -9,7 +9,7 @@ type Ctx =
               language_code?: string
           }
       }
-    | { locale: string }
+    | { locale?: string }
 
 export const i18n = (ctx: Ctx) => {
     if ('from' in ctx) {

@@ -65,7 +65,7 @@ export function attachNotifications(
     bus.subscribe<RateElderMessage>(
         'rate-elder-message',
         async ({ payload }) => {
-            const user = await telegramUsers.getChatDataByUserId(
+            const user = await telegramUsers.getTelegramUserForTribalism(
                 payload.targetUserId
             )
             const texts = i18n(user).rateMember
@@ -98,7 +98,7 @@ export function attachNotifications(
     bus.subscribe<RateMemberMessage>(
         'rate-member-message',
         async ({ payload }) => {
-            const user = await telegramUsers.getChatDataByUserId(
+            const user = await telegramUsers.getTelegramUserForTribalism(
                 payload.targetUserId
             )
             const texts = i18n(user).rateMember

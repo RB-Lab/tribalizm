@@ -29,7 +29,7 @@ function scenes() {
         // TODO should use the text maybe?
         ctx.tribalizm.initiation.decline({
             questId: sceneState.get(ctx, 'questId'),
-            elderUserId: ctx.state.userId,
+            elderUserId: ctx.user.userId,
         })
         ctx.scene.leave()
     })
@@ -38,7 +38,7 @@ function scenes() {
     appDecline.enter(async (ctx) => {
         await ctx.tribalizm.initiation.decline({
             questId: sceneState.get(ctx, 'questId'),
-            elderUserId: ctx.state.userId,
+            elderUserId: ctx.user.userId,
         })
         ctx.editMessageText(
             i18n(ctx).initiation.declineOk(),
@@ -50,7 +50,7 @@ function scenes() {
     appAccept.enter((ctx) => {
         ctx.tribalizm.initiation.approveByElder({
             questId: sceneState.get(ctx, 'questId'),
-            elderUserId: ctx.state.userId,
+            elderUserId: ctx.user.userId,
         })
         ctx.editMessageText(
             i18n(ctx).initiation.approvedOk(),
@@ -115,7 +115,7 @@ export function attachNotifications(
     bus.subscribe<ApplicationMessage>(
         'application-message',
         async ({ payload }) => {
-            const elder = await telegramUsers.getChatDataByUserId(
+            const elder = await telegramUsers.getTelegramUserForTribalism(
                 payload.targetUserId
             )
             const texts = i18n(elder).notifications.tribeAppliaction
@@ -152,7 +152,7 @@ export function attachNotifications(
     bus.subscribe<ApplicationDeclinedMessage>(
         'application-declined',
         async ({ payload }) => {
-            const user = await telegramUsers.getChatDataByUserId(
+            const user = await telegramUsers.getTelegramUserForTribalism(
                 payload.targetUserId
             )
             const texts = i18n(user).notifications.tribeAppliaction
@@ -166,7 +166,7 @@ export function attachNotifications(
     bus.subscribe<RequestApplicationFeedbackMessage>(
         'request-application-feedback',
         async ({ payload }) => {
-            const user = await telegramUsers.getChatDataByUserId(
+            const user = await telegramUsers.getTelegramUserForTribalism(
                 payload.targetUserId
             )
             const texts = i18n(user).initiation
@@ -200,7 +200,7 @@ export function attachNotifications(
     bus.subscribe<ApplicationApprovedMessage>(
         'application-approved',
         async ({ payload }) => {
-            const user = await telegramUsers.getChatDataByUserId(
+            const user = await telegramUsers.getTelegramUserForTribalism(
                 payload.targetUserId
             )
             const texts = i18n(user).initiation

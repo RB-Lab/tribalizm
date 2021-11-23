@@ -146,7 +146,7 @@ describe('Brainstorm lifecycle', () => {
             jasmine.objectContaining<BrainstormNoticeMessage>({
                 type: 'brainstorm-notice',
                 payload: {
-                    targetUserId: world.members[1].id,
+                    targetUserId: world.members[1].userId,
                     targetMemberId: world.members[1].id,
                     brainstormId: brainstorm.id,
                     time: brainstorm.time,

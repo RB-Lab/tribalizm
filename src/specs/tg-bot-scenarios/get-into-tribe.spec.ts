@@ -17,6 +17,7 @@ describe('Get into tribe [integration]', () => {
     afterEach(async () => {
         await world.tearDown()
     })
+    // process.env.chatDebug = 'true'
 
     it('Main scenario', async () => {
         // /start
@@ -534,8 +535,6 @@ describe('Get into tribe [integration]', () => {
 })
 
 async function setup() {
-    // process.env.chatDebug = 'true'
-
     const context = await createContext()
     const { server, addTribeMember, makeClient, bot } =
         await createTelegramContext(context)

@@ -28,7 +28,7 @@ export function attachNotifications(
     bus.subscribe<IntroMessage>(
         'intro-request-message',
         async ({ payload }) => {
-            const user = await telegramUsers.getChatDataByUserId(
+            const user = await telegramUsers.getTelegramUserForTribalism(
                 payload.targetUserId
             )
             const texts = i18n(user).introduction

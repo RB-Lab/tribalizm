@@ -82,7 +82,7 @@ function scenes() {
         await ctx.tribalizm.tribeApplication.appyToTribe({
             coverLetter: ctx.message.text,
             tribeId: (ctx.scene.state as any).tribeId,
-            userId: ctx.state.userId,
+            userId: ctx.user.userId,
         })
 
         ctx.reply(texts.applicationSent())
