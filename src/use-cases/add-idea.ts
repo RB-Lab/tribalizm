@@ -30,6 +30,7 @@ export class AddIdea extends ContextUser {
                 payload: {
                     description: req.description,
                     targetMemberId: m.id,
+                    targetUserId: m.userId,
                 },
             })
         })
@@ -47,6 +48,7 @@ export interface AddIdeaRequest {
 export interface NewIdeaMessage extends Message {
     type: 'new-idea-added'
     payload: {
+        targetUserId: string
         targetMemberId: string
         description: string
     }

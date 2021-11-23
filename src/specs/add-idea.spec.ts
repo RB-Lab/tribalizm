@@ -23,6 +23,7 @@ describe('Add idea', () => {
             jasmine.objectContaining<NewIdeaMessage>({
                 type: 'new-idea-added',
                 payload: {
+                    targetUserId: world.members[0].userId,
                     description: world.defReq.description,
                     targetMemberId: world.members[0].id,
                 },
@@ -31,6 +32,7 @@ describe('Add idea', () => {
         expect(onIdea).not.toHaveBeenCalledWith(
             jasmine.objectContaining<NewIdeaMessage>({
                 payload: {
+                    targetUserId: world.members[0].userId,
                     description: world.defReq.description,
                     targetMemberId: world.defReq.meberId,
                 },
@@ -45,6 +47,7 @@ describe('Add idea', () => {
         expect(onIdea).not.toHaveBeenCalledWith(
             jasmine.objectContaining<NewIdeaMessage>({
                 payload: {
+                    targetUserId: world.members[0].userId,
                     description: world.defReq.description,
                     targetMemberId: world.members[1].id,
                 },

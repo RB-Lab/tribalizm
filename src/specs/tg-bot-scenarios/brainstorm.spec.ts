@@ -1,4 +1,5 @@
 import exp from 'constants'
+import { StoredBotUpdate } from 'telegram-test-api/lib/telegramServer'
 import { Awaited } from '../../ts-utils'
 import { Admin } from '../../use-cases/admin'
 import { City } from '../../use-cases/entities/city'
@@ -20,8 +21,8 @@ describe('Brainstorm [integration]', () => {
         await world.tearDown()
     })
 
-    it('Main scenario', async () => {
-        process.env.chatDebug = 'true'
+    // process.env.chatDebug = 'true'
+    fit('Main scenario', async () => {
         // Chief arranges brainstorm
         await world.admin.notifyBrainstorm({ memberId: world.chief.member.id })
         const chiefBrstmNoteUpd = await world.chief.chat()
@@ -85,6 +86,30 @@ describe('Brainstorm [integration]', () => {
             const upds = await u.chat()
             expect(upds.length).toBe(1)
         }
+        process.env.chatDebug = 'true'
+        const ideas: StoredBotUpdate[] = []
+        // user 2 adds idea
+        const idea1 = "Let's go FOOOO!!"
+        await world.user2.client.sendMessage(
+            world.user2.client.makeMessage(idea1)
+        )
+        ideas.push(await world.chief.chatLast())
+        ideas.push(await world.shaman.chatLast())
+        ideas.push(await world.user1.chatLast())
+        ideas.push(await world.user3.chatLast())
+
+        expect(ideas.length).toBe(4)
+        for (let idea of ideas) {
+            expect(idea.message.text).toMatch(idea1)
+        }
+
+        await world.user3.client.sendMessage(
+            world.user3.client.makeMessage("Let's go Arr!!")
+        )
+        ideas.push(await world.chief.chatLast())
+        ideas.push(await world.shaman.chatLast())
+        ideas.push(await world.user1.chatLast())
+        ideas.push(await world.user2.chatLast())
     })
 })
 async function setup() {

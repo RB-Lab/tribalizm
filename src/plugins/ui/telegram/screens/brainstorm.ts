@@ -1,5 +1,6 @@
 import { Markup, Telegraf } from 'telegraf'
 import Calendar from 'telegraf-calendar-telegram'
+import { NewIdeaMessage } from '../../../../use-cases/add-idea'
 import { TimeToStormMessage } from '../../../../use-cases/admin'
 import {
     BrainstormDeclarationMessage,
@@ -9,13 +10,23 @@ import {
 import { NotificationBus } from '../../../../use-cases/utils/notification-bus'
 import { i18n } from '../../i18n/i18n-ctx'
 import { TribeCtx } from '../tribe-ctx'
-import { TelegramUsersAdapter } from '../users-adapter'
+import { TelegramUsersAdapter, UserState } from '../users-adapter'
 import { makeCalbackDataParser } from './calback-parser'
 
 const hours = '08,09,10,11,12,13,14,15,16,17,18,19,20,21,22,23'.split(',')
 
 const startBrst = makeCalbackDataParser('storm-start', ['memberId'])
 
+interface BrainstormState extends UserState {
+    type: 'brainstorm'
+    memberId: string
+    brainstormId: string
+}
+function isBarinstormState(
+    state: undefined | { type: string }
+): state is BrainstormState {
+    return state !== undefined && state.type === 'brainstorm'
+}
 function attachNotifications(
     bot: Telegraf<TribeCtx>,
     bus: NotificationBus,
@@ -70,9 +81,24 @@ function attachNotifications(
                 payload.targetUserId
             )
             const texts = i18n(user).brainstorm
+            await user.setState<BrainstormState>({
+                type: 'brainstorm',
+                brainstormId: payload.brainstormId,
+                memberId: payload.targetMemberId,
+            })
             bot.telegram.sendMessage(user.chatId, texts.started())
         }
     )
+    bus.subscribe<NewIdeaMessage>('new-idea-added', async ({ payload }) => {
+        const user = await telegramUsers.getTelegramUserForTribalism(
+            payload.targetUserId
+        )
+
+        const message = await bot.telegram.sendMessage(
+            user.chatId,
+            `➡️ ${payload.description}`
+        )
+    })
 }
 
 const calendarHours = makeCalbackDataParser('storm-calendar-hours', [
@@ -168,6 +194,19 @@ function actions(bot: Telegraf<TribeCtx>) {
             Markup.inlineKeyboard([])
         )
         ctx.reply(texts.done())
+    })
+
+    bot.on('text', async (ctx, next) => {
+        const state = ctx.user.state
+        if (isBarinstormState(state)) {
+            await ctx.tribalizm.addIdea.addIdea({
+                brainstormId: state.brainstormId,
+                meberId: state.memberId,
+                description: ctx.message.text,
+            })
+        } else {
+            next()
+        }
     })
 }
 
