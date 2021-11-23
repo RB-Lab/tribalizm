@@ -53,7 +53,7 @@
     -   → Brainstorm started! Propose your ideas! 💥
 -   _Member 3_
     -   → Brainstorm started! Propose your ideas! 💥
--   _Member 2_
+-   🚀 _Member 2_
     -   ← Let's go FOOOO!!
 -   _Chief_
     -   → Let's go FOOOO!!
@@ -223,4 +223,4 @@
 
 ## Variations
 
-### Shaman declines coordination quest
+### Member declines a coordination quest

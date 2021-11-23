@@ -115,7 +115,7 @@ export function attachNotifications(
     bus.subscribe<ApplicationMessage>(
         'application-message',
         async ({ payload }) => {
-            const elder = await telegramUsers.getCatDataByUserId(
+            const elder = await telegramUsers.getChatDataByUserId(
                 payload.targetUserId
             )
             const texts = i18n(elder).notifications.tribeAppliaction
@@ -152,7 +152,7 @@ export function attachNotifications(
     bus.subscribe<ApplicationDeclinedMessage>(
         'application-declined',
         async ({ payload }) => {
-            const user = await telegramUsers.getCatDataByUserId(
+            const user = await telegramUsers.getChatDataByUserId(
                 payload.targetUserId
             )
             const texts = i18n(user).notifications.tribeAppliaction
@@ -166,7 +166,7 @@ export function attachNotifications(
     bus.subscribe<RequestApplicationFeedbackMessage>(
         'request-application-feedback',
         async ({ payload }) => {
-            const user = await telegramUsers.getCatDataByUserId(
+            const user = await telegramUsers.getChatDataByUserId(
                 payload.targetUserId
             )
             const texts = i18n(user).initiation
@@ -200,7 +200,7 @@ export function attachNotifications(
     bus.subscribe<ApplicationApprovedMessage>(
         'application-approved',
         async ({ payload }) => {
-            const user = await telegramUsers.getCatDataByUserId(
+            const user = await telegramUsers.getChatDataByUserId(
                 payload.targetUserId
             )
             const texts = i18n(user).initiation

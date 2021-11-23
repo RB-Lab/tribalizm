@@ -1,15 +1,12 @@
 import { Awaited } from '../../ts-utils'
 import { City } from '../../use-cases/entities/city'
 import { Tribe } from '../../use-cases/entities/tribe'
-import { Scheduler } from '../../use-cases/utils/scheduler'
-import { TaskDiscpatcher } from '../../use-cases/utils/task-dispatcher'
 import { createContext } from '../test-context'
 import {
     createTelegramContext,
     getInlineKeyCallbacks,
     getKeyboardButtons,
 } from './bot-utils'
-import { IMember } from '../../use-cases/entities/member'
 
 function xdescribe(...args: any[]) {}
 describe('Get into tribe [integration]', () => {
@@ -21,7 +18,7 @@ describe('Get into tribe [integration]', () => {
         await world.tearDown()
     })
 
-    it('apply to tribe, initiate new member, introduce to tribe', async () => {
+    it('Main scenario', async () => {
         // /start
         const update = await world.newUser.chatLast('/start')
         const callbacks = getInlineKeyCallbacks(update)
@@ -140,7 +137,7 @@ describe('Get into tribe [integration]', () => {
         jasmine.clock().install()
         const howWasInitTask = await world.context.stores.taskStore._last()
         jasmine.clock().mockDate(new Date(howWasInitTask!.time + 1000))
-        await world.requestTaskQueue()
+        await world.context.requestTaskQueue()
         jasmine.clock().uninstall()
 
         // new user is asked to rate chief's charisma & wisdom
@@ -228,7 +225,7 @@ describe('Get into tribe [integration]', () => {
         jasmine.clock().install()
         const howWasInitTask2 = await world.context.stores.taskStore._last()
         jasmine.clock().mockDate(new Date(howWasInitTask2!.time + 1000))
-        await world.requestTaskQueue()
+        await world.context.requestTaskQueue()
         jasmine.clock().uninstall()
 
         // new user is asked to rate shaman's charisma & wisdom
@@ -272,7 +269,7 @@ describe('Get into tribe [integration]', () => {
         jasmine.clock().install()
         const introTask = await world.context.stores.taskStore._last()
         jasmine.clock().mockDate(new Date(introTask!.time + 1000))
-        await world.requestTaskQueue()
+        await world.context.requestTaskQueue()
         jasmine.clock().uninstall()
 
         // the old user recieves invitation to make an intro quest
@@ -312,7 +309,7 @@ describe('Get into tribe [integration]', () => {
         jasmine.clock().install()
         const introRateTask = await world.context.stores.taskStore._last()
         jasmine.clock().mockDate(new Date(introRateTask!.time + 1000))
-        await world.requestTaskQueue()
+        await world.context.requestTaskQueue()
         jasmine.clock().uninstall()
 
         // newbie is asked to rate oldie's charisma & wisdom
@@ -358,7 +355,7 @@ describe('Get into tribe [integration]', () => {
         jasmine.clock().install()
         const intro2Task = await world.context.stores.taskStore._last()
         jasmine.clock().mockDate(new Date(intro2Task!.time + 1000))
-        await world.requestTaskQueue()
+        await world.context.requestTaskQueue()
         jasmine.clock().uninstall()
 
         const oldie2Upds = await oldie2.chat()
@@ -439,7 +436,7 @@ describe('Get into tribe [integration]', () => {
         jasmine.clock().install()
         const howWasInitTask = await world.context.stores.taskStore._last()
         jasmine.clock().mockDate(new Date(howWasInitTask!.time + 1000))
-        await world.requestTaskQueue()
+        await world.context.requestTaskQueue()
         jasmine.clock().uninstall()
 
         // chief accepts member
@@ -462,7 +459,7 @@ describe('Get into tribe [integration]', () => {
         )
         await world.chief.chat()
     })
-    fit('Accepts member without shaman initiation, if tribe has no shaman', async () => {
+    it('Accepts member without shaman initiation, if tribe has no shaman', async () => {
         await world.newUser.chatLast('/start')
         await world.newUser.chat('list-tribes')
         const tribesListUpdate = await world.newUser.chat(world.city.name)
@@ -499,7 +496,6 @@ describe('Get into tribe [integration]', () => {
         ])
         await world.chief.chat('confirm-proposal', true)
 
-        process.env.chatDebug = 'true'
         // new user agrees
         const userUpdate = await world.newUser.chatLast()
         const userNotifButtons = getInlineKeyCallbacks(userUpdate)
@@ -512,7 +508,7 @@ describe('Get into tribe [integration]', () => {
         jasmine.clock().install()
         const howWasInitTask = await world.context.stores.taskStore._last()
         jasmine.clock().mockDate(new Date(howWasInitTask!.time + 1000))
-        await world.requestTaskQueue()
+        await world.context.requestTaskQueue()
         jasmine.clock().uninstall()
         // new user is asked to rate chief...
         const rateUpd = await world.newUser.chat()
@@ -544,9 +540,6 @@ async function setup() {
     const { server, addTribeMember, makeClient, bot } =
         await createTelegramContext(context)
 
-    const scheduler = new Scheduler(context.stores.taskStore)
-    const taskDiscpatcher = new TaskDiscpatcher(context.tribalism, scheduler)
-
     const city = await context.stores.cityStore.save(
         new City({
             name: 'Novosibirsk',
@@ -569,12 +562,12 @@ async function setup() {
         makeClient('BarBar Monster', 'Tribe Chief'),
         tribes[1].id
     )
-    await addVotes(chief.member, 5, 3)
+    await context.addVotes(chief.member, 5, 3)
     const shaman = await addTribeMember(
         makeClient('Barlog', 'Tribe Shaman'),
         tribes[1].id
     )
-    await addVotes(shaman.member, 3, 5)
+    await context.addVotes(shaman.member, 3, 5)
     const oldie1 = await addTribeMember(
         makeClient('Oldie Bar', 'Old User 1'),
         tribes[1].id
@@ -587,35 +580,7 @@ async function setup() {
         shamanId: shaman.member.id,
     })
 
-    async function addVotes(member: IMember, c: number, w: number) {
-        const arr = Array(5).fill(0)
-        arr.forEach(() => {
-            member.castVote({
-                casted: 0,
-                charisma: c,
-                wisdom: w,
-                memberId: 'dd',
-                questId: 'dfw',
-                type: 'quest-vote',
-            })
-        })
-        context.stores.memberStore.save(member)
-    }
-
     return {
-        requestTaskQueue: async () => {
-            if (process.env.chatDebug) {
-                const tasks = await context.stores.taskStore.find({
-                    done: false,
-                })
-                console.log(
-                    `--- Now is ${new Date()}. Dispatching tasks: ${
-                        tasks.length
-                    } ---`
-                )
-            }
-            await taskDiscpatcher.run()
-        },
         addOldie2: async () => {
             return await addTribeMember(
                 makeClient('Oldie Garr', 'Old User 2'),

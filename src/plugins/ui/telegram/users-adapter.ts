@@ -14,7 +14,7 @@ export interface TelegramUsersAdapter {
         providerData: ProvdierDataTelegram
     ) => Promise<string>
     getUserIdByChatId: (chatId: string | number) => Promise<string | null>
-    getCatDataByUserId: (
+    getChatDataByUserId: (
         userId: string
     ) => Promise<{ locale: string; chatId: string }>
 }
@@ -42,7 +42,7 @@ export class StoreTelegramUsersAdapter implements TelegramUsersAdapter {
         })
         return users.length ? users[0].id : null
     }
-    async getCatDataByUserId(userId: string) {
+    async getChatDataByUserId(userId: string) {
         const user = await this.userStore.getById(userId)
         if (!user?.provider.telegram) {
             throw new Error(`User ${userId} does not use telegram`)

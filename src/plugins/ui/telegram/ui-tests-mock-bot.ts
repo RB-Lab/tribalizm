@@ -32,7 +32,7 @@ class MockTelegramUsersAdapter implements TelegramUsersAdapter {
     getUserIdByChatId = async (chatId: number | string) => {
         return user!.id
     }
-    getCatDataByUserId = async (userId: string) => {
+    getChatDataByUserId = async (userId: string) => {
         if (!user) {
             throw new Error(`User ${userId} does not use telegram`)
         }

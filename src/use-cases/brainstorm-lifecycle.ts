@@ -59,9 +59,10 @@ export class BrainstormLifecycle extends ContextUser {
             this.notify<BrainstormDeclarationMessage>({
                 type: 'new-brainstorm',
                 payload: {
+                    targetMemberId: m.id,
+                    targetUserId: m.userId,
                     brainstormId: storm.id,
                     time: storm.time,
-                    targetMemberId: m.id,
                 },
             })
         })
@@ -78,9 +79,10 @@ export class BrainstormLifecycle extends ContextUser {
             this.notify<BrainstormNoticeMessage>({
                 type: 'brainstorm-notice',
                 payload: {
+                    targetUserId: m.userId,
+                    targetMemberId: m.id,
                     brainstormId: storm.id,
                     time: storm.time,
-                    targetMemberId: m.id,
                 },
             })
         })
@@ -101,6 +103,7 @@ export class BrainstormLifecycle extends ContextUser {
                 payload: {
                     brainstormId: storm.id,
                     targetMemberId: m.id,
+                    targetUserId: m.userId,
                 },
             })
         })
@@ -129,6 +132,7 @@ export class BrainstormLifecycle extends ContextUser {
             this.notify<VotingStartedMessage>({
                 type: 'voting-started',
                 payload: {
+                    targetUserId: m.userId,
                     brainstormId: storm.id,
                     targetMemberId: m.id,
                 },
@@ -156,6 +160,7 @@ export interface BrainstormDeclarationMessage extends Message {
     payload: {
         brainstormId: string
         targetMemberId: string
+        targetUserId: string
         time: number
     }
 }
@@ -164,6 +169,7 @@ export interface BrainstormNoticeMessage extends Message {
     payload: {
         brainstormId: string
         targetMemberId: string
+        targetUserId: string
         time: number
     }
 }
@@ -172,6 +178,7 @@ export interface BrainstormStartedMessage extends Message {
     payload: {
         brainstormId: string
         targetMemberId: string
+        targetUserId: string
     }
 }
 
@@ -180,6 +187,7 @@ export interface VotingStartedMessage extends Message {
     payload: {
         brainstormId: string
         targetMemberId: string
+        targetUserId: string
     }
 }
 

@@ -25,7 +25,7 @@ import { AddIdea } from '../use-cases/add-idea'
 import { TribeApplication } from '../use-cases/apply-tribe'
 import { BrainstormLifecycle } from '../use-cases/brainstorm-lifecycle'
 import { Brainstorm, QuestIdea } from '../use-cases/entities/brainstorm'
-import { Member } from '../use-cases/entities/member'
+import { IMember, Member } from '../use-cases/entities/member'
 import { Tribe } from '../use-cases/entities/tribe'
 import { User } from '../use-cases/entities/user'
 import { GateringAcknowledge } from '../use-cases/gathering-acknowledge'
@@ -40,6 +40,8 @@ import { QuestSource } from '../use-cases/quest-source'
 import { TribeShow } from '../use-cases/tribes-show'
 import { Message } from '../use-cases/utils/message'
 import { NotificationBus } from '../use-cases/utils/notification-bus'
+import { Scheduler } from '../use-cases/utils/scheduler'
+import { TaskDiscpatcher } from '../use-cases/utils/task-dispatcher'
 import { Voting } from '../use-cases/vote-idea'
 
 function createInmemroyStores() {
@@ -199,6 +201,20 @@ export async function createContext() {
             notififcationBus,
         },
     }
+    async function addVotes(member: IMember, c: number, w: number) {
+        const arr = Array(5).fill(0)
+        arr.forEach(() => {
+            member.castVote({
+                casted: 0,
+                charisma: c,
+                wisdom: w,
+                memberId: 'dd',
+                questId: 'dfw',
+                type: 'quest-vote',
+            })
+        })
+        context.stores.memberStore.save(member)
+    }
 
     const tribalism = {
         addIdea: new AddIdea(context),
@@ -216,11 +232,29 @@ export async function createContext() {
         questSource: new QuestSource(context),
         voting: new Voting(context),
     }
+    const scheduler = new Scheduler(context.stores.taskStore)
+    const taskDiscpatcher = new TaskDiscpatcher(tribalism, scheduler)
+
+    async function requestTaskQueue() {
+        if (process.env.chatDebug) {
+            const tasks = await context.stores.taskStore.find({
+                done: false,
+            })
+            console.log(
+                `--- Now is ${new Date()}. Dispatching tasks: ${
+                    tasks.length
+                } ---`
+            )
+        }
+        await taskDiscpatcher.run()
+    }
 
     return {
         ...context,
         testing,
         tribalism,
+        addVotes,
+        requestTaskQueue,
     }
 }
 

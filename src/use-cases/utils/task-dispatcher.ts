@@ -1,6 +1,12 @@
 import { QuestType } from '../entities/quest'
 import { Tribalizm } from '../tribalism'
-import { Scheduler, isHowWasQuestTask, isIntroductionTask } from './scheduler'
+import {
+    Scheduler,
+    isHowWasQuestTask,
+    isIntroductionTask,
+    isStormNotify,
+    isStormStart,
+} from './scheduler'
 
 export class TaskDiscpatcher {
     private tribalism: Tribalizm
@@ -22,6 +28,12 @@ export class TaskDiscpatcher {
             }
             if (isIntroductionTask(task)) {
                 this.tribalism.introductionQuests.notifyOldMember(task)
+            }
+            if (isStormNotify(task)) {
+                this.tribalism.brainstormLifecycle.notifyMembers(task)
+            }
+            if (isStormStart(task)) {
+                this.tribalism.brainstormLifecycle.startStorm(task)
             }
         }
     }

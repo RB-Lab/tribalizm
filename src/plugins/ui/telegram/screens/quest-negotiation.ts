@@ -179,7 +179,7 @@ export function attachNotifications(
     bus.subscribe<QuestChangeMessage>(
         'quest-change-proposed',
         async ({ payload }) => {
-            const user = await telegramUsers.getCatDataByUserId(
+            const user = await telegramUsers.getChatDataByUserId(
                 payload.targetUserId
             )
             const qnTexts = i18n(user).questNegotiation
@@ -234,7 +234,7 @@ export function attachNotifications(
     bus.subscribe<QuestAcceptedMessage>(
         'quest-accepted',
         async ({ payload }) => {
-            const user = await telegramUsers.getCatDataByUserId(
+            const user = await telegramUsers.getChatDataByUserId(
                 payload.targetUserId
             )
             const qnTexts = i18n(user).questNegotiation

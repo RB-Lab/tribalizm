@@ -396,6 +396,59 @@ export type Translation = {
 		 */
 		'done': string
 	}
+	'brainstorm': {	
+		/**
+		 * ⛈ It's Time To STORM!!!
+		 */
+		'timeToStorm': string
+		/**
+		 * ⚡️⚡️ Let's start it ⚡️⚡️
+		 */
+		'toStormButton': string
+		/**
+		 * 📅 Select a date, when to start brainstorm
+		 */
+		'proposeDate': string
+		/**
+		 * 🕘 Choose an hour of the day
+		 */
+		'proposeTimeHours': string
+		/**
+		 * 🕤 Choose minutes
+		 */
+		'proposeTimeMinutes': string
+		/**
+		 * Start brainstorm at {date|date}?
+		 * @param {Date} date
+		 */
+		'confirmPrompt': RequiredParams1<'date|date'>
+		/**
+		 * ✅ Okay
+		 */
+		'confirm': string
+		/**
+		 * 🤔 Edit
+		 */
+		'edit': string
+		/**
+		 * ⛈ Ok. I'll arrange brainstorm ⛈
+		 */
+		'done': string
+		/**
+		 * ⛈ New brainstorm is comming on {date|date} ⛈
+		 * @param {Date} date
+		 */
+		'brainstormDeclared': RequiredParams1<'date|date'>
+		/**
+		 * ⛈ There is a brainstorm on the horison: {date|date}! ⛈
+		 * @param {Date} date
+		 */
+		'brainstormNotice': RequiredParams1<'date|date'>
+		/**
+		 * Brainstorm started! Propose your ideas! 💥
+		 */
+		'started': string
+	}
 	'errors': {	
 		'UpdateFinishedBrainstormError': string
 		'SelfVotingIdeaError': string
@@ -429,6 +482,9 @@ export type Translation = {
 		'VotingNotStartedError': string
 		'ExternalMemberVoteError': string
 		'NotEnoughMembers': string
+		/**
+		 * 🚫 Sorry, you cannot start a brainstorm, only tribe chief can
+		 */
 		'NotAChiefError': string
 		/**
 		 * 😩 Oooops! Something awfull happend.
@@ -791,6 +847,56 @@ export type TranslationFunctions = {
 		 */
 		'done': () => LocalizedString
 	}
+	'brainstorm': {	
+		/**
+		 * ⛈ It's Time To STORM!!!
+		 */
+		'timeToStorm': () => LocalizedString
+		/**
+		 * ⚡️⚡️ Let's start it ⚡️⚡️
+		 */
+		'toStormButton': () => LocalizedString
+		/**
+		 * 📅 Select a date, when to start brainstorm
+		 */
+		'proposeDate': () => LocalizedString
+		/**
+		 * 🕘 Choose an hour of the day
+		 */
+		'proposeTimeHours': () => LocalizedString
+		/**
+		 * 🕤 Choose minutes
+		 */
+		'proposeTimeMinutes': () => LocalizedString
+		/**
+		 * Start brainstorm at {date|date}?
+		 */
+		'confirmPrompt': (arg: { date: Date }) => LocalizedString
+		/**
+		 * ✅ Okay
+		 */
+		'confirm': () => LocalizedString
+		/**
+		 * 🤔 Edit
+		 */
+		'edit': () => LocalizedString
+		/**
+		 * ⛈ Ok. I'll arrange brainstorm ⛈
+		 */
+		'done': () => LocalizedString
+		/**
+		 * ⛈ New brainstorm is comming on {date|date} ⛈
+		 */
+		'brainstormDeclared': (arg: { date: Date }) => LocalizedString
+		/**
+		 * ⛈ There is a brainstorm on the horison: {date|date}! ⛈
+		 */
+		'brainstormNotice': (arg: { date: Date }) => LocalizedString
+		/**
+		 * Brainstorm started! Propose your ideas! 💥
+		 */
+		'started': () => LocalizedString
+	}
 	'errors': {	
 		'UpdateFinishedBrainstormError': () => LocalizedString
 		'SelfVotingIdeaError': () => LocalizedString
@@ -824,6 +930,9 @@ export type TranslationFunctions = {
 		'VotingNotStartedError': () => LocalizedString
 		'ExternalMemberVoteError': () => LocalizedString
 		'NotEnoughMembers': () => LocalizedString
+		/**
+		 * 🚫 Sorry, you cannot start a brainstorm, only tribe chief can
+		 */
 		'NotAChiefError': () => LocalizedString
 		/**
 		 * 😩 Oooops! Something awfull happend.

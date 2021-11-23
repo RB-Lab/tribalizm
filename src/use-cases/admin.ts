@@ -5,10 +5,12 @@ import { Message } from './utils/message'
 
 export class Admin extends ContextUser {
     notifyBrainstorm = async (req: { memberId: string }) => {
+        const memeber = await this.getMember(req.memberId)
         this.notify<TimeToStormMessage>({
             type: 'time-to-storm',
             payload: {
-                targetMemberId: req.memberId,
+                targetMemberId: memeber.id,
+                targetUserId: memeber.userId,
             },
         })
     }
@@ -71,5 +73,6 @@ export interface TimeToStormMessage extends Message {
     type: 'time-to-storm'
     payload: {
         targetMemberId: string
+        targetUserId: string
     }
 }

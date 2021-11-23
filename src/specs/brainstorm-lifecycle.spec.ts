@@ -21,15 +21,15 @@ import { createContext } from './test-context'
 describe('Brainstorm lifecycle', () => {
     it('notifies all members on declared brainstorm', async () => {
         const world = await setUp()
-        const onDeclare = world.spyOnMessage<BrainstormDeclarationMessage>(
-            'new-brainstorm'
-        )
+        const onDeclare =
+            world.spyOnMessage<BrainstormDeclarationMessage>('new-brainstorm')
         await world.stromCycle.declare(world.defReq)
         expect(onDeclare).toHaveBeenCalledTimes(world.members.length - 2)
         expect(onDeclare).toHaveBeenCalledWith(
             jasmine.objectContaining<BrainstormDeclarationMessage>({
                 type: 'new-brainstorm',
                 payload: {
+                    targetUserId: jasmine.any(String),
                     brainstormId: jasmine.any(String),
                     targetMemberId: jasmine.any(String),
                     time: world.defReq.time,
@@ -46,9 +46,8 @@ describe('Brainstorm lifecycle', () => {
     })
     it('skips candidate', async () => {
         const world = await setUp()
-        const onDeclare = world.spyOnMessage<BrainstormDeclarationMessage>(
-            'new-brainstorm'
-        )
+        const onDeclare =
+            world.spyOnMessage<BrainstormDeclarationMessage>('new-brainstorm')
         await world.stromCycle.declare(world.defReq)
         const notified = onDeclare.calls
             .allArgs()
@@ -125,9 +124,8 @@ describe('Brainstorm lifecycle', () => {
 
     it('notifies members that sotorm is near!', async () => {
         const world = await setUp()
-        const onNotify = world.spyOnMessage<BrainstormNoticeMessage>(
-            'brainstorm-notice'
-        )
+        const onNotify =
+            world.spyOnMessage<BrainstormNoticeMessage>('brainstorm-notice')
         const brainstorm = await world.brainstormStore.save(
             new Brainstorm({
                 time: Date.now() + 100_500_000,
@@ -148,8 +146,9 @@ describe('Brainstorm lifecycle', () => {
             jasmine.objectContaining<BrainstormNoticeMessage>({
                 type: 'brainstorm-notice',
                 payload: {
-                    brainstormId: brainstorm.id,
+                    targetUserId: world.members[1].id,
                     targetMemberId: world.members[1].id,
+                    brainstormId: brainstorm.id,
                     time: brainstorm.time,
                 },
             })
@@ -159,9 +158,8 @@ describe('Brainstorm lifecycle', () => {
     })
     it('it notifies members that storm started', async () => {
         const world = await setUp()
-        const onStart = world.spyOnMessage<BrainstormStartedMessage>(
-            'brainstorm-started'
-        )
+        const onStart =
+            world.spyOnMessage<BrainstormStartedMessage>('brainstorm-started')
         const { brainstorm, task } = await world.startStorm()
 
         expect(onStart).toHaveBeenCalledTimes(world.members.length - 1)
@@ -171,6 +169,7 @@ describe('Brainstorm lifecycle', () => {
                 payload: {
                     brainstormId: brainstorm.id,
                     targetMemberId: world.members[1].id,
+                    targetUserId: world.members[1].userId,
                 },
             })
         )
@@ -224,15 +223,15 @@ describe('Brainstorm lifecycle', () => {
     })
     it('Notifies all members on start voting', async () => {
         const world = await setUp()
-        const onVoting = world.spyOnMessage<VotingStartedMessage>(
-            'voting-started'
-        )
+        const onVoting =
+            world.spyOnMessage<VotingStartedMessage>('voting-started')
         const { brainstorm } = await world.stormToVoting()
         expect(onVoting).toHaveBeenCalledTimes(world.members.length - 1)
         expect(onVoting).toHaveBeenCalledWith(
             jasmine.objectContaining<VotingStartedMessage>({
                 type: 'voting-started',
                 payload: {
+                    targetUserId: world.members[1].userId,
                     brainstormId: brainstorm.id,
                     targetMemberId: world.members[1].id,
                 },

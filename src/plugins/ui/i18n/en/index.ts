@@ -119,6 +119,22 @@ const en: BaseTranslation = {
         wisdom: { '0': '🤪', '1': '🤥', '2': '🤔', '3': '🥸', '4': '🦉' },
         done: 'Got it! Your scores will be applied soon',
     },
+    brainstorm: {
+        timeToStorm: "⛈ It's Time To STORM!!!",
+        toStormButton: "⚡️⚡️ Let's start it ⚡️⚡️",
+        proposeDate: '📅 Select a date, when to start brainstorm',
+        proposeTimeHours: '🕘 Choose an hour of the day',
+        proposeTimeMinutes: '🕤 Choose minutes',
+        confirmPrompt: 'Start brainstorm at {date:Date|date}?',
+        confirm: '✅ Okay',
+        edit: '🤔 Edit',
+        done: "⛈ Ok. I'll arrange brainstorm ⛈",
+        brainstormDeclared: '⛈ New brainstorm is comming on {date:Date|date} ⛈',
+        brainstormNotice:
+            '⛈ There is a brainstorm on the horison: {date:Date|date}! ⛈',
+        started: 'Brainstorm started! Propose your ideas! 💥',
+    },
+
     errors: {
         // TODO fill other errors texts!!
         UpdateFinishedBrainstormError: '',
@@ -147,7 +163,8 @@ const en: BaseTranslation = {
         VotingNotStartedError: '',
         ExternalMemberVoteError: '',
         NotEnoughMembers: '',
-        NotAChiefError: '',
+        NotAChiefError:
+            '🚫 Sorry, you cannot start a brainstorm, only tribe chief can',
         common: '😩 Oooops! Something awfull happend.',
     },
 }

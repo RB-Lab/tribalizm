@@ -1,8 +1,9 @@
-import { Markup, Scenes, Telegraf } from 'telegraf'
+import { Markup, Telegraf } from 'telegraf'
+import { TribeCtx } from '../tribe-ctx'
 import { TelegramUsersAdapter } from '../users-adapter'
 
 export function testLauncher(
-    bot: Telegraf<Scenes.SceneContext>,
+    bot: Telegraf<TribeCtx>,
     telegramUsers: TelegramUsersAdapter
 ) {
     bot.command('/test', (ctx) => {

@@ -2,6 +2,7 @@ import { Scenes, session, Telegraf } from 'telegraf'
 import { Tribalizm, wrapWithErrorHandler } from '../../../use-cases/tribalism'
 import { NotificationBus } from '../../../use-cases/utils/notification-bus'
 import { i18n } from '../i18n/i18n-ctx'
+import { brainstormScreen } from './screens/brainstorm'
 import { initiationScreen } from './screens/initiation'
 import { introQuests } from './screens/intro-quests'
 import { questNegotiationScreen } from './screens/quest-negotiation'
@@ -57,6 +58,7 @@ export async function makeBot(config: BotConfig) {
         bot = new Telegraf<TribeCtx>(config.token)
     }
 
+    // Error handling
     bot.use(async (ctx, next) => {
         async function reportContextError(err: unknown) {
             const texts = i18n(ctx).errors
@@ -80,6 +82,7 @@ export async function makeBot(config: BotConfig) {
         next()
     })
 
+    // Authentication kinda
     bot.use(async (ctx, next) => {
         if (!ctx.chat || !ctx.from) {
             ctx.reportError(
@@ -125,6 +128,7 @@ export async function makeBot(config: BotConfig) {
     tribesListScreen.actions(bot)
     rateMemberScreen.actions(bot)
     introQuests.actions(bot)
+    brainstormScreen.actions(bot)
     startScreenActions(bot)
 
     questNegotiationScreen.attachNotifications(
@@ -143,6 +147,11 @@ export async function makeBot(config: BotConfig) {
         config.telegramUsersAdapter
     )
     introQuests.attachNotifications(
+        bot,
+        config.notifcationsBus,
+        config.telegramUsersAdapter
+    )
+    brainstormScreen.attachNotifications(
         bot,
         config.notifcationsBus,
         config.telegramUsersAdapter
