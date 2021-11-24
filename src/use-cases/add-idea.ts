@@ -34,8 +34,6 @@ export class AddIdea extends ContextUser {
                 },
             })
         })
-
-        return idea
     }
 }
 

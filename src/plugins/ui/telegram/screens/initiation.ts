@@ -118,6 +118,8 @@ export function attachNotifications(
             const elder = await telegramUsers.getTelegramUserForTribalism(
                 payload.targetUserId
             )
+            console.log('application', elder)
+
             const texts = i18n(elder).notifications.tribeAppliaction
 
             const keyboard = Markup.inlineKeyboard([

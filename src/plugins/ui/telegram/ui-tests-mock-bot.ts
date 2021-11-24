@@ -3,6 +3,7 @@ import { City } from '../../../use-cases/entities/city'
 import { Tribe } from '../../../use-cases/entities/tribe'
 import { TestNotificationBus } from '../../notification-bus'
 import { InMemoryStore } from '../../stores/in-memory-store/in-memory-store'
+import { admin } from '../admin'
 import { makeBot } from './bot'
 import { testLauncher } from './screens/test-launcher'
 import { ITelegramUser, StoreTelegramUsersAdapter } from './users-adapter'
@@ -26,18 +27,19 @@ async function run() {
     const token = process.env.BOT_KEY_TEST1
 
     const notifcationsBus = new TestNotificationBus()
-    const { tribalism, stores } = await createContext()
+    const context = await createContext()
+    const tgStore = new TgUserStore()
     const telegramUsersAdapter = new MockTgUserAdapter(
-        stores.userStore,
-        new TgUserStore()
+        context.stores.userStore,
+        tgStore
     )
 
-    const city = await stores.cityStore.save(
+    const city = await context.stores.cityStore.save(
         new City({
             name: 'Aya Napa',
         })
     )
-    stores.tribeStore.saveBulk([
+    context.stores.tribeStore.saveBulk([
         new Tribe({
             cityId: city.id,
             name: 'Lex Fridman podcast descussion group',
@@ -56,6 +58,7 @@ async function run() {
             description: 'The Rationa People Tribe!',
         }),
     ])
+
     makeBot({
         telegramUsersAdapter,
         webHook: {
@@ -63,16 +66,14 @@ async function run() {
             port: 3000,
             domain: 'tribalizm-1.rblab.net',
         },
-        tribalism: tribalism as any,
+        tribalism: context.tribalism,
         token,
         notifcationsBus,
     }).then((bot) => {
         testLauncher(bot, telegramUsersAdapter)
     })
 
-    process.stdin.on('data', (d) => {
-        telegramUsersAdapter.togleDisableFind()
-    })
+    admin(context, tgStore, telegramUsersAdapter.togleDisableFind)
 }
 
 run()

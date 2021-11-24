@@ -13,28 +13,23 @@ import { tribesListScreen } from './screens/tribes-list'
 import { TribeCtx } from './tribe-ctx'
 import { TelegramUser, TelegramUsersAdapter } from './users-adapter'
 
-interface LocalHookConfig {
-    /** port & path are used to start a server inside a bot */
-    port: number
-    path: string
-    /**
-     * if domain is also provided Telegraf will _automatically_
-     * register hook at https://${domain}${hookPath}
-     */
-    domain?: string
-}
 interface PublicHookConfig {
     /**
      * domain is used to _ only register_ hook on Telegram server
      * you suppose to use middleware provided by bot.webhookCallback(path: string)
      * in your server later
+     * if domain is also provided Telegraf will _automatically_
+     * register hook at https://${domain}${hookPath}
      */
-    domain: string
+    domain?: string
+    /** port & path are used to start a server inside a bot */
+    port?: number
+    path?: string
 }
 interface BotConfig {
     reportError?: (err: unknown) => Promise<void> | void
     telegramUsersAdapter: TelegramUsersAdapter
-    webHook: LocalHookConfig | PublicHookConfig
+    webHook: PublicHookConfig
     tribalism: Tribalizm
     token: string | undefined
     notifcationsBus: NotificationBus
@@ -160,7 +155,9 @@ export async function makeBot(config: BotConfig) {
 
     // TODO for bridge I need domain AND hook. Also it looks like it starts server anyway
     if ('domain' in config.webHook) {
-        await bot.launch({ webhook: { domain: config.webHook.domain } })
+        await bot.launch({
+            webhook: { ...config.webHook, hookPath: config.webHook.path },
+        })
     } else if ('path' in config.webHook) {
         await bot.telegram.setWebhook(
             `http://localhost:${config.webHook.port}${config.webHook.path}`
