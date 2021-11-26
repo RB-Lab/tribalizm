@@ -43,6 +43,11 @@ export class Brainstorm implements IBrainstorm {
         this.state = 'generation'
     }
     finish = () => {
+        if (this.state !== 'voting') {
+            throw new FinalyzeBeforeVotingError(
+                `Cannot finalyze storm ${this.id} in ${this.state} phase`
+            )
+        }
         this.state = 'finished'
     }
 }
@@ -57,42 +62,33 @@ export interface IQuestIdea {
     description: string
     meberId: string
     brainstormId: string
-    state: IdeaState
     votes: BrainstromVote[]
     voteUp: (memberId: string) => void
     voteDown: (memberId: string) => void
     getScore: () => number
-    finish: () => void
 }
 export interface SavedQuestIdea extends IQuestIdea {
     id: string
 }
 
-type IdeaState = 'new' | 'finished'
 export class QuestIdea implements IQuestIdea {
     public id: string | null
     public description: string
     public meberId: string
     public brainstormId: string
-    public state: IdeaState
     public votes: BrainstromVote[]
     constructor(params: {
         id?: string
         description: string
         meberId: string
         brainstormId: string
-        state?: IdeaState
         votes?: BrainstromVote[]
     }) {
         this.id = params.id || null
         this.meberId = params.meberId
         this.brainstormId = params.brainstormId
         this.description = params.description
-        this.state = params.state || 'new'
         this.votes = params.votes || []
-    }
-    finish = () => {
-        this.state = 'finished'
     }
     voteUp = (memberId: string) => {
         this.checkCanVote(memberId)
@@ -127,11 +123,6 @@ export class QuestIdea implements IQuestIdea {
                 Idea: ${this.id}, member: ${this.meberId}`
             )
         }
-        if (this.state === 'finished') {
-            throw new UpdateFinishedIdeaError(
-                `Cannot vote for finished idea; idea id: ${this.id}`
-            )
-        }
     }
 }
 
@@ -147,7 +138,7 @@ export class DoubelVotingError extends Error {
     }
 }
 
-export class UpdateFinishedIdeaError extends Error {
+export class FinalyzeBeforeVotingError extends Error {
     constructor(msg: string) {
         super(msg)
     }

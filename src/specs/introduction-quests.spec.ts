@@ -166,7 +166,7 @@ async function setUp(size?: number) {
             tribeId: tribe.id,
             userId: user.id,
         })
-        const initQuest = (await context.stores.questStore._last())!
+        const initQuest = await context.stores.questStore._last()
         const chiefUser = users[0]
         const shamanUser = users[1]
         const initReq = {
@@ -177,7 +177,7 @@ async function setUp(size?: number) {
         }
         await initiation.startInitiation(initReq)
         await initiation.approveByChief(initReq)
-        const newInitQuest = (await context.stores.questStore._last())!
+        const newInitQuest = await context.stores.questStore._last()
         const shamanReq = {
             ...initReq,
             elderUserId: shamanUser.id,

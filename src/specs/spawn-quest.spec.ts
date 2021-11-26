@@ -1,14 +1,15 @@
 import {
     CoordinationQuest,
-    IQuestData,
     NotYourQuest,
-    Quest,
     QuestStatus,
     QuestType,
 } from '../use-cases/entities/quest'
+import {
+    NewCoordinationQuestMessage,
+    SpawnQuest,
+} from '../use-cases/spawn-quest'
+import { QuestFinishedError } from '../use-cases/utils/errors'
 import { NoIdeaError } from '../use-cases/utils/get-root-idea'
-import { NewCoordinationQuestMessage } from '../use-cases/utils/quest-message'
-import { QuestSource } from '../use-cases/quest-source'
 import { Voting } from '../use-cases/vote-idea'
 import { createContext, makeMessageSpy } from './test-context'
 
@@ -34,6 +35,16 @@ describe('Spawn a re-quest', () => {
                 memberId: 'unnamed',
             })
         ).toBeRejectedWithError(NotYourQuest)
+    })
+
+    it('FAILs to req-quest a finished quest', async () => {
+        const world = await setUp()
+        world.quest.memberIds.forEach(world.quest.finish)
+        await world.questStore.save(world.quest)
+
+        await expectAsync(
+            world.questSpawn.reQuest(world.defautlSpawnRequest)
+        ).toBeRejectedWithError(QuestFinishedError)
     })
 })
 
@@ -79,6 +90,17 @@ describe('Spawn new quest', () => {
             world.questSpawn.spawnQuest(world.defautlSpawnRequest)
         ).toBeRejectedWithError(NoIdeaError)
     })
+
+    it('FAILs to spawn a finished quest', async () => {
+        const world = await setUp()
+        world.quest.memberIds.forEach(world.quest.finish)
+        await world.questStore.save(world.quest)
+
+        await expectAsync(
+            world.questSpawn.spawnQuest(world.defautlSpawnRequest)
+        ).toBeRejectedWithError(QuestFinishedError)
+    })
+
     it('notifies both members on a new quest proposal', async () => {
         const world = await setUp()
         const onQuest = world.spyOnMessage<NewCoordinationQuestMessage>(
@@ -125,6 +147,7 @@ describe('Spawn new quest', () => {
             })
         )
     })
+
     describe('Assignment', () => {
         it('assigns quest to two members', async () => {
             const world = await setUp()
@@ -173,7 +196,7 @@ async function setUp() {
         })
     )
 
-    const questSpawn = new QuestSource(context)
+    const questSpawn = new SpawnQuest(context)
 
     const defautlSpawnRequest = {
         time: Date.now() + 24 * 3_600_000,

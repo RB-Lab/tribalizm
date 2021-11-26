@@ -1,11 +1,11 @@
+import { mapify } from '../ts-utils'
 import { SavedQuestIdea } from './entities/brainstorm'
-import { CoordinationQuest, Quest } from './entities/quest'
-import { NewCoordinationQuestMessage } from './utils/quest-message'
+import { CoordinationQuest } from './entities/quest'
+import { Storable } from './entities/store'
 import { ContextUser } from './utils/context-user'
 import { getBestFreeMember, minQuests } from './utils/members-utils'
+import { Message } from './utils/message'
 import { StormFinalyze } from './utils/scheduler'
-import { Storable } from './entities/store'
-import { EntityNotFound } from './utils/not-found-error'
 
 export class IdeasIncarnation extends ContextUser {
     incarnateIdeas = async (task: StormFinalyze & Storable) => {
@@ -16,21 +16,8 @@ export class IdeasIncarnation extends ContextUser {
         const members = await this.stores.memberStore.find({
             tribeId: brainstorm.tribeId,
         })
-        const users = await this.stores.userStore.find({
-            id: members.map((m) => m.userId),
-        })
-        const memberIdToUserName = members.reduce<Record<string, string>>(
-            (result, member) => {
-                const user = users.find((u) => u.id === member.userId)
-                if (!user) {
-                    throw new EntityNotFound(
-                        `Cannot find user for ${member.id}`
-                    )
-                }
-                return { ...result, [member.id]: user.name }
-            },
-            {}
-        )
+        const membersMap = mapify(members)
+        const membersViews = mapify(await this.getMembersViews(members))
 
         const quests = await Promise.all(
             ideas
@@ -39,36 +26,32 @@ export class IdeasIncarnation extends ContextUser {
                 .slice(0, Math.ceil(members.length / 2))
                 .map(this.incarnate)
         )
+        const ideasMap = mapify(ideas)
 
         const savedQuests = await this.stores.questStore.saveBulk(quests)
-        ideas.forEach((i) => i.finish())
-        brainstorm.finish()
         await this.stores.ideaStore.saveBulk(ideas)
-        await this.stores.brainstormStore.save(brainstorm)
 
         savedQuests.forEach((quest) => {
-            quest.memberIds.forEach((targetMemberId) => {
-                const member = members.find((m) => m.id == targetMemberId)
-                if (!member) {
-                    throw new EntityNotFound(
-                        `Cannot find member ${targetMemberId} amont tribe members`
-                    )
-                }
-                this.notify<NewCoordinationQuestMessage>({
-                    type: 'new-coordination-quest-message',
-                    payload: {
-                        questId: quest.id,
-                        targetMemberId,
-                        targetUserId: member.userId,
-                        description: quest.description,
-                        place: null,
-                        time: null,
-                        members: quest.memberIds.map((id) => ({
-                            id,
-                            name: memberIdToUserName[id],
-                        })),
-                    },
-                })
+            if (!quest.ideaId) {
+                return // impossible: just incarnated quests must have ideaId
+            }
+            const idea = ideasMap[quest.ideaId]
+
+            const member = membersMap[idea.meberId]
+            const partnerId = quest.memberIds.filter(
+                (id) => id != idea.meberId
+            )[0]
+            const partner = membersViews[partnerId]
+
+            this.notify<IdeaIncarnationMessage>({
+                type: 'idea-incarnation',
+                payload: {
+                    questId: quest.id,
+                    targetMemberId: idea.meberId,
+                    targetUserId: member.userId,
+                    description: quest.description,
+                    partner: partner.name,
+                },
             })
         })
         await this.scheduler.markDone(task.id)
@@ -112,5 +95,16 @@ export class IdeasIncarnation extends ContextUser {
             time: oneWeekAhead,
             memberIds: [first.id, second.id],
         })
+    }
+}
+
+export interface IdeaIncarnationMessage extends Message {
+    type: 'idea-incarnation'
+    payload: {
+        targetUserId: string
+        targetMemberId: string
+        questId: string | null
+        description: string
+        partner: string
     }
 }

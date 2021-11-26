@@ -36,7 +36,7 @@ import { Initiation } from '../use-cases/initiation'
 import { IntroductionQuests } from '../use-cases/introduction-quests'
 import { QuestNegotiation } from '../use-cases/negotiate-quest'
 import { QuestFinale } from '../use-cases/quest-finale'
-import { QuestSource } from '../use-cases/quest-source'
+import { SpawnQuest } from '../use-cases/spawn-quest'
 import { TribeShow } from '../use-cases/tribes-show'
 import { Message } from '../use-cases/utils/message'
 import { NotificationBus } from '../use-cases/utils/notification-bus'
@@ -229,7 +229,7 @@ export async function createContext() {
         tribesShow: new TribeShow(context),
         questNegotiation: new QuestNegotiation(context),
         questFinale: new QuestFinale(context),
-        questSource: new QuestSource(context),
+        questSource: new SpawnQuest(context),
         voting: new Voting(context),
     }
     const scheduler = new Scheduler(context.stores.taskStore)

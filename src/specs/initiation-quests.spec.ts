@@ -134,7 +134,7 @@ describe('Initiation quests:', () => {
                 questId: world.quest.id,
                 elderUserId: world.chiefUser.id,
             })
-            const newQuest = (await world.questStore._last())!
+            const newQuest = await world.questStore._last()
 
             expect(onApprove).toHaveBeenCalledWith(
                 jasmine.objectContaining<ApplicationMessage>({
@@ -359,6 +359,7 @@ describe('Initiation quests:', () => {
                 jasmine.objectContaining<ApplicationDeclinedMessage>({
                     type: 'application-declined',
                     payload: {
+                        targetMemberId: world.newMember.id,
                         targetUserId: world.user.id,
                         tribeName: world.tribe.name,
                     },
@@ -389,9 +390,9 @@ async function setUp() {
         userId: user!.id,
         tribeId: tribe.id,
     })
-    const application = (await context.stores.applicationStore._last())!
-    const quest = (await context.stores.questStore._last())!
-    const newMember = (await context.stores.memberStore._last())!
+    const application = await context.stores.applicationStore._last()
+    const quest = await context.stores.questStore._last()
+    const newMember = await context.stores.memberStore._last()
     const defaultInitiationRequest: InitiationRequest = {
         questId: quest!.id,
         elderUserId: chiefUser.id,
@@ -427,7 +428,7 @@ async function toShamanInitiation() {
     const world = await toChiefAproval()
 
     await world.initiation.approveByChief(world.initReq)
-    const quest = (await world.questStore._last())!
+    const quest = await world.questStore._last()
     world.initReq.questId = quest.id
     return { ...world, quest }
 }

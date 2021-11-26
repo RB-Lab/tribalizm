@@ -10,7 +10,6 @@ export class MongoMemberStore
     implements MemberStore
 {
     _class = Member
-    //FIXME optimize this shit with DB usage
     countTribeMembers(ids: string): Promise<number>
     countTribeMembers(ids: string[]): Promise<Record<string, number>>
     countTribeMembers(ids: string | string[]) {

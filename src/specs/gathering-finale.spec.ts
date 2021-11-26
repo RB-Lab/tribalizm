@@ -3,7 +3,7 @@ import { GatheringVote, VoteRangeError } from '../use-cases/entities/member'
 import { Storable } from '../use-cases/entities/store'
 import { GatheringFinale } from '../use-cases/gathering-finale'
 import { IdeasIncarnation } from '../use-cases/incarnate-ideas'
-import { QuestSource } from '../use-cases/quest-source'
+import { SpawnQuest } from '../use-cases/spawn-quest'
 import { StormFinalyze } from '../use-cases/utils/scheduler'
 import { createContext } from './test-context'
 
@@ -173,7 +173,7 @@ async function setUp() {
     })) as StormFinalyze & Storable
     await incarnation.incarnateIdeas(task)
     const quest0 = await context.stores.questStore._last()
-    const source = new QuestSource(context)
+    const source = new SpawnQuest(context)
     const quest1 = await source.spawnQuest({
         description: 'spawn 1',
         memberId: quest0!.memberIds[0],

@@ -5,9 +5,10 @@ import {
     GatheringMessage,
 } from '../use-cases/gathering-declare'
 import { EntityNotFound } from '../use-cases/utils/not-found-error'
-import { QuestSource } from '../use-cases/quest-source'
+import { SpawnQuest } from '../use-cases/spawn-quest'
 import { createContext } from './test-context'
 import { HowWasGatheringTask } from '../use-cases/utils/scheduler'
+import { QuestFinishedError } from '../use-cases/utils/errors'
 
 describe('Gathering declaration', () => {
     it('notifies all tribe memebers', async () => {
@@ -87,6 +88,19 @@ describe('Gathering declaration', () => {
             })
         ).toBeRejectedWithError(EntityNotFound)
     })
+
+    it('FAILs on a finished quest', async () => {
+        const world = await setUp()
+        world.quest2.memberIds.forEach(world.quest2.finish)
+        await world.questStore.save(world.quest2)
+
+        await expectAsync(
+            world.gathering.declare({
+                ...world.defaultDeclare,
+                type: 'all',
+            })
+        ).toBeRejectedWithError(QuestFinishedError)
+    })
 })
 
 async function setUp() {
@@ -104,7 +118,7 @@ async function setUp() {
             description: 'parent quest',
         })
     )
-    const questSpawn = new QuestSource(context)
+    const questSpawn = new SpawnQuest(context)
 
     const quest2 = await questSpawn.spawnQuest({
         description: 'whatever spawned quest',
@@ -122,6 +136,7 @@ async function setUp() {
     return {
         gathering,
         defaultDeclare,
+        quest2,
         members,
         tribe,
         idea,

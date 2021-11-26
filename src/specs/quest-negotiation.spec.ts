@@ -14,7 +14,7 @@ import {
     QuestChangeMessage,
     QuestNegotiation,
 } from '../use-cases/negotiate-quest'
-import { NewCoordinationQuestMessage } from '../use-cases/utils/quest-message'
+import { NewCoordinationQuestMessage } from '../use-cases/spawn-quest'
 import { HowWasQuestTask } from '../use-cases/utils/scheduler'
 import { createContext } from './test-context'
 

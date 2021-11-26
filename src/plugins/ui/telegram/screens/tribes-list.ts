@@ -2,12 +2,13 @@ import { Markup, Scenes, Telegraf } from 'telegraf'
 import { Tribalizm } from '../../../../use-cases/tribalism'
 import { TribeInfo } from '../../../../use-cases/tribes-show'
 import { i18n } from '../../i18n/i18n-ctx'
+import { removeInlineKeyboard } from '../telegraf-hacks'
 import { TribeCtx } from '../tribe-ctx'
 
 function scenes() {
     const locationScene = new Scenes.BaseScene<TribeCtx>('set-location')
 
-    locationScene.enter((ctx) => {
+    locationScene.enter(async (ctx) => {
         const texts = i18n(ctx).tribesList
 
         const keyboard = Markup.keyboard([
@@ -99,14 +100,7 @@ function actions(bot: Telegraf<TribeCtx>) {
 
     bot.action(/apply-tribe:+/, (ctx) => {
         const texts = i18n(ctx).tribesList
-        ctx.editMessageText(
-            // It thinks that it is ServiceMessage and it has no text, but it has
-            (ctx.update.callback_query.message as any).text +
-                '\n\n' +
-                texts.applicationSentShort(),
-            Markup.inlineKeyboard([])
-        )
-        // TODO 🤔 should I leave previeous scenen here?
+        removeInlineKeyboard(ctx, `\n${texts.applicationSentShort()}`)
         ctx.scene.enter('apply-tribe', {
             tribeId: ctx.match.input.replace('apply-tribe:', ''),
         })

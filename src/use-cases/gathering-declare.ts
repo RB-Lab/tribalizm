@@ -3,12 +3,19 @@ import { Gathering, GatheringType } from './entities/gathering'
 import { getRootIdea } from './utils/get-root-idea'
 import { Message } from './utils/message'
 import { HowWasGatheringTask } from './utils/scheduler'
+import { QuestStatus } from './entities/quest'
+import { QuestFinishedError } from './utils/errors'
 
 export class GatheringDeclare extends ContextUser {
     declare = async (req: DeclarationRequest) => {
         const member = await this.getMember(req.memberId)
-        // just to check that quests exists
         const parentQuest = await this.getQuest(req.parentQuestId)
+
+        if (parentQuest.status === QuestStatus.done) {
+            throw new QuestFinishedError(
+                `Cannot re-quest a finished quest ${parentQuest.status}`
+            )
+        }
         const gathering = await this.stores.gatheringStore.save(
             new Gathering({
                 type: req.type,
@@ -20,14 +27,18 @@ export class GatheringDeclare extends ContextUser {
             })
         )
 
-        const targetMembers = await this.getTargetMembers(req)
+        const targetMembersIds = await this.getTargetMembers(req)
+        const targetMembers = await this.stores.memberStore.find({
+            id: targetMembersIds,
+        })
         targetMembers.forEach((targetMember) => {
             this.notify<GatheringMessage>({
                 type: 'new-gathering-message',
                 payload: {
                     ...gathering,
                     gatheringId: gathering.id,
-                    targetMemberId: targetMember,
+                    targetMemberId: targetMember.id,
+                    targetUserId: targetMember.userId,
                 },
             })
         })
@@ -82,6 +93,7 @@ export interface GatheringMessage extends Message {
     type: 'new-gathering-message'
     payload: {
         targetMemberId: string
+        targetUserId: string
         gatheringId: string
         description: string
         time: number

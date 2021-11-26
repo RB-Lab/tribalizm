@@ -6,9 +6,13 @@ import {
     BrainstormDeclarationMessage,
     BrainstormNoticeMessage,
     BrainstormStartedMessage,
+    StormEndeddMessage,
+    VotingStartedMessage,
 } from '../../../../use-cases/brainstorm-lifecycle'
 import { NotificationBus } from '../../../../use-cases/utils/notification-bus'
+import { InMemoryStore } from '../../../stores/in-memory-store/in-memory-store'
 import { i18n } from '../../i18n/i18n-ctx'
+import { removeInlineKeyboard } from '../telegraf-hacks'
 import { TribeCtx } from '../tribe-ctx'
 import { TelegramUsersAdapter, UserState } from '../users-adapter'
 import { makeCalbackDataParser } from './calback-parser'
@@ -16,6 +20,15 @@ import { makeCalbackDataParser } from './calback-parser'
 const hours = '08,09,10,11,12,13,14,15,16,17,18,19,20,21,22,23'.split(',')
 
 const startBrst = makeCalbackDataParser('storm-start', ['memberId'])
+
+interface Message {
+    brainstormId: string
+    chatId: string
+    messageId: number
+    text: string
+    ideaId: string
+}
+const messageStore = new InMemoryStore<Message>()
 
 interface BrainstormState extends UserState {
     type: 'brainstorm'
@@ -98,8 +111,84 @@ function attachNotifications(
             user.chatId,
             `➡️ ${payload.description}`
         )
+        messageStore.save({
+            messageId: message.message_id,
+            chatId: user.chatId,
+            brainstormId: payload.brainstormId,
+            ideaId: payload.ideaId,
+            text: message.text,
+        })
     })
+
+    bus.subscribe<VotingStartedMessage>(
+        'voting-started',
+        async ({ payload }) => {
+            const user = await telegramUsers.getTelegramUserForTribalism(
+                payload.targetUserId
+            )
+            const messages = await messageStore.find({
+                brainstormId: payload.brainstormId,
+                chatId: user.chatId,
+            })
+
+            for (let message of messages) {
+                const kb = Markup.inlineKeyboard([
+                    Markup.button.callback(
+                        '👍',
+                        voteParser.serialize({
+                            brainstormId: payload.brainstormId,
+                            ideaId: message.ideaId,
+                            memberId: payload.targetMemberId,
+                            vote: 'up',
+                        })
+                    ),
+                    Markup.button.callback(
+                        '👎',
+                        voteParser.serialize({
+                            brainstormId: payload.brainstormId,
+                            ideaId: message.ideaId,
+                            memberId: payload.targetMemberId,
+                            vote: 'down',
+                        })
+                    ),
+                ])
+
+                await bot.telegram.editMessageText(
+                    user.chatId,
+                    Number(message.messageId),
+                    undefined,
+                    message.text,
+                    kb
+                )
+            }
+            bot.telegram.sendMessage(
+                user.chatId,
+                i18n(user).brainstorm.toVote()
+            )
+        }
+    )
+
+    bus.subscribe<StormEndeddMessage>(
+        'brainstorm-ended',
+        async ({ payload }) => {
+            const user = await telegramUsers.getTelegramUserForTribalism(
+                payload.targetUserId
+            )
+
+            await bot.telegram.sendMessage(
+                user.chatId,
+                i18n(user).brainstorm.end()
+            )
+        }
+    )
 }
+
+const voteParser = makeCalbackDataParser('vote-idea', [
+    'brainstormId',
+    'memberId',
+    'ideaId',
+    'vote',
+])
 
 const calendarHours = makeCalbackDataParser('storm-calendar-hours', [
     'memberId',
@@ -207,6 +296,17 @@ function actions(bot: Telegraf<TribeCtx>) {
         } else {
             next()
         }
+    })
+
+    bot.action(voteParser.regex, async (ctx) => {
+        const data = voteParser.parse(ctx.match[0])
+
+        if (data.vote === 'up') {
+            await ctx.tribalizm.voting.voteUp(data.ideaId, data.memberId)
+        } else {
+            await ctx.tribalizm.voting.voteDown(data.ideaId, data.memberId)
+        }
+        await removeInlineKeyboard(ctx)
     })
 }
 

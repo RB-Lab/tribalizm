@@ -42,7 +42,7 @@ const en: BaseTranslation = {
             'Please, write tribe\'s chief and shaman about yourself and why do you want to join "{tribe}" tribe?',
         applicationSent:
             '📨 Your application has been sent. Tribe chief will propose a meeting soon.',
-        applicationSentShort: '📨 Application has been sent',
+        applicationSentShort: '☑️ Applied!',
     },
     elders: {
         chief: 'chief',
@@ -55,6 +55,8 @@ const en: BaseTranslation = {
         approvedOk: "Ok, you've approved the application",
         questNotification:
             '{name:string}, {elder:string} of the {tribe:string} proposes to meet: \n {proposal:string}',
+        questNotificationForElder:
+            'Candidate for {tribe:string} tribe {name:string} proposes to meet: \n {proposal:string}',
         candidate: 'candidate',
         questDescription: 'initiation',
         feedbackRequest:
@@ -70,7 +72,20 @@ const en: BaseTranslation = {
         okay: "🤗 Yes, let's meet!",
         questDescription: 'introduction meeting',
         questNotification:
-            '{name}, member of the {tribe} proposes to meet: \n {proposal}',
+            '{name} of the {tribe:string} proposes to meet to introduce themselves: \n {proposal:string}',
+    },
+    coordination: {
+        okay: "💪 Yay! Le'ts do it!",
+        coordinateOwnIdea: `You're going to coordinate efforts to incarnate your idea "{description:string}" with {name:string}. We need to arrange first meeting.`,
+        questNotification:
+            '{name} of the {tribe:string} proposes to meet to coordinate efforts for "{description:string}": \n {proposal:string}',
+        questManage: 'When discuss with {name: string}, you can:',
+        buttons: {
+            spawn: 'Create a sub-quest',
+            gatherUpwoters: 'Gather idea supporters',
+            gatherTribe: 'Gather whole tribe',
+            reQuest: 'Meet one more time',
+        },
     },
     calendar: {
         weekdays: 'Su,Mo,Tu,We,Th,Fr,St',
@@ -84,8 +99,6 @@ const en: BaseTranslation = {
         proposePlace: '🌍 Now where you want to meet?',
         proposal: ' • Time: {date:Date|date}\n • Place: {place}',
         proposalConfirmPrompt: 'You propose to meet: \n {proposal}',
-        proposalRecieved:
-            '{who} of {tribe} tribe proposes to meet for "{description}": \n {proposal}',
         confirm: '✅ Okay',
         edit: '🤔 Edit',
         proposeOther: '🤔 Suggest otherwise',
@@ -133,6 +146,8 @@ const en: BaseTranslation = {
         brainstormNotice:
             '⛈ There is a brainstorm on the horison: {date:Date|date}! ⛈',
         started: 'Brainstorm started! Propose your ideas! 💥',
+        toVote: "Brainstorm is over, it's time to vote for ideas!",
+        end: 'Storm ended! Most popular ideas are to be incarnated.',
     },
 
     errors: {
@@ -165,7 +180,12 @@ const en: BaseTranslation = {
         NotEnoughMembers: '',
         NotAChiefError:
             '🚫 Sorry, you cannot start a brainstorm, only tribe chief can',
+        FinalyzeBeforeVotingError:
+            '🤬 System error! Cannot finalyze storm before voting',
+        StormNotStarted:
+            '🤬 System error! Cannot add idea to not started brainstorm',
         common: '😩 Oooops! Something awfull happend.',
+        QuestFinishedError: '🚫 This quest is already over',
     },
 }
 

@@ -5,9 +5,15 @@ import {
     BrainstormLifecycle,
     NotAChiefError,
     VotingStartedMessage,
+    StormEndeddMessage,
 } from '../use-cases/brainstorm-lifecycle'
-import { Brainstorm, IBrainstormData } from '../use-cases/entities/brainstorm'
 import {
+    Brainstorm,
+    FinalyzeBeforeVotingError,
+    IBrainstormData,
+} from '../use-cases/entities/brainstorm'
+import {
+    isStormFinalyze,
     isStormNotify,
     isStormStart,
     isStormToVoting,
@@ -174,6 +180,7 @@ describe('Brainstorm lifecycle', () => {
             })
         )
     })
+
     it('starts the storm', async () => {
         const world = await setUp()
         const { brainstorm } = await world.startStorm()
@@ -255,6 +262,54 @@ describe('Brainstorm lifecycle', () => {
         )
         expect(tasks[0].time).toBeGreaterThan(Date.now() + 5 * 60_000 - 1000)
         expect(tasks[0].time).toBeLessThan(Date.now() + 5 * 60_000 + 1000)
+    })
+
+    it('finalises the storm', async () => {
+        const world = await setUp()
+        const { brainstorm } = await world.stormToVoting()
+        const task = await world.taskStore._last()
+
+        if (isStormFinalyze(task)) {
+            await world.stromCycle.finalyze(task)
+        }
+        const storm = await world.brainstormStore.getById(brainstorm.id)
+
+        expect(storm?.state).toEqual('finished')
+    })
+    it('notifies all the members that storm ended', async () => {
+        const world = await setUp()
+        const onEnded =
+            world.spyOnMessage<StormEndeddMessage>('brainstorm-ended')
+        const { brainstorm } = await world.stormToVoting()
+        const task = await world.taskStore._last()
+
+        if (isStormFinalyze(task)) {
+            await world.stromCycle.finalyze(task)
+        }
+        expect(onEnded).toHaveBeenCalledTimes(world.members.length - 1)
+        expect(onEnded).toHaveBeenCalledWith(
+            jasmine.objectContaining<StormEndeddMessage>({
+                type: 'brainstorm-ended',
+                payload: {
+                    targetUserId: world.members[1].userId,
+                    brainstormId: brainstorm.id,
+                    targetMemberId: world.members[1].id,
+                },
+            })
+        )
+    })
+
+    it('FAILs to finalyze a strom not in voting phase', async () => {
+        const world = await setUp()
+        const { brainstorm } = await world.startStorm()
+        return expectAsync(
+            world.stromCycle.finalyze({
+                type: 'brainstorm-to-finalyze',
+                time: Date.now(),
+                done: false,
+                payload: { brainstormId: brainstorm.id },
+            })
+        ).toBeRejectedWithError(FinalyzeBeforeVotingError)
     })
 })
 

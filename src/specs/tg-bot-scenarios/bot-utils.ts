@@ -63,20 +63,14 @@ export function wrapClient(server: TelegramServer, client: TelegramClient) {
             debugUser('Command', text)
             await client.sendCommand(client.makeCommand(text))
         } else if (getInlineKeyCallbacks(lastUpdate).includes(text)) {
-            debugUser('Callback', text)
-            await client.sendCallback(
-                client.makeCallbackQuery(text, {
-                    message: {
-                        message_id: lastUpdate.messageId,
-                        text: lastUpdate.message.text,
-                    },
-                })
-            )
+            callback(text)
         } else {
             debugUser('Message', text)
             await client.sendMessage(client.makeMessage(text))
         }
-
+        return waitResult(waitEdit)
+    }
+    async function waitResult(waitEdit?: true) {
         let result: BotUpdate[]
         if (waitEdit) {
             await server.waitBotEdits()
@@ -95,11 +89,27 @@ export function wrapClient(server: TelegramServer, client: TelegramClient) {
         await chat(text, waitEdit)
         return lastUpdate
     }
+    async function callback(data: string) {
+        debugUser('Callback', data)
+        await client.sendCallback(
+            client.makeCallbackQuery(data, {
+                message: {
+                    message_id: lastUpdate.messageId,
+                    text: lastUpdate.message.text,
+                },
+            })
+        )
+    }
+    async function forceCallback(data: string, waitEdit?: true) {
+        await callback(data)
+        return waitResult(waitEdit)
+    }
 
     return {
         chat,
         chatLast,
         client,
+        forceCallback,
     }
 }
 
@@ -144,17 +154,6 @@ export function debugKeyboard(lastUpdate: BotUpdate) {
         console.log((lastUpdate?.message?.reply_markup as any)?.inline_keyboard)
     }
 }
-
-export function log(...args: any[]) {
-    let mark = 'WTF'
-    if (args.length > 1) {
-        mark = args.shift()
-    }
-    console.log(`==========  ${mark}  =========`)
-    console.log(...args)
-    console.log('=============================')
-}
-
 class TgUserStore extends InMemoryStore<ITelegramUser> {}
 
 export async function createTelegramContext(

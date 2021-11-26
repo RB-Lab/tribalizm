@@ -1,18 +1,15 @@
+import { UpdateFinishedBrainstormError } from './entities/brainstorm'
 import { ContextUser } from './utils/context-user'
 
 export class Voting extends ContextUser {
-    start = async (brainsormId: string) => {
-        const brainstorm = await this.getBrainstorm(brainsormId)
-        if (brainstorm.state === 'voting') {
-            return
-        }
-        brainstorm.toVoting()
-        await this.stores.brainstormStore.save(brainstorm)
-    }
-
     private checkVotingAllowed = async (ideaId: string, memberId: string) => {
         const idea = await this.getIdea(ideaId)
         const brainstorm = await this.getBrainstorm(idea.brainstormId)
+        if (brainstorm.state === 'finished') {
+            throw new BrainstormEndedError(
+                `Cannot vote for idea from ${brainstorm.id}, it is already finished`
+            )
+        }
         if (brainstorm.state !== 'voting') {
             throw new VotingNotStartedError(
                 "Cannot vote when voting hasn't beens started"
@@ -46,6 +43,12 @@ export class VotingNotStartedError extends Error {
 }
 
 export class ExternalMemberVoteError extends Error {
+    constructor(msg: string) {
+        super(msg)
+    }
+}
+
+export class BrainstormEndedError extends Error {
     constructor(msg: string) {
         super(msg)
     }

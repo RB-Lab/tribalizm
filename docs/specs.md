@@ -122,3 +122,9 @@ Done: 35, In porgres: 0, Must: 0, Should: 16, total: 52
 6.  Whan if user ignores bot messages, esp. intro & init quests?
 7.  What if user leaves their area temporary, or temporary get's in other area and became chief
     there?
+8.  Re-voting for ideas in TG is kinda hard to do (no disabled buttons)
+9.  There is a positive feedback loop: the more charism & wisdom person have, more often they will be
+    assingned to coordination quests, if not other memebers are busy. Which will lead to increase
+    their charism & wisdom. But maybe it's a good thing. ┐( ˘_˘)┌
+10. consinder this: we have 10 members tribe, three of them suggest 9 ideas (3 each) and upvote all 9. Thus we will have 5 quests assigned between these 3 members (each have 3-4) while other 7
+    passive tribesmen won't have any. ┐( ˘_˘)┌ maybe that's OK.

@@ -9,9 +9,8 @@ import {
 import { getBestFreeMember } from './utils/members-utils'
 import { getRootIdea, NoIdeaError } from './utils/get-root-idea'
 import { Message } from './utils/message'
-import { NewCoordinationQuestMessage } from './utils/quest-message'
+import { NewCoordinationQuestMessage } from './spawn-quest'
 import { HowWasQuestTask } from './utils/scheduler'
-import { EntityNotFound } from './utils/not-found-error'
 
 export class QuestNegotiation extends ContextUser {
     proposeChange = async (req: QuestChangeRequest) => {
@@ -80,6 +79,17 @@ export class QuestNegotiation extends ContextUser {
                         questId: quest.id,
                     },
                 })
+                if (quest.type === QuestType.coordination) {
+                    this.notify<CoordinationQuestAcceptedMessage>({
+                        type: 'coordination-quest-accepted',
+                        payload: {
+                            questId: quest.id,
+                            targetMemberId: member.id,
+                            targetUserId: member.userId,
+                            members: memberViews,
+                        },
+                    })
+                }
             })
             const after = quest.type === QuestType.coordination ? 5 : 2
             this.scheduler.schedule<HowWasQuestTask>({
@@ -156,8 +166,6 @@ export class QuestNegotiation extends ContextUser {
                 questId: quest.id,
                 targetMemberId: nextMember.id,
                 targetUserId: nextMember.userId,
-                place: quest.place,
-                time: quest.time,
                 members: membersView.filter((mv) =>
                     quest.memberIds.includes(mv.id)
                 ),
@@ -207,6 +215,16 @@ export interface QuestAcceptedMessage extends Message {
         members: Array<{ name: string; id: string }>
         time: number
         place: string
+    }
+}
+
+export interface CoordinationQuestAcceptedMessage extends Message {
+    type: 'coordination-quest-accepted'
+    payload: {
+        questId: string
+        targetMemberId: string
+        targetUserId: string
+        members: Array<{ name: string; id: string }>
     }
 }
 

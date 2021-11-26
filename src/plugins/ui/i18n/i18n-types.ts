@@ -115,7 +115,7 @@ export type Translation = {
 		 */
 		'applicationSent': string
 		/**
-		 * 📨 Application has been sent
+		 * ☑️ Applied!
 		 */
 		'applicationSentShort': string
 	}
@@ -151,6 +151,14 @@ export type Translation = {
 		 * @param {string} tribe
 		 */
 		'questNotification': RequiredParams4<'elder', 'name', 'proposal', 'tribe'>
+		/**
+		 * Candidate for {tribe} tribe {name} proposes to meet: 
+	 {proposal}
+		 * @param {string} name
+		 * @param {string} proposal
+		 * @param {string} tribe
+		 */
+		'questNotificationForElder': RequiredParams3<'name', 'proposal', 'tribe'>
 		/**
 		 * candidate
 		 */
@@ -195,13 +203,57 @@ export type Translation = {
 		 */
 		'questDescription': string
 		/**
-		 * {name}, member of the {tribe} proposes to meet: 
+		 * {name} of the {tribe} proposes to meet to introduce themselves: 
 	 {proposal}
 		 * @param {unknown} name
-		 * @param {unknown} proposal
-		 * @param {unknown} tribe
+		 * @param {string} proposal
+		 * @param {string} tribe
 		 */
 		'questNotification': RequiredParams3<'name', 'proposal', 'tribe'>
+	}
+	'coordination': {	
+		/**
+		 * 💪 Yay! Le'ts do it!
+		 */
+		'okay': string
+		/**
+		 * You're going to coordinate efforts to incarnate your idea "{description}" with {name}. We need to arrange first meeting.
+		 * @param {string} description
+		 * @param {string} name
+		 */
+		'coordinateOwnIdea': RequiredParams2<'description', 'name'>
+		/**
+		 * {name} of the {tribe} proposes to meet to coordinate efforts for "{description}": 
+	 {proposal}
+		 * @param {string} description
+		 * @param {unknown} name
+		 * @param {string} proposal
+		 * @param {string} tribe
+		 */
+		'questNotification': RequiredParams4<'description', 'name', 'proposal', 'tribe'>
+		/**
+		 * When discuss with {name}, you can:
+		 * @param {string} name
+		 */
+		'questManage': RequiredParams1<'name'>
+		'buttons': {	
+			/**
+			 * Create a sub-quest
+			 */
+			'spawn': string
+			/**
+			 * Gather idea supporters
+			 */
+			'gatherUpwoters': string
+			/**
+			 * Gather whole tribe
+			 */
+			'gatherTribe': string
+			/**
+			 * Meet one more time
+			 */
+			'reQuest': string
+		}
 	}
 	'calendar': {	
 		/**
@@ -247,15 +299,6 @@ export type Translation = {
 		 * @param {unknown} proposal
 		 */
 		'proposalConfirmPrompt': RequiredParams1<'proposal'>
-		/**
-		 * {who} of {tribe} tribe proposes to meet for "{description}": 
-	 {proposal}
-		 * @param {unknown} description
-		 * @param {unknown} proposal
-		 * @param {unknown} tribe
-		 * @param {unknown} who
-		 */
-		'proposalRecieved': RequiredParams4<'description', 'proposal', 'tribe', 'who'>
 		/**
 		 * ✅ Okay
 		 */
@@ -448,6 +491,14 @@ export type Translation = {
 		 * Brainstorm started! Propose your ideas! 💥
 		 */
 		'started': string
+		/**
+		 * Brainstorm is over, it's time to vote for ideas!
+		 */
+		'toVote': string
+		/**
+		 * Storm ended! Most popular ideas are to be incarnated.
+		 */
+		'end': string
 	}
 	'errors': {	
 		'UpdateFinishedBrainstormError': string
@@ -487,9 +538,21 @@ export type Translation = {
 		 */
 		'NotAChiefError': string
 		/**
+		 * 🤬 System error! Cannot finalyze storm before voting
+		 */
+		'FinalyzeBeforeVotingError': string
+		/**
+		 * 🤬 System error! Cannot add idea to not started brainstorm
+		 */
+		'StormNotStarted': string
+		/**
 		 * 😩 Oooops! Something awfull happend.
 		 */
 		'common': string
+		/**
+		 * 🚫 This quest is already over
+		 */
+		'QuestFinishedError': string
 	}
 }
 
@@ -596,7 +659,7 @@ export type TranslationFunctions = {
 		 */
 		'applicationSent': () => LocalizedString
 		/**
-		 * 📨 Application has been sent
+		 * ☑️ Applied!
 		 */
 		'applicationSentShort': () => LocalizedString
 	}
@@ -628,6 +691,11 @@ export type TranslationFunctions = {
 	 {proposal}
 		 */
 		'questNotification': (arg: { elder: string, name: string, proposal: string, tribe: string }) => LocalizedString
+		/**
+		 * Candidate for {tribe} tribe {name} proposes to meet: 
+	 {proposal}
+		 */
+		'questNotificationForElder': (arg: { name: string, proposal: string, tribe: string }) => LocalizedString
 		/**
 		 * candidate
 		 */
@@ -667,10 +735,47 @@ export type TranslationFunctions = {
 		 */
 		'questDescription': () => LocalizedString
 		/**
-		 * {name}, member of the {tribe} proposes to meet: 
+		 * {name} of the {tribe} proposes to meet to introduce themselves: 
 	 {proposal}
 		 */
-		'questNotification': (arg: { name: unknown, proposal: unknown, tribe: unknown }) => LocalizedString
+		'questNotification': (arg: { name: unknown, proposal: string, tribe: string }) => LocalizedString
+	}
+	'coordination': {	
+		/**
+		 * 💪 Yay! Le'ts do it!
+		 */
+		'okay': () => LocalizedString
+		/**
+		 * You're going to coordinate efforts to incarnate your idea "{description}" with {name}. We need to arrange first meeting.
+		 */
+		'coordinateOwnIdea': (arg: { description: string, name: string }) => LocalizedString
+		/**
+		 * {name} of the {tribe} proposes to meet to coordinate efforts for "{description}": 
+	 {proposal}
+		 */
+		'questNotification': (arg: { description: string, name: unknown, proposal: string, tribe: string }) => LocalizedString
+		/**
+		 * When discuss with {name}, you can:
+		 */
+		'questManage': (arg: { name: string }) => LocalizedString
+		'buttons': {	
+			/**
+			 * Create a sub-quest
+			 */
+			'spawn': () => LocalizedString
+			/**
+			 * Gather idea supporters
+			 */
+			'gatherUpwoters': () => LocalizedString
+			/**
+			 * Gather whole tribe
+			 */
+			'gatherTribe': () => LocalizedString
+			/**
+			 * Meet one more time
+			 */
+			'reQuest': () => LocalizedString
+		}
 	}
 	'calendar': {	
 		/**
@@ -713,11 +818,6 @@ export type TranslationFunctions = {
 	 {proposal}
 		 */
 		'proposalConfirmPrompt': (arg: { proposal: unknown }) => LocalizedString
-		/**
-		 * {who} of {tribe} tribe proposes to meet for "{description}": 
-	 {proposal}
-		 */
-		'proposalRecieved': (arg: { description: unknown, proposal: unknown, tribe: unknown, who: unknown }) => LocalizedString
 		/**
 		 * ✅ Okay
 		 */
@@ -896,6 +996,14 @@ export type TranslationFunctions = {
 		 * Brainstorm started! Propose your ideas! 💥
 		 */
 		'started': () => LocalizedString
+		/**
+		 * Brainstorm is over, it's time to vote for ideas!
+		 */
+		'toVote': () => LocalizedString
+		/**
+		 * Storm ended! Most popular ideas are to be incarnated.
+		 */
+		'end': () => LocalizedString
 	}
 	'errors': {	
 		'UpdateFinishedBrainstormError': () => LocalizedString
@@ -935,9 +1043,21 @@ export type TranslationFunctions = {
 		 */
 		'NotAChiefError': () => LocalizedString
 		/**
+		 * 🤬 System error! Cannot finalyze storm before voting
+		 */
+		'FinalyzeBeforeVotingError': () => LocalizedString
+		/**
+		 * 🤬 System error! Cannot add idea to not started brainstorm
+		 */
+		'StormNotStarted': () => LocalizedString
+		/**
 		 * 😩 Oooops! Something awfull happend.
 		 */
 		'common': () => LocalizedString
+		/**
+		 * 🚫 This quest is already over
+		 */
+		'QuestFinishedError': () => LocalizedString
 	}
 }
 

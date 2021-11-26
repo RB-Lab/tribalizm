@@ -3,6 +3,7 @@ import { Tribalizm, wrapWithErrorHandler } from '../../../use-cases/tribalism'
 import { NotificationBus } from '../../../use-cases/utils/notification-bus'
 import { i18n } from '../i18n/i18n-ctx'
 import { brainstormScreen } from './screens/brainstorm'
+import { coordinationScreen } from './screens/coordination'
 import { initiationScreen } from './screens/initiation'
 import { introQuests } from './screens/intro-quests'
 import { questNegotiationScreen } from './screens/quest-negotiation'
@@ -125,6 +126,7 @@ export async function makeBot(config: BotConfig) {
     rateMemberScreen.actions(bot)
     introQuests.actions(bot)
     brainstormScreen.actions(bot)
+    coordinationScreen.actions(bot)
     startScreenActions(bot)
 
     questNegotiationScreen.attachNotifications(
@@ -152,8 +154,12 @@ export async function makeBot(config: BotConfig) {
         config.notifcationsBus,
         config.telegramUsersAdapter
     )
+    coordinationScreen.attachNotifications(
+        bot,
+        config.notifcationsBus,
+        config.telegramUsersAdapter
+    )
 
-    // TODO for bridge I need domain AND hook. Also it looks like it starts server anyway
     if ('domain' in config.webHook) {
         await bot.launch({
             webhook: { ...config.webHook, hookPath: config.webHook.path },

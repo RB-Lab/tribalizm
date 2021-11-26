@@ -17,7 +17,6 @@ export class ContextUser {
         return this.bus.notify<T>(message)
     }
 
-    // TODO replace all errors with error messages straight in use cases? 🤔
     protected async getQuest(questId: string) {
         const quest = await this.stores.questStore.getById(questId)
         if (!quest) {

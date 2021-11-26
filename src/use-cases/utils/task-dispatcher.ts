@@ -6,6 +6,8 @@ import {
     isIntroductionTask,
     isStormNotify,
     isStormStart,
+    isStormToVoting,
+    isStormFinalyze,
 } from './scheduler'
 
 export class TaskDiscpatcher {
@@ -34,6 +36,13 @@ export class TaskDiscpatcher {
             }
             if (isStormStart(task)) {
                 this.tribalism.brainstormLifecycle.startStorm(task)
+            }
+            if (isStormToVoting(task)) {
+                this.tribalism.brainstormLifecycle.toVoting(task)
+            }
+            if (isStormFinalyze(task)) {
+                this.tribalism.brainstormLifecycle.finalyze(task)
+                this.tribalism.ideasIncarnation.incarnateIdeas(task)
             }
         }
     }

@@ -148,6 +148,25 @@ export class BrainstormLifecycle extends ContextUser {
         await this.stores.brainstormStore.save(storm)
         await this.scheduler.markDone(task.id)
     }
+    finalyze = async (task: StormFinalyze) => {
+        const brainstorm = await this.getBrainstorm(task.payload.brainstormId)
+        brainstorm.finish()
+        await this.stores.brainstormStore.save(brainstorm)
+        const members = await this.stores.memberStore.find({
+            tribeId: brainstorm.tribeId,
+        })
+        members.forEach((member) => {
+            if (member.isCandidate) return
+            this.notify<StormEndeddMessage>({
+                type: 'brainstorm-ended',
+                payload: {
+                    brainstormId: brainstorm.id,
+                    targetMemberId: member.id,
+                    targetUserId: member.userId,
+                },
+            })
+        })
+    }
 }
 
 interface BrainstormDeclarationContext {
@@ -184,6 +203,15 @@ export interface BrainstormStartedMessage extends Message {
 
 export interface VotingStartedMessage extends Message {
     type: 'voting-started'
+    payload: {
+        brainstormId: string
+        targetMemberId: string
+        targetUserId: string
+    }
+}
+
+export interface StormEndeddMessage extends Message {
+    type: 'brainstorm-ended'
     payload: {
         brainstormId: string
         targetMemberId: string

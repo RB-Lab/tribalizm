@@ -56,9 +56,12 @@ export class InMemoryStore<T> implements Store<T> {
     }
     _last = async () => {
         const values = Object.values(this._store)
-        return values.length
-            ? (values[values.length - 1] as T & Storable)
-            : null
+        if (!values.length) {
+            throw new Error(
+                `Cannot get last record of empty ${this.constructor.name}`
+            )
+        }
+        return this._instantiate(values[values.length - 1])
     }
 
     __show = (keys?: Array<keyof T | 'id'>) => {

@@ -15,6 +15,11 @@ export class AddIdea extends ContextUser {
                 `brainstorm ${brainstorm.id} is gathered not for your tirbe`
             )
         }
+        if (brainstorm.state !== 'generation') {
+            throw new StormNotStarted(
+                `Cannot add idea to ${brainstorm.id} storm: it is in ${brainstorm.state} phase`
+            )
+        }
         const idea = await this.stores.ideaStore.save(
             new QuestIdea({
                 brainstormId: req.brainstormId,
@@ -28,6 +33,8 @@ export class AddIdea extends ContextUser {
             this.notify<NewIdeaMessage>({
                 type: 'new-idea-added',
                 payload: {
+                    ideaId: idea.id,
+                    brainstormId: brainstorm.id,
                     description: req.description,
                     targetMemberId: m.id,
                     targetUserId: m.userId,
@@ -46,8 +53,15 @@ export interface AddIdeaRequest {
 export interface NewIdeaMessage extends Message {
     type: 'new-idea-added'
     payload: {
+        ideaId: string
+        brainstormId: string
         targetUserId: string
         targetMemberId: string
         description: string
+    }
+}
+export class StormNotStarted extends Error {
+    constructor(msg: string) {
+        super(msg)
     }
 }

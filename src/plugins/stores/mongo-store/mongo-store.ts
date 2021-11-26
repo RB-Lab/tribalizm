@@ -112,7 +112,13 @@ export class MongoStore<T> implements Store<T> {
             .sort({ _id: -1 })
             .limit(1)
             .toArray()
-        return res[0] ? this._instantiate(res[0]) : null
+
+        if (!res.length) {
+            throw new Error(
+                `Cannot get last record of empty ${this.constructor.name}`
+            )
+        }
+        return this._instantiate(res[0])
     }
 
     __show = async (keys?: Array<keyof T | 'id'>) => {

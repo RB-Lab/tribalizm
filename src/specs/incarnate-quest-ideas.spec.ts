@@ -8,9 +8,11 @@ import {
     QuestType,
 } from '../use-cases/entities/quest'
 import { Tribe } from '../use-cases/entities/tribe'
-import { IdeasIncarnation } from '../use-cases/incarnate-ideas'
-import { NewCoordinationQuestMessage } from '../use-cases/utils/quest-message'
-import { createContext } from './test-context'
+import {
+    IdeaIncarnationMessage,
+    IdeasIncarnation,
+} from '../use-cases/incarnate-ideas'
+import { createContext, makeMessageSpy } from './test-context'
 import { StormFinalyze } from '../use-cases/utils/scheduler'
 import { Storable } from '../use-cases/entities/store'
 
@@ -83,23 +85,6 @@ describe('When brainstorm is over', () => {
             expect(quest.time).toBeGreaterThan(oneWeekAhead - 1000)
             expect(quest.time).toBeLessThan(oneWeekAhead + 1000)
         })
-        it('finalises containing ideas', async () => {
-            const world = await setUp({ ideas: 3 })
-            await world.incarnation.incarnateIdeas(world.task)
-            const ideas = await world.getIdeas()
-            expect(ideas.length).toEqual(3)
-            ideas.forEach((idea) => {
-                expect(idea.state).toEqual('finished')
-            })
-        })
-        it('finalises itself', async () => {
-            const world = await setUp()
-            await world.incarnation.incarnateIdeas(world.task)
-            const brainstorm = await world.brainstormStore.getById(
-                world.brainstorm.id
-            )
-            expect(brainstorm?.state).toEqual('finished')
-        })
         it('makrs StormFinalyze task as done', async () => {
             const world = await setUp()
             await world.incarnation.incarnateIdeas(world.task)
@@ -120,10 +105,6 @@ describe('When brainstorm is over', () => {
             expect(quest.memberIds).toContain(idea.meberId)
         })
 
-        // TODO consinder this: we have 10 members tribe, three of them suggest
-        //      9 ideas (3 each) and upvote all 9. Thus we will have 5 quests
-        //      assigned between these 3 members (each have 3-4) while other
-        //      7 passive tribesmen won't have any. ¯\_(ツ)_/¯ maybe that's OK.
         it('should pick only upvoters', async () => {
             const world = await setUp({
                 members: [
@@ -233,39 +214,24 @@ describe('When brainstorm is over', () => {
     describe('Quest notification', () => {
         it('notifies both members on quest proposal', async () => {
             const world = await setUp()
-            const spy = jasmine.createSpy('onQuest')
-            world.notififcationBus.subscribe<NewCoordinationQuestMessage>(
-                'new-coordination-quest-message',
-                spy
-            )
+            const onIncarnation =
+                world.spyOnMessage<IdeaIncarnationMessage>('idea-incarnation')
             const { quest } = await world.incarnateOneIdea()
             const member1 = await world.memberStore.getById(quest.memberIds[0])
             const member2 = await world.memberStore.getById(quest.memberIds[1])
-            const user1 = await world.userStore.getById(member1!.userId)
             const user2 = await world.userStore.getById(member2!.userId)
-            const expectedMessage =
-                jasmine.objectContaining<NewCoordinationQuestMessage>({
-                    type: 'new-coordination-quest-message',
-                    payload: jasmine.objectContaining<
-                        NewCoordinationQuestMessage['payload']
-                    >({
+
+            expect(onIncarnation).toHaveBeenCalledWith(
+                jasmine.objectContaining<IdeaIncarnationMessage>({
+                    type: 'idea-incarnation',
+                    payload: {
                         questId: quest.id,
+                        targetMemberId: member1!.id,
+                        targetUserId: member1!.userId,
                         description: quest.description,
-                        members: jasmine.arrayWithExactContents([
-                            { id: member1?.id, name: user1?.name },
-                            { id: member2?.id, name: user2?.name },
-                        ]),
-                    }),
+                        partner: user2!.name,
+                    },
                 })
-            expect(spy).toHaveBeenCalledTimes(2)
-            expect(spy.calls.argsFor(0)[0]).toEqual(expectedMessage)
-            expect(spy.calls.argsFor(1)[0]).toEqual(expectedMessage)
-            const notifiedMembers = [
-                spy.calls.argsFor(0)[0].payload.targetMemberId,
-                spy.calls.argsFor(1)[0].payload.targetMemberId,
-            ]
-            expect(notifiedMembers).toEqual(
-                jasmine.arrayWithExactContents(quest.memberIds)
             )
         })
     })
@@ -388,6 +354,7 @@ async function setUp(settings: Settings = {}) {
                 )
             )
         },
+        spyOnMessage: makeMessageSpy(context.async.notififcationBus),
     }
 }
 

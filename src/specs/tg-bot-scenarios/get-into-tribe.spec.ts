@@ -9,15 +9,18 @@ import {
 } from './bot-utils'
 
 function xdescribe(...args: any[]) {}
-describe('Get into tribe [integration]', () => {
+xdescribe('Get into tribe [integration]', () => {
     let world: Awaited<ReturnType<typeof setup>>
     beforeEach(async () => {
+        jasmine.clock().install()
+        jasmine.clock().mockDate(new Date('2021-11-02'))
         world = await setup()
+        // process.env.chatDebug = 'true'
     })
     afterEach(async () => {
         await world.tearDown()
+        jasmine.clock().uninstall()
     })
-    // process.env.chatDebug = 'true'
 
     it('Main scenario', async () => {
         // /start
@@ -27,7 +30,6 @@ describe('Get into tribe [integration]', () => {
 
         // list tribes
         await world.newUser.chat('list-tribes')
-        // TODO check it asks for location
         const tribesListUpdate = await world.newUser.chat(world.city.name)
         expect(tribesListUpdate.length).toBe(world.tribes.length + 1)
         expect(tribesListUpdate[0].message.text).toMatch(world.city.name)
@@ -42,7 +44,6 @@ describe('Get into tribe [integration]', () => {
         const tribeId = applyButton.replace('apply-tribe:', '')
         const tribe = world.tribes.find((t) => t.id === tribeId)
         expect(applyReply.message.text).toMatch(tribe!.name)
-        // TODO check that it asks for cover letter
         const coverLetter = 'I want to FOO!!'
         await world.newUser.chat(coverLetter)
         // Chief is notified on new application
@@ -50,7 +51,7 @@ describe('Get into tribe [integration]', () => {
         expect(chiefUpdates.length).toBe(1)
         const chiefNot = chiefUpdates[0]
         expect(chiefNot.message.text).toMatch(coverLetter)
-        const newUserMember = (await world.context.stores.memberStore._last())!
+        const newUserMember = await world.context.stores.memberStore._last()
         const initQuest = await world.context.stores.questStore._last()
         const chiefNotButtons = getInlineKeyCallbacks(chiefNot)
         expect(chiefNotButtons).toEqual([
@@ -64,8 +65,6 @@ describe('Get into tribe [integration]', () => {
         const dates = getInlineKeyCallbacks(calendar).filter((cb) =>
             cb.includes('date')
         )
-        // NOTE this test will fail at the end of the month...
-        // to fix that it's probably better use jasmine.clocks for the whole suite
         const hour = getInlineKeyCallbacks(
             await world.chief.chatLast(dates[3], true)
         )[4]
@@ -135,11 +134,9 @@ describe('Get into tribe [integration]', () => {
 
         // time forward to the point when system asks about initiation
 
-        jasmine.clock().install()
         const howWasInitTask = await world.context.stores.taskStore._last()
         jasmine.clock().mockDate(new Date(howWasInitTask!.time + 1000))
         await world.context.requestTaskQueue()
-        jasmine.clock().uninstall()
 
         // new user is asked to rate chief's charisma & wisdom
         const nuChiefRateUpd = await world.newUser.chat()
@@ -223,11 +220,9 @@ describe('Get into tribe [integration]', () => {
 
         // time forward to the point when system asks about initiation
 
-        jasmine.clock().install()
         const howWasInitTask2 = await world.context.stores.taskStore._last()
         jasmine.clock().mockDate(new Date(howWasInitTask2!.time + 1000))
         await world.context.requestTaskQueue()
-        jasmine.clock().uninstall()
 
         // new user is asked to rate shaman's charisma & wisdom
         const nuShamanRateUpd = await world.newUser.chat()
@@ -267,11 +262,9 @@ describe('Get into tribe [integration]', () => {
         expect(acceptedUpdate.length).toBe(1)
 
         // time forward to the point when intro task was alocated
-        jasmine.clock().install()
         const introTask = await world.context.stores.taskStore._last()
         jasmine.clock().mockDate(new Date(introTask!.time + 1000))
         await world.context.requestTaskQueue()
-        jasmine.clock().uninstall()
 
         // the old user recieves invitation to make an intro quest
         const oldieUpds = await world.oldie1.chat()
@@ -307,11 +300,9 @@ describe('Get into tribe [integration]', () => {
         expect((await world.oldie1.chat()).length).toBe(1)
 
         // time forward to the point when intro task was alocated
-        jasmine.clock().install()
         const introRateTask = await world.context.stores.taskStore._last()
         jasmine.clock().mockDate(new Date(introRateTask!.time + 1000))
         await world.context.requestTaskQueue()
-        jasmine.clock().uninstall()
 
         // newbie is asked to rate oldie's charisma & wisdom
         const oldRateUpd = await world.newUser.chat()
@@ -353,11 +344,9 @@ describe('Get into tribe [integration]', () => {
         // now oldie 2 is notified on intro quest
 
         // time forward to the point when intro task was alocated
-        jasmine.clock().install()
         const intro2Task = await world.context.stores.taskStore._last()
         jasmine.clock().mockDate(new Date(intro2Task!.time + 1000))
         await world.context.requestTaskQueue()
-        jasmine.clock().uninstall()
 
         const oldie2Upds = await oldie2.chat()
         expect(oldie2Upds.length).toBe(1)
@@ -371,7 +360,6 @@ describe('Get into tribe [integration]', () => {
         const btn = getKeyboardButtons(response)[0]
         expect(btn).toBeTruthy()
         expect(typeof btn === 'object' && 'request_location' in btn).toBeTrue()
-        // TODO add location to test API client
     })
     it('Decline application', async () => {
         await world.newUser.chat('/start')
@@ -434,11 +422,9 @@ describe('Get into tribe [integration]', () => {
         // chief notified on confirmation
         await world.chief.chat()
         // time forward to the point when system asks about initiation
-        jasmine.clock().install()
         const howWasInitTask = await world.context.stores.taskStore._last()
         jasmine.clock().mockDate(new Date(howWasInitTask!.time + 1000))
         await world.context.requestTaskQueue()
-        jasmine.clock().uninstall()
 
         // chief accepts member
         const chiefFeedbackUpd = await world.chief.chat()
@@ -455,10 +441,7 @@ describe('Get into tribe [integration]', () => {
             b.startsWith('application-decline')
         )!
 
-        await world.chief.client.sendCallback(
-            world.chief.client.makeCallbackQuery(chiefDeclineButton)
-        )
-        await world.chief.chat()
+        await world.chief.forceCallback(chiefDeclineButton)
     })
     it('Accepts member without shaman initiation, if tribe has no shaman', async () => {
         await world.newUser.chatLast('/start')
@@ -506,11 +489,9 @@ describe('Get into tribe [integration]', () => {
         // chief notified on confirmation
         await world.chief.chat()
         // time forward to the point when system asks about initiation
-        jasmine.clock().install()
         const howWasInitTask = await world.context.stores.taskStore._last()
         jasmine.clock().mockDate(new Date(howWasInitTask!.time + 1000))
         await world.context.requestTaskQueue()
-        jasmine.clock().uninstall()
         // new user is asked to rate chief...
         const rateUpd = await world.newUser.chat()
         const charismaButtons = getInlineKeyCallbacks(rateUpd[0])

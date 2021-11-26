@@ -18,6 +18,6 @@ export function startScreenActions(bot: Telegraf<TribeCtx>) {
             Markup.button.callback(texts.buttons.list(), 'list-tribes'),
             Markup.button.callback(texts.buttons.rules(), 'rules'),
         ])
-        ctx.reply(texts.text(), keyboard)
+        await ctx.reply(texts.text(), keyboard)
     })
 }

@@ -3,13 +3,15 @@ import {
     CoordinationQuest,
     isCoordinationQuest,
     NotYourQuest,
+    QuestStatus,
 } from './entities/quest'
 import { ContextUser } from './utils/context-user'
+import { QuestFinishedError } from './utils/errors'
 import { getRootIdea } from './utils/get-root-idea'
 import { getBestFreeMember } from './utils/members-utils'
-import { NewCoordinationQuestMessage } from './utils/quest-message'
+import { Message } from './utils/message'
 
-export class QuestSource extends ContextUser {
+export class SpawnQuest extends ContextUser {
     /**
      * Creates a sub-quest _with the same line-up_. In case coordinators decided, that they need to
      * meet one more time
@@ -24,6 +26,12 @@ export class QuestSource extends ContextUser {
         if (!parentQuest.memberIds.includes(req.memberId)) {
             throw new NotYourQuest(
                 `Member ${req.memberId} is not assigned to quest ${parentQuest.id}`
+            )
+        }
+
+        if (parentQuest.status === QuestStatus.done) {
+            throw new QuestFinishedError(
+                `Cannot re-quest a finished quest ${parentQuest.status}`
             )
         }
         const quest = new CoordinationQuest({
@@ -55,6 +63,12 @@ export class QuestSource extends ContextUser {
             parentQuest.memberIds
         )
 
+        if (parentQuest.status === QuestStatus.done) {
+            throw new QuestFinishedError(
+                `Cannot spawn of a finished quest ${parentQuest.status}`
+            )
+        }
+
         const quest = await this.stores.questStore.save(
             new CoordinationQuest({
                 ideaId: null, // TODO 🤔 maybe propagate idea, instead of crawl it back?
@@ -69,8 +83,6 @@ export class QuestSource extends ContextUser {
             this.notify<NewCoordinationQuestMessage>({
                 type: 'new-coordination-quest-message',
                 payload: {
-                    time: null,
-                    place: null,
                     questId: quest.id,
                     targetMemberId: member.id,
                     targetUserId: member.userId,
@@ -131,5 +143,16 @@ interface ReQuestRequest extends SpawnRequest {
 export class NotEnoughMembers extends Error {
     constructor(msg: string) {
         super(msg)
+    }
+}
+
+export interface NewCoordinationQuestMessage extends Message {
+    type: 'new-coordination-quest-message'
+    payload: {
+        targetUserId: string
+        targetMemberId: string
+        questId: string | null
+        description: string
+        members: Array<{ id: string; name: string }>
     }
 }

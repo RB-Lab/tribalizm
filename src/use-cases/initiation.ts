@@ -159,6 +159,7 @@ export class Initiation extends ContextUser {
             type: 'application-declined',
             payload: {
                 targetUserId: newMember.userId,
+                targetMemberId: newMember.id,
                 tribeName: tribe.name,
             },
         })
@@ -293,6 +294,7 @@ export interface ApplicationDeclinedMessage extends Message {
     type: 'application-declined'
     payload: {
         targetUserId: string
+        targetMemberId: string
         tribeName: string
     }
 }

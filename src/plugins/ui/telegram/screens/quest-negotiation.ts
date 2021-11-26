@@ -5,11 +5,9 @@ import {
     QuestAcceptedMessage,
     QuestChangeMessage,
 } from '../../../../use-cases/negotiate-quest'
-import { Tribalizm } from '../../../../use-cases/tribalism'
 import { NotificationBus } from '../../../../use-cases/utils/notification-bus'
-import { NewCoordinationQuestMessage } from '../../../../use-cases/utils/quest-message'
 import { i18n } from '../../i18n/i18n-ctx'
-import { SceneState } from '../scene-state'
+import { removeInlineKeyboard, SceneState } from '../telegraf-hacks'
 import { TribeCtx } from '../tribe-ctx'
 import { TelegramUsersAdapter } from '../users-adapter'
 
@@ -117,11 +115,7 @@ function scenes() {
     })
 
     questNegotiation.action('redo-proposal', async (ctx) => {
-        // Remove keyboard
-        await ctx.editMessageText(
-            (ctx.update.callback_query.message as any).text,
-            Markup.inlineKeyboard([])
-        )
+        await removeInlineKeyboard(ctx)
         await ctx.scene.leave()
         await ctx.scene.enter('quest-negotiation', {
             questId: sceneState.get(ctx, 'questId'),
@@ -189,30 +183,40 @@ export function attachNotifications(
                 place: payload.place,
             })
             let text = ''
-            if (payload.questType === QuestType.initiation && payload.elder) {
-                // X, shaman|chief of the tribe Y proposed to meet: ...
+            if (payload.questType === QuestType.initiation) {
                 const texts = i18n(user).initiation
+                if (payload.elder) {
+                    // X, shaman|chief of the tribe Y proposed to meet: ...
+                    text = texts.questNotification({
+                        elder: i18n(user).elders[payload.elder](),
+                        name: payload.proposingMemberName,
+                        tribe: payload.tribe,
+                        proposal,
+                    })
+                } else {
+                    text = texts.questNotificationForElder({
+                        name: payload.proposingMemberName,
+                        tribe: payload.tribe,
+                        proposal,
+                    })
+                }
+            } else if (payload.questType === QuestType.introduction) {
+                const texts = i18n(user).introduction
                 text = texts.questNotification({
-                    elder: i18n(user).elders[payload.elder](),
                     name: payload.proposingMemberName,
                     tribe: payload.tribe,
                     proposal,
                 })
             } else {
-                let description = payload.description
-                if (!description) {
-                    if (payload.questType === QuestType.initiation) {
-                        description = i18n(user).initiation.questDescription()
-                    }
-                    if (payload.questType === QuestType.introduction) {
-                        description = i18n(user).introduction.questDescription()
-                    }
-                }
-                text = qnTexts.proposalRecieved({
-                    who: payload.proposingMemberName,
-                    proposal,
+                // coordination quests
+                const texts = i18n(user).coordination
+
+                text = texts.questNotification({
+                    name: payload.proposingMemberName,
                     tribe: payload.tribe,
-                    description: description,
+                    // description is mandatory for coordination quests so..
+                    description: payload.description || '¯\\_(ツ)_/¯ ',
+                    proposal,
                 })
             }
 
@@ -245,7 +249,7 @@ export function attachNotifications(
             let text: string
             if (payload.members.length > 2) {
                 text = qnTexts.questAccepted({
-                    // TODO add some default description? (this is kinda impossible keys anyway)
+                    // TODO add some default description? (this is kinda impossible case anyway)
                     description: payload.description || '',
                     proposal,
                 })
@@ -263,12 +267,6 @@ export function attachNotifications(
                 })
             }
             bot.telegram.sendMessage(user.chatId, text)
-        }
-    )
-    bus.subscribe<NewCoordinationQuestMessage>(
-        'new-coordination-quest-message',
-        async ({ payload }) => {
-            // new quest Y! Meet with X to solve it
         }
     )
 }

@@ -9,7 +9,7 @@ import { Initiation } from './initiation'
 import { IntroductionQuests } from './introduction-quests'
 import { QuestNegotiation } from './negotiate-quest'
 import { QuestFinale } from './quest-finale'
-import { QuestSource } from './quest-source'
+import { SpawnQuest } from './spawn-quest'
 import { TribeShow } from './tribes-show'
 import { ContextUser } from './utils/context-user'
 import { Voting } from './vote-idea'
@@ -27,7 +27,7 @@ export interface Tribalizm {
     tribesShow: Omit<TribeShow, keyof ContextUser>
     questNegotiation: Omit<QuestNegotiation, keyof ContextUser>
     questFinale: Omit<QuestFinale, keyof ContextUser>
-    questSource: Omit<QuestSource, keyof ContextUser>
+    questSource: Omit<SpawnQuest, keyof ContextUser>
     voting: Omit<Voting, keyof ContextUser>
 }
 
