@@ -1,5 +1,5 @@
-import { Markup, Telegraf } from 'telegraf'
-import Calendar from 'telegraf-calendar-telegram'
+import { Context, Markup, Telegraf } from 'telegraf'
+import { Maybe, notEmpty } from '../../../../ts-utils'
 import { NewIdeaMessage } from '../../../../use-cases/add-idea'
 import { TimeToStormMessage } from '../../../../use-cases/admin'
 import {
@@ -17,8 +17,6 @@ import { TribeCtx } from '../tribe-ctx'
 import { TelegramUsersAdapter, UserState } from '../users-adapter'
 import { makeCalbackDataParser } from './calback-parser'
 
-const hours = '08,09,10,11,12,13,14,15,16,17,18,19,20,21,22,23'.split(',')
-
 const startBrst = makeCalbackDataParser('storm-start', ['memberId'])
 
 interface Message {
@@ -28,6 +26,8 @@ interface Message {
     text: string
     ideaId: string
 }
+
+// TODO user real store here!!!
 const messageStore = new InMemoryStore<Message>()
 
 interface BrainstormState extends UserState {
@@ -35,10 +35,8 @@ interface BrainstormState extends UserState {
     memberId: string
     brainstormId: string
 }
-function isBarinstormState(
-    state: undefined | { type: string }
-): state is BrainstormState {
-    return state !== undefined && state.type === 'brainstorm'
+function isBarinstormState(state: Maybe<UserState>): state is BrainstormState {
+    return notEmpty(state) && state.type === 'brainstorm'
 }
 function attachNotifications(
     bot: Telegraf<TribeCtx>,
@@ -130,6 +128,7 @@ function attachNotifications(
                 brainstormId: payload.brainstormId,
                 chatId: user.chatId,
             })
+            await user.setState(null)
 
             for (let message of messages) {
                 const kb = Markup.inlineKeyboard([
@@ -190,84 +189,36 @@ const voteParser = makeCalbackDataParser('vote-idea', [
     'vote',
 ])
 
-const calendarHours = makeCalbackDataParser('storm-calendar-hours', [
-    'memberId',
-    'date',
-    'hours',
-])
-const calendarMinutes = makeCalbackDataParser('storm-calendar-minutes', [
-    'memberId',
-    'dateString',
-    'minutes',
-])
 const stormConfirm = makeCalbackDataParser('storm-confirm', [
     'memberId',
     'time',
 ])
+
 function actions(bot: Telegraf<TribeCtx>) {
     bot.action(startBrst.regex, async (ctx) => {
-        const calendarTexts = i18n(ctx).calendar
-        const bstrTexts = i18n(ctx).brainstorm
+        const texts = i18n(ctx).brainstorm
         const { memberId } = startBrst.parse(ctx.match[0])
-
-        const calendar = new Calendar(bot, {
-            minDate: new Date(),
-            maxDate: new Date(9635660707441),
-            monthNames: calendarTexts.months().split(','),
-            weekDayNames: calendarTexts.weekdays().split(','),
-            startWeekDay: parseInt(calendarTexts.startWeekDay()),
-        })
-
-        calendar.setDateListener((ctx, date) => {
-            const kb = Markup.inlineKeyboard(
-                hours.map((hours) =>
+        const onDateSet = (date: Date, ctxIn: TribeCtx) => {
+            ctxIn.editMessageText(
+                texts.confirmPrompt({ date }),
+                Markup.inlineKeyboard([
                     Markup.button.callback(
-                        hours,
-                        calendarHours.serialize({ memberId, date, hours })
-                    )
-                ),
-                { columns: 4 }
+                        texts.confirm(),
+                        stormConfirm.serialize({
+                            memberId,
+                            time: date.getTime(),
+                        })
+                    ),
+                    Markup.button.callback(
+                        texts.edit(),
+                        startBrst.serialize({ memberId })
+                    ),
+                ])
             )
-            ctx.editMessageText(bstrTexts.proposeTimeHours(), kb)
-        })
-        ctx.reply(bstrTexts.proposeDate(), calendar.getCalendar(new Date()))
-    })
-    bot.action(calendarHours.regex, async (ctx) => {
-        const texts = i18n(ctx).brainstorm
-        const { hours, date, memberId } = calendarHours.parse(ctx.match[0])
-        const keys = ['00', '15', '30', '45'].map((minutes) =>
-            Markup.button.callback(
-                minutes,
-                calendarMinutes.serialize({
-                    memberId,
-                    dateString: `${date} ${hours}`,
-                    minutes,
-                })
-            )
-        )
-        ctx.editMessageText(
-            texts.proposeTimeMinutes(),
-            Markup.inlineKeyboard(keys)
-        )
-    })
-    bot.action(calendarMinutes.regex, async (ctx) => {
-        const texts = i18n(ctx).brainstorm
-        const { minutes, dateString, memberId } = calendarMinutes.parse(
-            ctx.match[0]
-        )
-        const date = new Date(`${dateString}:${minutes}`)
-        ctx.editMessageText(
-            texts.confirmPrompt({ date }),
-            Markup.inlineKeyboard([
-                Markup.button.callback(
-                    texts.confirm(),
-                    stormConfirm.serialize({ memberId, time: date.getTime() })
-                ),
-                Markup.button.callback(
-                    texts.edit(),
-                    startBrst.serialize({ memberId })
-                ),
-            ])
+        }
+        ctx.reply(
+            texts.proposeDate(),
+            ctx.getCalenar(onDateSet, ctx.from?.language_code)
         )
     })
     bot.action(stormConfirm.regex, async (ctx) => {

@@ -27,7 +27,7 @@ export interface Tribalizm {
     tribesShow: Omit<TribeShow, keyof ContextUser>
     questNegotiation: Omit<QuestNegotiation, keyof ContextUser>
     questFinale: Omit<QuestFinale, keyof ContextUser>
-    questSource: Omit<SpawnQuest, keyof ContextUser>
+    spawnQuest: Omit<SpawnQuest, keyof ContextUser>
     voting: Omit<Voting, keyof ContextUser>
 }
 

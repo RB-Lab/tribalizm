@@ -162,7 +162,7 @@ export async function createContext() {
         ups = [1, 3, 4, 6],
         downs = [2, 5],
         neutrals: number[] = [],
-        ideaCater = 0
+        ideaCreater = 0
     ) => {
         const tribeSize = ups.length + downs.length + neutrals.length + 1
         const { tribe, members, users } = await makeTribe(tribeSize)
@@ -177,7 +177,7 @@ export async function createContext() {
             new QuestIdea({
                 brainstormId: brainstorm.id,
                 description: 'let us FOOO!',
-                meberId: members[ideaCater].id,
+                meberId: members[ideaCreater].id,
             })
         )
         ups.forEach((i) => idea.voteUp(members[i].id))
@@ -229,7 +229,7 @@ export async function createContext() {
         tribesShow: new TribeShow(context),
         questNegotiation: new QuestNegotiation(context),
         questFinale: new QuestFinale(context),
-        questSource: new SpawnQuest(context),
+        spawnQuest: new SpawnQuest(context),
         voting: new Voting(context),
     }
     const scheduler = new Scheduler(context.stores.taskStore)

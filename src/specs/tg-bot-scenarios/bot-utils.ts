@@ -127,6 +127,13 @@ function debugName(name: string) {
         }
     }
 }
+
+function debug(...args: any[]) {
+    if (process.env.chatDebug) {
+        console.log(...args)
+    }
+}
+
 function debugUser(type: string, text: string) {
     if (process.env.chatDebug) {
         console.log('\x1b[34m%s\x1b[0m', ` ← ${type}:`, text)

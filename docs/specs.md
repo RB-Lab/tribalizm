@@ -110,7 +110,10 @@ Done: 35, In porgres: 0, Must: 0, Should: 16, total: 52
 
 -   Fault tolerance: resurect system from persisted state
 -   Reliability: use transactions in when update stores
--   Take time zones into account...
+-   Take time zones into account:
+    -   store timezone in user's object (either in tribalizm or in UI adapter)
+    -   search for `.getTime()`
+    -   set timezone in `Date` object before that call
 
 ### UX
 

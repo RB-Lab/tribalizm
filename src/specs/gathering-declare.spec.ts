@@ -17,12 +17,13 @@ describe('Gathering declaration', () => {
             'new-gathering-message'
         )
         await world.gathering.declare({ ...world.defaultDeclare, type: 'all' })
-        expect(onGathering).toHaveBeenCalledTimes(world.allTribe.length)
+        expect(onGathering).toHaveBeenCalledTimes(world.members.length)
         const actualMembers = onGathering.calls
             .all()
             .map((c) => c.args[0].payload.targetMemberId)
+
         expect(actualMembers).toEqual(
-            jasmine.arrayWithExactContents(world.allTribe)
+            jasmine.arrayWithExactContents(world.members.map((m) => m.id))
         )
     })
     it('notifies all upvoters', async () => {
@@ -140,8 +141,7 @@ async function setUp() {
         members,
         tribe,
         idea,
-        upvoters: [...upvoters, idea.meberId].filter((m) => m !== memberId),
-        allTribe: members.map((m) => m.id).filter((m) => m !== memberId),
+        upvoters: [...upvoters, idea.meberId],
         ...context.stores,
         spyOnMessage: context.testing.spyOnMessage,
     }

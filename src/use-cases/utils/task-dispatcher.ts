@@ -8,6 +8,7 @@ import {
     isStormStart,
     isStormToVoting,
     isStormFinalyze,
+    isHowWasGatheringTask,
 } from './scheduler'
 
 export class TaskDiscpatcher {
@@ -27,6 +28,9 @@ export class TaskDiscpatcher {
                 } else {
                     this.tribalism.questFinale.howWasIt(task)
                 }
+            }
+            if (isHowWasGatheringTask(task)) {
+                this.tribalism.gatheringFinale.notifyMembers(task)
             }
             if (isIntroductionTask(task)) {
                 this.tribalism.introductionQuests.notifyOldMember(task)

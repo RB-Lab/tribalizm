@@ -2,25 +2,27 @@ import { StoredBotUpdate } from 'telegram-test-api/lib/telegramServer'
 import { Awaited } from '../../ts-utils'
 import { Admin } from '../../use-cases/admin'
 import { City } from '../../use-cases/entities/city'
+import { QuestType } from '../../use-cases/entities/quest'
 import { Tribe } from '../../use-cases/entities/tribe'
 import { createContext } from '../test-context'
 import { createTelegramContext, getInlineKeyCallbacks } from './bot-utils'
 
-function xdescribe(...args: any[]) {}
 describe('Brainstorm [integration]', () => {
     let world: Awaited<ReturnType<typeof setup>>
     beforeEach(async () => {
+        jasmine.DEFAULT_TIMEOUT_INTERVAL = 10000
         jasmine.clock().install()
         jasmine.clock().mockDate(new Date('2021-11-02'))
         world = await setup()
         // process.env.chatDebug = 'true'
     })
     afterEach(async () => {
+        jasmine.DEFAULT_TIMEOUT_INTERVAL = 5000
         await world.tearDown()
         jasmine.clock().uninstall()
     })
 
-    fit('Main scenario', async () => {
+    it('Main scenario', async () => {
         // Chief arranges brainstorm
         await world.admin.notifyBrainstorm({ memberId: world.chief.member.id })
         const chiefBrstmNoteUpd = await world.chief.chat()
@@ -31,8 +33,9 @@ describe('Brainstorm [integration]', () => {
         const dates = getInlineKeyCallbacks(calendar).filter((cb) =>
             cb.includes('date')
         )
+
         const hour = getInlineKeyCallbacks(
-            await world.chief.chatLast(dates[3], true)
+            await world.chief.chatLast(dates[1], true)
         )[4]
         const minutes = getInlineKeyCallbacks(
             await world.chief.chatLast(hour, true)
@@ -52,11 +55,10 @@ describe('Brainstorm [integration]', () => {
         }
 
         // Fast forward to the time of first reminder (half-day)
-
         jasmine.clock().mockDate(new Date(tasks[0].time + 1000))
         await world.context.requestTaskQueue()
         // All members are notified
-        for (let u of [...world.notChiefUsers, world.chief]) {
+        for (let u of world.users) {
             const upds = await u.chat()
             expect(upds.length).toBe(1)
         }
@@ -65,7 +67,7 @@ describe('Brainstorm [integration]', () => {
         jasmine.clock().mockDate(new Date(tasks[1].time + 1000))
         await world.context.requestTaskQueue()
         // All members are notified
-        for (let u of [...world.notChiefUsers, world.chief]) {
+        for (let u of world.users) {
             const upds = await u.chat()
             expect(upds.length).toBe(1)
         }
@@ -74,7 +76,7 @@ describe('Brainstorm [integration]', () => {
         jasmine.clock().mockDate(new Date(tasks[2].time + 1000))
         await world.context.requestTaskQueue()
         // All members are notified
-        for (let u of [...world.notChiefUsers, world.chief]) {
+        for (let u of world.users) {
             const upds = await u.chat()
             expect(upds.length).toBe(1)
         }
@@ -107,7 +109,7 @@ describe('Brainstorm [integration]', () => {
         jasmine.clock().mockDate(new Date(overTask!.time + 1000))
         await world.context.requestTaskQueue()
         // all users notified that it is time to vote
-        for (let u of [...world.notChiefUsers, world.chief]) {
+        for (let u of world.users) {
             const upds = await u.chat()
             expect(upds.length).toBe(1)
         }
@@ -142,12 +144,12 @@ describe('Brainstorm [integration]', () => {
         jasmine.clock().mockDate(new Date(endTask!.time + 1000))
         await world.context.requestTaskQueue()
         // All members are notified
-        for (let u of [...world.notChiefUsers, world.chief]) {
+        for (let u of world.users) {
             if (u === world.user3) continue
             const upds = await u.chat()
             expect(upds.length).toBe(1)
         }
-        process.env.chatDebug = 'true'
+
         // user 3, that suggested the most popular idea is to coordinate it with chief
         const coordinateUpd = await world.user3.chatLast()
         expect(coordinateUpd).toBeTruthy()
@@ -157,7 +159,7 @@ describe('Brainstorm [integration]', () => {
             cb.includes('date')
         )
         const hour2 = getInlineKeyCallbacks(
-            await world.user3.chatLast(dates2[3], true)
+            await world.user3.chatLast(dates2[2], true)
         )[4]
         const minutes2 = getInlineKeyCallbacks(
             await world.user3.chatLast(hour2, true)
@@ -170,14 +172,13 @@ describe('Brainstorm [integration]', () => {
         // new user recieves proposal
         const chiefNotif = await world.chief.chatLast()
         const userNotifButtons = getInlineKeyCallbacks(chiefNotif)
-        const propose3 = userNotifButtons.find((b) => b.startsWith('change'))
-        const calendar3 = await world.chief.chatLast(propose3!)
+        const calendar3 = await world.chief.chatLast(userNotifButtons[1])
         const dates3 = getInlineKeyCallbacks(calendar3).filter((cb) =>
             cb.includes('date')
         )
         const hour3 = getInlineKeyCallbacks(
-            await world.chief.chatLast(dates3[6]!, true)
-        )[6]
+            await world.chief.chatLast(dates3[2]!, true)
+        )[8]
         const minutes3 = getInlineKeyCallbacks(
             await world.chief.chatLast(hour3, true)
         )[0]
@@ -187,6 +188,7 @@ describe('Brainstorm [integration]', () => {
         const reProposeUpd = await world.user3.chat()
         const reProposedButtons = getInlineKeyCallbacks(reProposeUpd[0])
         await world.user3.chat(reProposedButtons[0])
+
         // get "agreed on quest + buttons"
         const chiefConfirmUpd = await world.chief.chat()
         expect(chiefConfirmUpd.length).toBe(2)
@@ -197,6 +199,178 @@ describe('Brainstorm [integration]', () => {
             jasmine.stringMatching('declare-gathering'),
             jasmine.stringMatching('declare-gathering'),
         ])
+        const spawnBtn = spawnButtons.find((b) => b.startsWith('spawn'))
+        const ideaQuestHowWasItTask =
+            await world.context.stores.taskStore._last()
+
+        // spawn a new quest
+        await world.chief.chat(spawnBtn!)
+        await world.chief.chat('Buy FOOO grenades!')
+        const spawnedQuest = await world.context.stores.questStore._last()
+        let spawnedOk: string | undefined
+        let userToPropose: typeof world.user1 | undefined
+        let userToAgree: typeof world.user1 | undefined
+        for (let user of world.users) {
+            if (spawnedQuest.memberIds.includes(user.member.id)) {
+                if (!userToPropose) {
+                    userToPropose = user
+                    spawnedOk = getInlineKeyCallbacks(await user.chatLast())[0]
+                } else {
+                    userToAgree = user
+                }
+            }
+        }
+        if (!userToPropose || !userToAgree || !spawnedOk) {
+            throw new Error('Aaaaa!!! Panica! no uses from quest!!!')
+        }
+        const calendar4 = await userToPropose.chatLast(spawnedOk)
+        const dates4 = getInlineKeyCallbacks(calendar4).filter((cb) =>
+            cb.includes('date')
+        )
+        const hour4 = getInlineKeyCallbacks(
+            await userToPropose.chatLast(dates4[3], true)
+        )[4]
+        const minutes4 = getInlineKeyCallbacks(
+            await userToPropose.chatLast(hour4, true)
+        )[0]
+        await userToPropose.chat(minutes4, true)
+        await userToPropose.chatLast('Tarantuga Inn')
+        await userToPropose.chat('confirm-proposal', true)
+        // TODO note that here userToAccept still have button to start negotiation
+        const spawnedProposeUpd = await userToAgree.chatLast()
+        const spawnedProposeBtns = getInlineKeyCallbacks(spawnedProposeUpd)
+        await userToAgree.chat(spawnedProposeBtns[0])
+        const spawnManageBtns = getInlineKeyCallbacks(
+            await userToPropose.chatLast()
+        )
+        const spwnHowWasItTask = await world.context.stores.taskStore._last()
+
+        // Fast forward to feedback of original quest attenders
+        jasmine.clock().mockDate(new Date(ideaQuestHowWasItTask!.time + 1000))
+        await world.context.requestTaskQueue()
+
+        // both users are asked to rate each other charisma & wisdom
+        const chiefFeedbackUpd = await world.chief.chat()
+        expect(chiefFeedbackUpd.length).toBe(1)
+        const chiefFdbChButtons = getInlineKeyCallbacks(chiefFeedbackUpd[0])
+        expect(chiefFdbChButtons.length).toBe(6)
+        const chiefFdbWiUpd = await world.chief.chatLast(
+            chiefFdbChButtons[5],
+            true
+        )
+        const votesBefore = world.user3.member.votes.length
+        const chiefFdbWiBtns = getInlineKeyCallbacks(chiefFdbWiUpd)
+        expect(chiefFdbWiBtns.length).toBe(6)
+        await world.chief.chatLast(chiefFdbWiBtns[3])
+        expect(world.user3.member.votes.length).toBe(votesBefore + 1)
+
+        const u3FeedbackUpd = await world.user3.chat()
+        const u3FdbChButtons = getInlineKeyCallbacks(u3FeedbackUpd[0])
+        expect(u3FdbChButtons.length).toBe(6)
+        const rateChiefWisdomUpd = await world.user3.chatLast(
+            u3FdbChButtons[5],
+            true
+        )
+        const u3FdbWiBtns = getInlineKeyCallbacks(rateChiefWisdomUpd)
+        await world.user3.chatLast(u3FdbWiBtns[3])
+
+        // declare gathering
+        const declareGathBtn = spawnManageBtns.find((b) =>
+            b.startsWith('declare-gathering')
+        )
+        await userToPropose.chatLast(declareGathBtn)
+        const calendArr = await userToPropose.chatLast("Let's go really Arrr!!")
+        const arrDates = getInlineKeyCallbacks(calendArr).filter((cb) =>
+            cb.includes('date')
+        )
+        const arrHour = getInlineKeyCallbacks(
+            await userToPropose.chatLast(arrDates[6], true)
+        )[4]
+        const arrMins = getInlineKeyCallbacks(
+            await userToPropose.chatLast(arrHour, true)
+        )[0]
+        await userToPropose.chat(arrMins)
+        const gConfirmUpd = await userToPropose.chatLast('GalaDirilia park')
+        const gathRepyUpds = await userToPropose.chat(
+            getInlineKeyCallbacks(gConfirmUpd)[0]
+        )
+        let propserConfirm: string | undefined
+        if (gathRepyUpds.length > 1) {
+            propserConfirm = getInlineKeyCallbacks(gathRepyUpds[1])[0]
+        }
+        const gatheringHowWasItTask =
+            await world.context.stores.taskStore._last()
+
+        // all other users got notified
+        for (let user of world.users) {
+            if (user === userToPropose && propserConfirm) {
+                await user.chat(propserConfirm)
+                continue
+            }
+            const upds = await user.chat()
+            expect(upds.length).toBe(1)
+            const btns = getInlineKeyCallbacks(upds[0])
+            if (user === world.user3) {
+                await user.chat(btns[1])
+            } else {
+                await user.chat(btns[0])
+            }
+        }
+
+        // Fast forward to feedback of spawned task
+        jasmine.clock().mockDate(new Date(spwnHowWasItTask!.time + 1000))
+        await world.context.requestTaskQueue()
+        const uToPrpzFeedbackUpd = await userToPropose.chat()
+        const uToPrpzFdbChButtons = getInlineKeyCallbacks(uToPrpzFeedbackUpd[0])
+        expect(uToPrpzFdbChButtons.length).toBe(6)
+        const uToPrpzFdbWisdomUpd = await userToPropose.chatLast(
+            uToPrpzFdbChButtons[5],
+            true
+        )
+        const uToPrpzFdbWiBtns = getInlineKeyCallbacks(uToPrpzFdbWisdomUpd)
+        await userToPropose.chatLast(uToPrpzFdbWiBtns[3])
+
+        const uToAgreeFeedbackUpd = await userToAgree.chat()
+        const uToAgreeFdbChButtons = getInlineKeyCallbacks(
+            uToAgreeFeedbackUpd[0]
+        )
+        expect(uToAgreeFdbChButtons.length).toBe(6)
+        const uToAgreeFdbWisdomUpd = await userToAgree.chatLast(
+            uToAgreeFdbChButtons[5],
+            true
+        )
+        const uToAgreeFdbWiBtns = getInlineKeyCallbacks(uToAgreeFdbWisdomUpd)
+        await userToAgree.chatLast(uToAgreeFdbWiBtns[3])
+
+        // Fast forward after gathering
+        jasmine.clock().mockDate(new Date(gatheringHowWasItTask.time + 1000))
+        await world.context.requestTaskQueue()
+        for (let user of world.users) {
+            if (user === world.user3) continue
+            const gathHowWasItUpds = await user.chat()
+            expect(gathHowWasItUpds.length).toBe(1)
+            const voteBtns = getInlineKeyCallbacks(gathHowWasItUpds[0])
+            await user.chat(voteBtns[world.users.indexOf(user)])
+        }
+
+        const quests = await world.context.stores.questStore.find({
+            type: QuestType.coordination,
+        })
+        const coordinators = quests.reduce<string[]>(
+            (r, q) => [...r, ...q.memberIds],
+            []
+        )
+        for (let user of world.users) {
+            if (coordinators.includes(user.member.id)) {
+                const member = await world.context.stores.memberStore.getById(
+                    user.member.id
+                )
+                const votes = member!.votes.filter(
+                    (v) => v.type === 'gathering-vote'
+                )
+                expect(votes.length).toBeGreaterThan(0)
+            }
+        }
     })
 })
 async function setup() {
@@ -255,6 +429,7 @@ async function setup() {
         user2,
         user3,
         notChiefUsers: [shaman, user1, user2, user3],
+        users: [chief, shaman, user1, user2, user3],
         city,
         context,
         server,

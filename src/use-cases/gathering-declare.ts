@@ -61,9 +61,7 @@ export class GatheringDeclare extends ContextUser {
                 await this.stores.memberStore.find({
                     tribeId: member.tribeId,
                 })
-            )
-                .filter((m) => m.id !== req.memberId)
-                .map((m) => m.id)
+            ).map((m) => m.id)
         }
 
         const ideaId = await getRootIdea(
@@ -74,9 +72,7 @@ export class GatheringDeclare extends ContextUser {
         const upvoterIds = idea.votes
             .filter((v) => v.vote === 'up')
             .map((v) => v.memberId)
-        return [...upvoterIds, idea.meberId].filter(
-            (mid) => mid !== req.memberId
-        )
+        return [...upvoterIds, idea.meberId]
     }
 }
 

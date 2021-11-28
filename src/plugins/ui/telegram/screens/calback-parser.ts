@@ -1,7 +1,10 @@
 // TODO add constarin so that T's values are only strings
 export function makeCalbackDataParser<T>(cbName: string, keys: Array<keyof T>) {
     return {
-        serialize: (data: T) => {
+        serialize: (data?: T) => {
+            if (!data) {
+                return cbName
+            }
             const cbData = keys
                 .map((k) => {
                     const value = data[k]
@@ -13,12 +16,12 @@ export function makeCalbackDataParser<T>(cbName: string, keys: Array<keyof T>) {
                     return value
                 })
                 .join(':')
-            return `${cbName}:${cbData}`
+            return cbData ? `${cbName}:${cbData}` : cbName
         },
         parse: (str: string) => {
             const arr = str.replace(`${cbName}:`, '').split(':')
             return keys.reduce<T>((r, k, i) => ({ ...r, [k]: arr[i] }), {} as T)
         },
-        regex: new RegExp(`${cbName}:(.+)`),
+        regex: new RegExp(`${cbName}:(.+)|${cbName}`),
     }
 }

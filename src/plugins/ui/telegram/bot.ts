@@ -2,8 +2,10 @@ import { Scenes, session, Telegraf } from 'telegraf'
 import { Tribalizm, wrapWithErrorHandler } from '../../../use-cases/tribalism'
 import { NotificationBus } from '../../../use-cases/utils/notification-bus'
 import { i18n } from '../i18n/i18n-ctx'
+import { DateTimePicker } from './date-time-picker'
 import { brainstormScreen } from './screens/brainstorm'
 import { coordinationScreen } from './screens/coordination'
+import { gatheringScreen } from './screens/gathering'
 import { initiationScreen } from './screens/initiation'
 import { introQuests } from './screens/intro-quests'
 import { questNegotiationScreen } from './screens/quest-negotiation'
@@ -109,12 +111,17 @@ export async function makeBot(config: BotConfig) {
         }
     })
 
+    const datePicker = new DateTimePicker(bot)
+    bot.use(async (ctx, next) => {
+        ctx.getCalenar = datePicker.getCalerndar
+        next()
+    })
+
     bot.use(session())
 
     const stage = new Scenes.Stage([
         ...(rulesScreen.scenes() as any),
         ...tribesListScreen.scenes(),
-        ...questNegotiationScreen.scenes(),
         ...initiationScreen.scenes(),
     ])
     bot.use(stage.middleware() as any)
@@ -124,9 +131,9 @@ export async function makeBot(config: BotConfig) {
     questNegotiationScreen.actions(bot)
     tribesListScreen.actions(bot)
     rateMemberScreen.actions(bot)
-    introQuests.actions(bot)
     brainstormScreen.actions(bot)
     coordinationScreen.actions(bot)
+    gatheringScreen.actions(bot)
     startScreenActions(bot)
 
     questNegotiationScreen.attachNotifications(
@@ -155,6 +162,11 @@ export async function makeBot(config: BotConfig) {
         config.telegramUsersAdapter
     )
     coordinationScreen.attachNotifications(
+        bot,
+        config.notifcationsBus,
+        config.telegramUsersAdapter
+    )
+    gatheringScreen.attachNotifications(
         bot,
         config.notifcationsBus,
         config.telegramUsersAdapter

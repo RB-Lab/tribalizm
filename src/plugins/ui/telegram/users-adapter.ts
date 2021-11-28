@@ -43,9 +43,13 @@ export class TelegramUser implements SavetdTelegramUser {
         this.store = store
         this.state = data.state
     }
-    async setState<T extends UserState>(state: T) {
-        this.state = state
-        await this.store.save({ ...this, state })
+    async setState<T extends UserState>(state: T | null) {
+        if (state) {
+            this.state = state
+        } else {
+            delete this.state
+        }
+        await this.store.save({ ...this })
     }
 }
 

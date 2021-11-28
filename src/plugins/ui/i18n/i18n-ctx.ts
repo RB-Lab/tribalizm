@@ -3,7 +3,7 @@ import L from './i18n-node'
 export const toLocale = (code?: string): keyof typeof L =>
     code === 'ru' ? 'ru' : 'en'
 
-type Ctx =
+export type Ctx =
     | {
           from?: {
               language_code?: string

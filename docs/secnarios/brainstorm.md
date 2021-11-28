@@ -143,7 +143,7 @@
 -   _Shman_
     -   → Member 2 agreed on your proposal, you're meeting 14/05/2022, 20:00, in Barr Bar.
 -   _Member 3_
-    -   ← 🚀 Spawn
+    -   ← Spawn
     -   → Describe the quest, please
     -   ← "Buy FOOO grenades"
     -   → Ok, quest assigned
@@ -187,7 +187,7 @@
     -   ← "Barr Bar"
     -   → Ok, you proposed 18/05/2022, 20:45, in Barr Bar `Yes`, `Change`
     -   ← Yes
-    -   → Ok, I proclame gathering to upvoters
+    -   🚀 → Ok, I proclame gathering to upvoters
 -   _Shaman_
     -   → New gathering for "Let's go FOOO!!" 18/05/2022, 20:45, in Barr Bar `Accnowledge`, `Decline`
     -   ← Acknowledge

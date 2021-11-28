@@ -1,37 +1,184 @@
 import { Markup, Telegraf } from 'telegraf'
+import { Maybe, notEmpty } from '../../../../ts-utils'
 import { IdeaIncarnationMessage } from '../../../../use-cases/incarnate-ideas'
 import { CoordinationQuestAcceptedMessage } from '../../../../use-cases/negotiate-quest'
+import { NewCoordinationQuestMessage } from '../../../../use-cases/spawn-quest'
 import { NotificationBus } from '../../../../use-cases/utils/notification-bus'
 import { i18n } from '../../i18n/i18n-ctx'
+import { removeInlineKeyboard } from '../telegraf-hacks'
 import { TribeCtx } from '../tribe-ctx'
-import { TelegramUsersAdapter } from '../users-adapter'
+import { TelegramUsersAdapter, UserState } from '../users-adapter'
 import { makeCalbackDataParser } from './calback-parser'
+import { negotiate } from './quest-negotiation'
 
-const parser = makeCalbackDataParser('arrage-coordination', [
-    'memberId',
-    'questId',
-])
+interface SpawnState extends UserState {
+    type: 'spawn-quest-state'
+    memberId: string
+    parentQuestId: string
+}
+function isSpawnState(state: Maybe<UserState>): state is SpawnState {
+    return notEmpty(state) && state.type === 'spawn-quest-state'
+}
+interface GatherState extends UserState {
+    type: 'gather-state'
+    memberId: string
+    parentQuestId: string
+    description?: string
+    date?: Date
+    place?: string
+    gatheringType: 'upvoters' | 'all'
+}
+function isGatherState(state: Maybe<UserState>): state is GatherState {
+    return notEmpty(state) && state.type === 'gather-state'
+}
 
 function actions(bot: Telegraf<TribeCtx>) {
-    bot.action(parser.regex, (ctx) => {
-        const data = parser.parse(ctx.match[0])
-        ctx.scene.enter('quest-negotiation', {
-            questId: data.questId,
-            memberId: data.memberId,
+    bot.action(spawn.regex, async (ctx) => {
+        const { questId, memberId } = spawn.parse(ctx.match[0])
+        ctx.user.setState<SpawnState>({
+            type: 'spawn-quest-state',
+            memberId,
+            parentQuestId: questId,
         })
+        ctx.reply(i18n(ctx).coordination.spawnDescribe())
+    })
+    bot.action(gathering.regex, async (ctx) => {
+        const { questId, memberId, type } = gathering.parse(ctx.match[0])
+        ctx.user.setState<GatherState>({
+            type: 'gather-state',
+            gatheringType: type,
+            memberId,
+            parentQuestId: questId,
+        })
+        ctx.reply(i18n(ctx).coordination.gatheringDescribe())
+    })
+    async function onDateSet(date: Date, ctx: TribeCtx) {
+        const texts = i18n(ctx).coordination
+        const state = ctx.user.state
+        if (isGatherState(state)) {
+            state.date = date
+            ctx.user.setState(state)
+
+            if (state.description && state.place) {
+                showConfirm(ctx)
+            } else {
+                const text = state.description
+                    ? texts.gatheringSetPlace()
+                    : texts.gatheringDescribe()
+                ctx.reply(text)
+            }
+        }
+    }
+
+    async function showConfirm(ctx: TribeCtx) {
+        const texts = i18n(ctx).coordination
+        const state = ctx.user.state
+        if (!isGatherState(state)) return
+
+        if (state.description && state.place && state.date) {
+            const what =
+                state.gatheringType == 'all'
+                    ? texts.what.all()
+                    : texts.what.upvoters()
+            const proposal = texts.proposal({
+                date: state.date,
+                place: state.place,
+            })
+            ctx.reply(
+                texts.confirmPrompt({
+                    description: state.description,
+                    what,
+                    proposal,
+                }),
+                Markup.inlineKeyboard([
+                    Markup.button.callback(
+                        texts.confirm(),
+                        gatherConfirm.serialize({})
+                    ),
+                    Markup.button.callback(
+                        texts.edit(),
+                        gathering.serialize({
+                            memberId: state.memberId,
+                            type: state.gatheringType,
+                            questId: state.parentQuestId,
+                        })
+                    ),
+                ])
+            )
+        } else {
+            ctx.reportError(reportStateError(state))
+        }
+    }
+    function reportStateError(state: object) {
+        let text = 'null'
+        if (state) {
+            text = Object.entries(state)
+                .map(([k, v]) => `${k}: ${v}`)
+                .join(', ')
+        }
+        return new Error(`Cannot confirm incomplete gathering: {${text}}`)
+    }
+    bot.action(gatherConfirm.regex, async (ctx) => {
+        const state = ctx.user.state
+        if (!isGatherState(state)) return
+        if (!state.description || !state.place || !state.date) {
+            ctx.reportError(reportStateError(state))
+            return
+        }
+        await ctx.user.setState(null)
+        removeInlineKeyboard(ctx)
+        ctx.reply(i18n(ctx).coordination.gatheringDone())
+        await ctx.tribalizm.gatheringDeclare.declare({
+            description: state.description,
+            memberId: state.memberId,
+            parentQuestId: state.parentQuestId,
+            place: state.place,
+            time: state.date.getTime(),
+            type: state.gatheringType,
+        })
+    })
+    bot.on('text', async (ctx, next) => {
+        const state = ctx.user.state
+        const texts = i18n(ctx).coordination
+        if (isSpawnState(state)) {
+            await ctx.tribalizm.spawnQuest.spawnQuest({
+                description: ctx.message.text,
+                memberId: state.memberId,
+                parentQuestId: state.parentQuestId,
+            })
+            await ctx.reply(texts.questAssigned())
+            ctx.user.setState(null)
+        } else if (isGatherState(state)) {
+            if (!state.description) {
+                state.description = ctx.message.text
+                await ctx.user.setState(state)
+            } else {
+                state.place = ctx.message.text
+                ctx.user.setState(state)
+            }
+            if (!state.date) {
+                ctx.reply(
+                    texts.gatheringWhen(),
+                    ctx.getCalenar(onDateSet, ctx.from?.language_code)
+                )
+            } else {
+                await showConfirm(ctx)
+            }
+        } else {
+            next()
+        }
     })
 }
 
-const spawnParser = makeCalbackDataParser('spawn-quest', [
-    'questId',
-    'memberId',
-])
-const gatherParser = makeCalbackDataParser('declare-gathering', [
+const gatherConfirm = makeCalbackDataParser('gather-confrim', [])
+
+const spawn = makeCalbackDataParser('spawn-quest', ['questId', 'memberId'])
+const gathering = makeCalbackDataParser('declare-gathering', [
     'questId',
     'memberId',
     'type',
 ])
-const reQuestParser = makeCalbackDataParser('re-quest', ['questId', 'memberId'])
+const reQuest = makeCalbackDataParser('re-quest', ['questId', 'memberId'])
 
 function attachNotifications(
     bot: Telegraf<TribeCtx>,
@@ -55,9 +202,10 @@ function attachNotifications(
                 Markup.inlineKeyboard([
                     Markup.button.callback(
                         texts.okay(),
-                        parser.serialize({
+                        negotiate.serialize({
                             memberId: payload.targetMemberId,
                             questId: payload.questId,
+                            elder: null,
                         })
                     ),
                 ])
@@ -84,22 +232,22 @@ function attachNotifications(
                 [
                     Markup.button.callback(
                         buttons.spawn(),
-                        spawnParser.serialize(params)
+                        spawn.serialize(params)
                     ),
                     Markup.button.callback(
                         buttons.reQuest(),
-                        reQuestParser.serialize(params)
+                        reQuest.serialize(params)
                     ),
                     Markup.button.callback(
                         buttons.gatherUpwoters(),
-                        gatherParser.serialize({
+                        gathering.serialize({
                             ...params,
                             type: 'upvoters',
                         })
                     ),
                     Markup.button.callback(
                         buttons.gatherTribe(),
-                        gatherParser.serialize({
+                        gathering.serialize({
                             ...params,
                             type: 'all',
                         })
@@ -111,6 +259,37 @@ function attachNotifications(
                 user.chatId,
                 questManage({ name: partner.name }),
                 kb
+            )
+        }
+    )
+    bus.subscribe<NewCoordinationQuestMessage>(
+        'new-coordination-quest-message',
+        async ({ payload }) => {
+            const user = await telegramUsers.getTelegramUserForTribalism(
+                payload.targetUserId
+            )
+            const partner = payload.members.filter(
+                (m) => m.id !== payload.targetMemberId
+            )[0]
+
+            const texts = i18n(user).coordination
+
+            bot.telegram.sendMessage(
+                user.chatId,
+                texts.coordinateSpawned({
+                    name: partner.name,
+                    description: payload.description,
+                }),
+                Markup.inlineKeyboard([
+                    Markup.button.callback(
+                        texts.okay(),
+                        negotiate.serialize({
+                            elder: null,
+                            memberId: payload.targetMemberId,
+                            questId: payload.questId,
+                        })
+                    ),
+                ])
             )
         }
     )

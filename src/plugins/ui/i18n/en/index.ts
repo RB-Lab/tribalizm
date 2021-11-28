@@ -79,7 +79,23 @@ const en: BaseTranslation = {
         coordinateOwnIdea: `You're going to coordinate efforts to incarnate your idea "{description:string}" with {name:string}. We need to arrange first meeting.`,
         questNotification:
             '{name} of the {tribe:string} proposes to meet to coordinate efforts for "{description:string}": \n {proposal:string}',
+        coordinateSpawned: `New quest "{description:string}" assigned to you and {name:string}. Let's arrange a meeting!`,
         questManage: 'When discuss with {name: string}, you can:',
+        spawnDescribe: 'Describe the quest, please',
+        gatheringDescribe: 'Describe the reason for gathering',
+        gatheringWhen: 'When do you want to gather?',
+        gatheringSetPlace: "Where you'd like to met?",
+        questAssigned: '👌 Ok, quest assigned',
+        what: {
+            all: 'tribe',
+            upvoters: 'all intirested members',
+        },
+        confirmPrompt:
+            'Gather {what:string} for "{description:string}" at: \n {proposal:string}',
+        proposal: ' • Time: {date:Date|date}\n • Place: {place}',
+        confirm: '✅ Yes',
+        edit: '🤔 Change',
+        gatheringDone: 'Ok, I proclame the gathering!',
         buttons: {
             spawn: 'Create a sub-quest',
             gatherUpwoters: 'Gather idea supporters',
@@ -87,10 +103,23 @@ const en: BaseTranslation = {
             reQuest: 'Meet one more time',
         },
     },
+    gathering: {
+        declared: `New gathering for "{reason:string}": \n {proposal:string}`,
+        proposal: ' • Time: {date:Date|date}\n • Place: {place}',
+        accept: 'Accnowledge',
+        decline: 'Decline',
+        accepted: '☺️ Cool! See ya there!',
+        declined: "🥺 Ahh, that's a pity...",
+        ratePrompt: 'How was the gathering?',
+        rates: { '0': '😩', '1': '😒', '2': '😐', '3': '😌', '4': '🥰' },
+        rateDone: "Ok, gathering coordinators have been properly acknowledged"
+    },
     calendar: {
         weekdays: 'Su,Mo,Tu,We,Th,Fr,St',
         months: 'January,February,March,April,May,June,July,August,September,October,November,December',
         startWeekDay: '0',
+        proposeTimeHours: '🕘 Choose an hour of the day',
+        proposeTimeMinutes: '🕤 Choose minutes',
     },
     questNegotiation: {
         proposeDate: "📅 Select a date, when you'd like to meet",
@@ -123,9 +152,9 @@ const en: BaseTranslation = {
     },
     rateMember: {
         elderCharismaPrompt:
-            "You've just meat {tribe:string} {elder:string}, how charismatic they are?",
+            "You've just meet {tribe:string} {elder:string}, how charismatic they are?",
         charismaPrompt:
-            "You've just meat {name: string}, how charismatic they are?",
+            "You've just meet {name: string}, how charismatic they are?",
         wisdomPrompt: 'How wise they are?',
         help: 'ℹ️',
         charisma: { '0': '😩', '1': '😕', '2': '🤔', '3': '🤩', '4': '🔥' },
@@ -183,7 +212,7 @@ const en: BaseTranslation = {
         FinalyzeBeforeVotingError:
             '🤬 System error! Cannot finalyze storm before voting',
         StormNotStarted:
-            '🤬 System error! Cannot add idea to not started brainstorm',
+            '🤬 System error! Cannot add idea: brainstorm is not raging',
         common: '😩 Oooops! Something awfull happend.',
         QuestFinishedError: '🚫 This quest is already over',
     },

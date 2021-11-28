@@ -5,13 +5,13 @@ import {
     ApplicationDeclinedMessage,
     RequestApplicationFeedbackMessage,
 } from '../../../../use-cases/initiation'
-import { Tribalizm } from '../../../../use-cases/tribalism'
 import { NotificationBus } from '../../../../use-cases/utils/notification-bus'
 import { i18n } from '../../i18n/i18n-ctx'
 import { SceneState } from '../telegraf-hacks'
 import { TribeCtx } from '../tribe-ctx'
 import { TelegramUsersAdapter } from '../users-adapter'
 import { makeCalbackDataParser } from './calback-parser'
+import { negotiate } from './quest-negotiation'
 
 function scenes() {
     const declineInitiaton = new Scenes.BaseScene<TribeCtx>(
@@ -61,11 +61,6 @@ function scenes() {
     return [declineInitiaton, appDecline, appAccept]
 }
 
-const proposeParser = makeCalbackDataParser('propose-initiation', [
-    'memberId',
-    'questId',
-    'elder',
-])
 const declineParser = makeCalbackDataParser('decline-application', [
     'memberId',
     'questId',
@@ -81,16 +76,6 @@ const appDeclineParser = makeCalbackDataParser('application-decline', [
 ])
 
 function actions(bot: Telegraf<TribeCtx>) {
-    bot.action(proposeParser.regex, (ctx) => {
-        const data = proposeParser.parse(ctx.match[0])
-        ctx.scene.enter('quest-negotiation', {
-            questId: data.questId,
-            memberId: data.memberId,
-            chiefInitiation: data.elder === 'chief',
-            shamanInitiation: data.elder === 'shaman',
-        })
-    })
-
     // this is from the get-go, @see notifications/ApplicationMessage
     bot.action(declineParser.regex, (ctx) => {
         const data = declineParser.parse(ctx.match[0])
@@ -124,7 +109,7 @@ export function attachNotifications(
             const keyboard = Markup.inlineKeyboard([
                 Markup.button.callback(
                     texts.assignInitiation(),
-                    proposeParser.serialize({
+                    negotiate.serialize({
                         memberId: payload.targetMemberId,
                         questId: payload.questId,
                         elder: payload.elder,

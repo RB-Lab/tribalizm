@@ -1,5 +1,5 @@
-import { Markup, Scenes, Telegraf } from 'telegraf'
-import Calendar from 'telegraf-calendar-telegram'
+import { Markup, Telegraf } from 'telegraf'
+import { Maybe, notEmpty } from '../../../../ts-utils'
 import { QuestType } from '../../../../use-cases/entities/quest'
 import {
     QuestAcceptedMessage,
@@ -7,126 +7,137 @@ import {
 } from '../../../../use-cases/negotiate-quest'
 import { NotificationBus } from '../../../../use-cases/utils/notification-bus'
 import { i18n } from '../../i18n/i18n-ctx'
-import { removeInlineKeyboard, SceneState } from '../telegraf-hacks'
+import { removeInlineKeyboard } from '../telegraf-hacks'
 import { TribeCtx } from '../tribe-ctx'
-import { TelegramUsersAdapter } from '../users-adapter'
+import { TelegramUsersAdapter, UserState } from '../users-adapter'
+import { makeCalbackDataParser } from './calback-parser'
 
-function scenes() {
-    const questNegotiation = new Scenes.BaseScene<TribeCtx>('quest-negotiation')
+export const negotiate = makeCalbackDataParser('negotiate-quest', [
+    'questId',
+    'memberId',
+    'elder',
+])
 
-    const hours = '08,09,10,11,12,13,14,15,16,17,18,19,20,21,22,23'.split(',')
+const agreeQuest = makeCalbackDataParser('agree-quest', ['questId', 'memberId'])
+const confirmProposal = makeCalbackDataParser('confirm-proposal', [])
 
-    const sceneState = new SceneState<{
-        date: Date
-        dateString: string
-        questId: string
-        place: string
-        memberId: string
-        chiefInitiation?: true
-        shamanInitiation?: true
-    }>()
-    questNegotiation.enter((ctx) => {
-        const calendarTexts = i18n(ctx).calendar
+interface NegotiationState extends UserState {
+    type: 'negotiation-state'
+    memberId: string
+    questId: string
+    date?: Date
+    place?: string
+    elder: 'chief' | 'shaman' | null
+}
+function isNegotiationState(
+    state: Maybe<UserState>
+): state is NegotiationState {
+    return notEmpty(state) && state.type === 'negotiation-state'
+}
+
+function actions(bot: Telegraf<TribeCtx>) {
+    bot.action(negotiate.regex, (ctx) => {
+        const { memberId, questId, elder } = negotiate.parse(ctx.match[0])
         const texts = i18n(ctx).questNegotiation
-        // TODO this calendar fucks up on October 2021 (probably because of one day in last row)
-        const calendar = new Calendar(questNegotiation, {
-            minDate: new Date(),
-            maxDate: new Date(9635660707441),
-            monthNames: calendarTexts.months().split(','),
-            weekDayNames: calendarTexts.weekdays().split(','),
-            startWeekDay: parseInt(calendarTexts.startWeekDay()),
+        ctx.user.setState({
+            type: 'negotiation-state',
+            memberId,
+            questId,
+            elder,
         })
-
-        calendar.setDateListener((ctx, date) => {
-            const kb = Markup.inlineKeyboard(
-                hours.map((h) => Markup.button.callback(h, `set-hours:${h}`)),
-                { columns: 4 }
-            )
-            ctx.editMessageText(texts.proposeTimeHours(), kb)
-            sceneState.set(ctx as any, 'dateString', date)
-        })
-        ctx.reply(texts.proposeDate(), calendar.getCalendar(new Date()))
-    })
-
-    questNegotiation.action(/set-hours:(\d{2,2})/, (ctx) => {
-        const texts = i18n(ctx).questNegotiation
-        const minutes = '00,15,30,45'.split(',')
-        const kb = Markup.inlineKeyboard(
-            minutes.map((m) => Markup.button.callback(m, `set-minutes:${m}`))
+        ctx.reply(
+            texts.proposeDate(),
+            ctx.getCalenar(onDateSet, ctx.from?.language_code)
         )
-
-        const date = sceneState.get(ctx, 'dateString')
-        sceneState.set(ctx, 'dateString', `${date} ${ctx.match[1]}`)
-        ctx.editMessageText(texts.proposeTimeMinutes(), kb)
     })
 
-    questNegotiation.action(/set-minutes:(\d{2,2})/, (ctx) => {
-        const texts = i18n(ctx).questNegotiation
+    function onDateSet(date: Date, ctx: TribeCtx) {
+        const state = ctx.user.state
+        if (isNegotiationState(state)) {
+            state.date = date
+            ctx.user.setState(state)
+            const texts = i18n(ctx).questNegotiation
+            ctx.editMessageText(texts.proposePlace(), Markup.inlineKeyboard([]))
+        }
+    }
 
-        const date = `${sceneState.get(ctx, 'dateString')}:${ctx.match[1]}`
-        sceneState.set(ctx, 'dateString', date)
-        sceneState.set(ctx, 'date', new Date(date))
-        ctx.editMessageText(texts.proposePlace(), Markup.inlineKeyboard([]))
-    })
-
-    questNegotiation.on('text', (ctx) => {
+    bot.action(confirmProposal.regex, async (ctx) => {
+        const state = ctx.user.state
+        if (!isNegotiationState(state)) {
+            return
+        }
         const texts = i18n(ctx).questNegotiation
-        const kb = Markup.inlineKeyboard([
-            Markup.button.callback(texts.confirm(), 'confirm-proposal'),
-            Markup.button.callback(texts.edit(), 'redo-proposal'),
-        ])
-        const place = ctx.message.text
-        const date = sceneState.get(ctx, 'date')
-        sceneState.set(ctx, 'place', place)
-        const proposal = texts.proposal({ date, place })
-        ctx.reply(texts.proposalConfirmPrompt({ proposal }), kb)
-    })
-
-    questNegotiation.action('confirm-proposal', async (ctx) => {
-        const texts = i18n(ctx).questNegotiation
-        const date = sceneState.get(ctx, 'date')
-        const place = sceneState.get(ctx, 'place')
-        if (sceneState.get(ctx, 'chiefInitiation')) {
+        if (!state.date) {
+            ctx.reply(
+                texts.proposeDate(),
+                ctx.getCalenar(onDateSet, ctx.from?.language_code)
+            )
+            return
+        }
+        if (!state.place) {
+            ctx.editMessageText(texts.proposePlace(), Markup.inlineKeyboard([]))
+            return
+        }
+        if (state.elder === 'chief') {
             await ctx.tribalizm.initiation.startInitiation({
-                questId: sceneState.get(ctx, 'questId'),
+                questId: state.questId,
                 elderUserId: ctx.user.userId,
             })
         }
-        if (sceneState.get(ctx, 'shamanInitiation')) {
+        if (state.elder === 'shaman') {
             await ctx.tribalizm.initiation.startShamanInitiation({
-                questId: sceneState.get(ctx, 'questId'),
+                questId: state.questId,
                 elderUserId: ctx.user.userId,
             })
         }
         await ctx.tribalizm.questNegotiation.proposeChange({
-            place: place,
-            // TODO here don't forget to offset user's time zone!
-            //      use "tz-db", timezone name is in cities database
-            time: date.getTime(),
-            memberId: sceneState.get(ctx, 'memberId'),
-            questId: sceneState.get(ctx, 'questId'),
+            place: state.place,
+            time: state.date.getTime(),
+            memberId: state.memberId,
+            questId: state.questId,
         })
-        const proposal = texts.proposal({ date, place })
-        const oldText = texts.proposalConfirmPrompt({ proposal })
-        ctx.editMessageText(
-            `${oldText}\n\n${texts.proposalDone()}`,
-            Markup.inlineKeyboard([])
-        )
+        removeInlineKeyboard(ctx, `\n${texts.proposalDone()}`)
+        ctx.user.setState(null)
     })
 
-    questNegotiation.action('redo-proposal', async (ctx) => {
-        await removeInlineKeyboard(ctx)
-        await ctx.scene.leave()
-        await ctx.scene.enter('quest-negotiation', {
-            questId: sceneState.get(ctx, 'questId'),
-        })
+    bot.on('text', async (ctx, next) => {
+        const state = ctx.user.state
+        if (isNegotiationState(state)) {
+            const texts = i18n(ctx).questNegotiation
+            if (!state.date) {
+                ctx.reply(
+                    texts.proposeDate(),
+                    ctx.getCalenar(onDateSet, ctx.from?.language_code)
+                )
+                return
+            }
+            const place = ctx.message.text
+            await ctx.user.setState({ ...state, place })
+
+            const kb = Markup.inlineKeyboard([
+                Markup.button.callback(
+                    texts.confirm(),
+                    confirmProposal.serialize()
+                ),
+                Markup.button.callback(
+                    texts.edit(),
+                    negotiate.serialize({
+                        questId: state.questId,
+                        memberId: state.memberId,
+                        elder: state.elder,
+                    })
+                ),
+            ])
+
+            const proposal = texts.proposal({ date: state.date, place })
+            ctx.reply(texts.proposalConfirmPrompt({ proposal }), kb)
+        } else {
+            next()
+        }
     })
 
-    const agree = new Scenes.BaseScene<TribeCtx>('quest-agree')
-    const agreeState = new SceneState<{ questId: string; memberId: string }>()
-    agree.enter(async (ctx) => {
-        const questId = agreeState.get(ctx, 'questId')
-        const memberId = agreeState.get(ctx, 'memberId')
+    bot.action(agreeQuest.regex, async (ctx) => {
+        const { memberId, questId } = agreeQuest.parse(ctx.match[0])
         await ctx.tribalizm.questNegotiation.acceptQuest({ memberId, questId })
         const quest = await ctx.tribalizm.questNegotiation.questDetails({
             questId,
@@ -143,25 +154,6 @@ function scenes() {
             text = texts.proposalAgreedPersonal({ who: other.name })
         }
         ctx.reply(text)
-    })
-
-    return [questNegotiation, agree]
-}
-function actions(bot: Telegraf<TribeCtx>) {
-    bot.action(/change-quest:(.+)/, (ctx) => {
-        const [memberId, questId] = ctx.match[1].split(':')
-        ctx.scene.enter('quest-negotiation', {
-            questId,
-            memberId,
-        })
-    })
-    bot.action(/agree-quest:(.+)/, (ctx) => {
-        const [memberId, questId] = ctx.match[1].split(':')
-
-        ctx.scene.enter('quest-agree', {
-            questId,
-            memberId,
-        })
     })
 }
 
@@ -223,11 +215,18 @@ export function attachNotifications(
             const kb = Markup.inlineKeyboard([
                 Markup.button.callback(
                     qnTexts.confirm(),
-                    `agree-quest:${payload.targetMemberId}:${payload.questId}`
+                    agreeQuest.serialize({
+                        questId: payload.questId,
+                        memberId: payload.targetMemberId,
+                    })
                 ),
                 Markup.button.callback(
                     qnTexts.proposeOther(),
-                    `change-quest:${payload.targetMemberId}:${payload.questId}`
+                    negotiate.serialize({
+                        elder: null,
+                        memberId: payload.targetMemberId,
+                        questId: payload.questId,
+                    })
                 ),
             ])
 
@@ -266,9 +265,9 @@ export function attachNotifications(
                     who: who.name,
                 })
             }
-            bot.telegram.sendMessage(user.chatId, text)
+            await bot.telegram.sendMessage(user.chatId, text)
         }
     )
 }
 
-export const questNegotiationScreen = { actions, scenes, attachNotifications }
+export const questNegotiationScreen = { actions, attachNotifications }

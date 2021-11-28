@@ -1,13 +1,49 @@
+import { mapify } from '../ts-utils'
 import { Gathering, NotParticipated } from '../use-cases/entities/gathering'
 import { GatheringVote, VoteRangeError } from '../use-cases/entities/member'
 import { Storable } from '../use-cases/entities/store'
-import { GatheringFinale } from '../use-cases/gathering-finale'
+import {
+    GatheringFinale,
+    HowWasGatheringMessage,
+} from '../use-cases/gathering-finale'
 import { IdeasIncarnation } from '../use-cases/incarnate-ideas'
 import { SpawnQuest } from '../use-cases/spawn-quest'
-import { StormFinalyze } from '../use-cases/utils/scheduler'
+import {
+    isHowWasGatheringTask,
+    StormFinalyze,
+} from '../use-cases/utils/scheduler'
 import { createContext } from './test-context'
 
 describe('Gathering finale', () => {
+    it('notifies all accepted members', async () => {
+        const world = await setUp()
+        const onHowWasIt = world.spyOnMessage<HowWasGatheringMessage>(
+            'how-was-gathering-message'
+        )
+        const notifyTask = await world.taskStore._last()
+        if (!isHowWasGatheringTask(notifyTask)) {
+            throw new Error('Task retrieved is not HowWasGatheringTask')
+        }
+        await world.gatheringFinale.notifyMembers(notifyTask)
+        expect(onHowWasIt).toHaveBeenCalledTimes(
+            world.gathering.accepted.length
+        )
+        expect(onHowWasIt).toHaveBeenCalledWith({
+            type: 'how-was-gathering-message',
+            payload: jasmine.objectContaining({
+                gatheringId: world.gathering.id,
+                gatheringName: world.gathering.description,
+            }),
+        })
+        const memberMap = mapify(world.members)
+        for (let call of onHowWasIt.calls.all()) {
+            const memberId = call.args[0].payload.targetMemberId
+            expect(world.gathering.accepted).toContain(memberId)
+            expect(memberMap[memberId].userId).toBe(
+                call.args[0].payload.targetUserId
+            )
+        }
+    })
     it('marks member as done', async () => {
         const world = await setUp()
         await world.gatheringFinale.finalize(world.defautlRequest)
@@ -15,7 +51,7 @@ describe('Gathering finale', () => {
         expect(gathering!.done.length).toEqual(1)
         expect(gathering!.done[0]).toEqual(world.defautlRequest.memberId)
     })
-    it('FAILs to vote from non-participant', async () => {
+    it('FAILs to vote from not-a-member', async () => {
         const world = await setUp()
         await expectAsync(
             world.gatheringFinale.finalize({
@@ -202,24 +238,32 @@ async function setUp() {
     const gatheringFinale = new GatheringFinale(context)
 
     async function makeGathering() {
-        return await context.stores.gatheringStore.save(
-            new Gathering({
-                description: 'lets OLOLO together!',
-                place: 'the Foo Bar',
-                time: 100500200500,
-                tribeId: tribe.id,
-                type: 'all',
-                parentQuestId: quest2.id,
-                // 2; [5, 6, 9, 7, 8, 10],
-                accepted: [
-                    members[5].id,
-                    members[6].id,
-                    members[9].id,
-                    members[2].id,
-                ],
-                declined: [members[10].id, members[7].id],
-            })
-        )
+        await context.tribalism.gatheringDeclare.declare({
+            description: 'lets OLOLO together!',
+            place: 'the Foo Bar',
+            time: 100500200500,
+            memberId: quest2.memberIds[0],
+            parentQuestId: quest2.id,
+            type: 'all',
+        })
+        const gathering = await context.stores.gatheringStore._last()
+        const accepted = [5, 6, 9, 2]
+        const declined = [10, 7]
+        for (let m of members) {
+            if (accepted.includes(members.indexOf(m))) {
+                await context.tribalism.gateringAcknowledge.accept({
+                    gatheringId: gathering.id,
+                    memberId: m.id,
+                })
+            }
+            if (declined.includes(members.indexOf(m))) {
+                await context.tribalism.gateringAcknowledge.decline({
+                    gatheringId: gathering.id,
+                    memberId: m.id,
+                })
+            }
+        }
+        return await context.stores.gatheringStore._last()
     }
     return {
         ...context.stores,
@@ -231,5 +275,6 @@ async function setUp() {
         makeGathering,
         gatheringFinale,
         defautlRequest,
+        spyOnMessage: context.testing.spyOnMessage,
     }
 }

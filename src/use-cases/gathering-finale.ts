@@ -1,8 +1,31 @@
 import { isCoordinationQuest } from './entities/quest'
+import { Storable } from './entities/store'
 import { ContextUser } from './utils/context-user'
 import { findMaxTrait } from './utils/members-utils'
+import { Message } from './utils/message'
+import { HowWasGatheringTask } from './utils/scheduler'
 
 export class GatheringFinale extends ContextUser {
+    async notifyMembers(notifyTask: Storable & HowWasGatheringTask) {
+        const gathering = await this.getGathering(
+            notifyTask.payload.gatheringId
+        )
+        const members = await this.stores.memberStore.find({
+            id: gathering.accepted,
+        })
+        for (let m of members) {
+            this.notify<HowWasGatheringMessage>({
+                type: 'how-was-gathering-message',
+                payload: {
+                    gatheringId: gathering.id,
+                    gatheringName: gathering.description,
+                    targetMemberId: m.id,
+                    targetUserId: m.userId,
+                },
+            })
+        }
+        this.scheduler.markDone(notifyTask.id)
+    }
     finalize = async (req: FinalizeGatheringRequest) => {
         const gathering = await this.getGathering(req.gatheringId)
         gathering.imDone(req.memberId)
@@ -54,4 +77,14 @@ interface FinalizeGatheringRequest {
     memberId: string
     gatheringId: string
     score: number
+}
+
+export interface HowWasGatheringMessage extends Message {
+    type: 'how-was-gathering-message'
+    payload: {
+        targetUserId: string
+        targetMemberId: string
+        gatheringId: string
+        gatheringName: string
+    }
 }

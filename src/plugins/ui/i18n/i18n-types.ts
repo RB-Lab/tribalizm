@@ -232,10 +232,73 @@ export type Translation = {
 		 */
 		'questNotification': RequiredParams4<'description', 'name', 'proposal', 'tribe'>
 		/**
+		 * New quest "{description}" assigned to you and {name}. Let's arrange a meeting!
+		 * @param {string} description
+		 * @param {string} name
+		 */
+		'coordinateSpawned': RequiredParams2<'description', 'name'>
+		/**
 		 * When discuss with {name}, you can:
 		 * @param {string} name
 		 */
 		'questManage': RequiredParams1<'name'>
+		/**
+		 * Describe the quest, please
+		 */
+		'spawnDescribe': string
+		/**
+		 * Describe the reason for gathering
+		 */
+		'gatheringDescribe': string
+		/**
+		 * When do you want to gather?
+		 */
+		'gatheringWhen': string
+		/**
+		 * Where you'd like to met?
+		 */
+		'gatheringSetPlace': string
+		/**
+		 * 👌 Ok, quest assigned
+		 */
+		'questAssigned': string
+		'what': {	
+			/**
+			 * tribe
+			 */
+			'all': string
+			/**
+			 * all intirested members
+			 */
+			'upvoters': string
+		}
+		/**
+		 * Gather {what} for "{description}" at: 
+	 {proposal}
+		 * @param {string} description
+		 * @param {string} proposal
+		 * @param {string} what
+		 */
+		'confirmPrompt': RequiredParams3<'description', 'proposal', 'what'>
+		/**
+		 *  • Time: {date|date}
+	 • Place: {place}
+		 * @param {Date} date
+		 * @param {unknown} place
+		 */
+		'proposal': RequiredParams2<'date|date', 'place'>
+		/**
+		 * ✅ Yes
+		 */
+		'confirm': string
+		/**
+		 * 🤔 Change
+		 */
+		'edit': string
+		/**
+		 * Ok, I proclame the gathering!
+		 */
+		'gatheringDone': string
 		'buttons': {	
 			/**
 			 * Create a sub-quest
@@ -255,6 +318,68 @@ export type Translation = {
 			'reQuest': string
 		}
 	}
+	'gathering': {	
+		/**
+		 * New gathering for "{reason}": 
+	 {proposal}
+		 * @param {string} proposal
+		 * @param {string} reason
+		 */
+		'declared': RequiredParams2<'proposal', 'reason'>
+		/**
+		 *  • Time: {date|date}
+	 • Place: {place}
+		 * @param {Date} date
+		 * @param {unknown} place
+		 */
+		'proposal': RequiredParams2<'date|date', 'place'>
+		/**
+		 * Accnowledge
+		 */
+		'accept': string
+		/**
+		 * Decline
+		 */
+		'decline': string
+		/**
+		 * ☺️ Cool! See ya there!
+		 */
+		'accepted': string
+		/**
+		 * 🥺 Ahh, that's a pity...
+		 */
+		'declined': string
+		/**
+		 * How was the gathering?
+		 */
+		'ratePrompt': string
+		'rates': {	
+			/**
+			 * 😩
+			 */
+			'0': string
+			/**
+			 * 😒
+			 */
+			'1': string
+			/**
+			 * 😐
+			 */
+			'2': string
+			/**
+			 * 😌
+			 */
+			'3': string
+			/**
+			 * 🥰
+			 */
+			'4': string
+		}
+		/**
+		 * Ok, gathering coordinators have been properly acknowledged
+		 */
+		'rateDone': string
+	}
 	'calendar': {	
 		/**
 		 * Su,Mo,Tu,We,Th,Fr,St
@@ -268,6 +393,14 @@ export type Translation = {
 		 * 0
 		 */
 		'startWeekDay': string
+		/**
+		 * 🕘 Choose an hour of the day
+		 */
+		'proposeTimeHours': string
+		/**
+		 * 🕤 Choose minutes
+		 */
+		'proposeTimeMinutes': string
 	}
 	'questNegotiation': {	
 		/**
@@ -372,13 +505,13 @@ export type Translation = {
 	}
 	'rateMember': {	
 		/**
-		 * You've just meat {tribe} {elder}, how charismatic they are?
+		 * You've just meet {tribe} {elder}, how charismatic they are?
 		 * @param {string} elder
 		 * @param {string} tribe
 		 */
 		'elderCharismaPrompt': RequiredParams2<'elder', 'tribe'>
 		/**
-		 * You've just meat {name}, how charismatic they are?
+		 * You've just meet {name}, how charismatic they are?
 		 * @param {string} name
 		 */
 		'charismaPrompt': RequiredParams1<'name'>
@@ -542,7 +675,7 @@ export type Translation = {
 		 */
 		'FinalyzeBeforeVotingError': string
 		/**
-		 * 🤬 System error! Cannot add idea to not started brainstorm
+		 * 🤬 System error! Cannot add idea: brainstorm is not raging
 		 */
 		'StormNotStarted': string
 		/**
@@ -755,9 +888,65 @@ export type TranslationFunctions = {
 		 */
 		'questNotification': (arg: { description: string, name: unknown, proposal: string, tribe: string }) => LocalizedString
 		/**
+		 * New quest "{description}" assigned to you and {name}. Let's arrange a meeting!
+		 */
+		'coordinateSpawned': (arg: { description: string, name: string }) => LocalizedString
+		/**
 		 * When discuss with {name}, you can:
 		 */
 		'questManage': (arg: { name: string }) => LocalizedString
+		/**
+		 * Describe the quest, please
+		 */
+		'spawnDescribe': () => LocalizedString
+		/**
+		 * Describe the reason for gathering
+		 */
+		'gatheringDescribe': () => LocalizedString
+		/**
+		 * When do you want to gather?
+		 */
+		'gatheringWhen': () => LocalizedString
+		/**
+		 * Where you'd like to met?
+		 */
+		'gatheringSetPlace': () => LocalizedString
+		/**
+		 * 👌 Ok, quest assigned
+		 */
+		'questAssigned': () => LocalizedString
+		'what': {	
+			/**
+			 * tribe
+			 */
+			'all': () => LocalizedString
+			/**
+			 * all intirested members
+			 */
+			'upvoters': () => LocalizedString
+		}
+		/**
+		 * Gather {what} for "{description}" at: 
+	 {proposal}
+		 */
+		'confirmPrompt': (arg: { description: string, proposal: string, what: string }) => LocalizedString
+		/**
+		 *  • Time: {date|date}
+	 • Place: {place}
+		 */
+		'proposal': (arg: { date: Date, place: unknown }) => LocalizedString
+		/**
+		 * ✅ Yes
+		 */
+		'confirm': () => LocalizedString
+		/**
+		 * 🤔 Change
+		 */
+		'edit': () => LocalizedString
+		/**
+		 * Ok, I proclame the gathering!
+		 */
+		'gatheringDone': () => LocalizedString
 		'buttons': {	
 			/**
 			 * Create a sub-quest
@@ -777,6 +966,64 @@ export type TranslationFunctions = {
 			'reQuest': () => LocalizedString
 		}
 	}
+	'gathering': {	
+		/**
+		 * New gathering for "{reason}": 
+	 {proposal}
+		 */
+		'declared': (arg: { proposal: string, reason: string }) => LocalizedString
+		/**
+		 *  • Time: {date|date}
+	 • Place: {place}
+		 */
+		'proposal': (arg: { date: Date, place: unknown }) => LocalizedString
+		/**
+		 * Accnowledge
+		 */
+		'accept': () => LocalizedString
+		/**
+		 * Decline
+		 */
+		'decline': () => LocalizedString
+		/**
+		 * ☺️ Cool! See ya there!
+		 */
+		'accepted': () => LocalizedString
+		/**
+		 * 🥺 Ahh, that's a pity...
+		 */
+		'declined': () => LocalizedString
+		/**
+		 * How was the gathering?
+		 */
+		'ratePrompt': () => LocalizedString
+		'rates': {	
+			/**
+			 * 😩
+			 */
+			'0': () => LocalizedString
+			/**
+			 * 😒
+			 */
+			'1': () => LocalizedString
+			/**
+			 * 😐
+			 */
+			'2': () => LocalizedString
+			/**
+			 * 😌
+			 */
+			'3': () => LocalizedString
+			/**
+			 * 🥰
+			 */
+			'4': () => LocalizedString
+		}
+		/**
+		 * Ok, gathering coordinators have been properly acknowledged
+		 */
+		'rateDone': () => LocalizedString
+	}
 	'calendar': {	
 		/**
 		 * Su,Mo,Tu,We,Th,Fr,St
@@ -790,6 +1037,14 @@ export type TranslationFunctions = {
 		 * 0
 		 */
 		'startWeekDay': () => LocalizedString
+		/**
+		 * 🕘 Choose an hour of the day
+		 */
+		'proposeTimeHours': () => LocalizedString
+		/**
+		 * 🕤 Choose minutes
+		 */
+		'proposeTimeMinutes': () => LocalizedString
 	}
 	'questNegotiation': {	
 		/**
@@ -883,11 +1138,11 @@ export type TranslationFunctions = {
 	}
 	'rateMember': {	
 		/**
-		 * You've just meat {tribe} {elder}, how charismatic they are?
+		 * You've just meet {tribe} {elder}, how charismatic they are?
 		 */
 		'elderCharismaPrompt': (arg: { elder: string, tribe: string }) => LocalizedString
 		/**
-		 * You've just meat {name}, how charismatic they are?
+		 * You've just meet {name}, how charismatic they are?
 		 */
 		'charismaPrompt': (arg: { name: string }) => LocalizedString
 		/**
@@ -1047,7 +1302,7 @@ export type TranslationFunctions = {
 		 */
 		'FinalyzeBeforeVotingError': () => LocalizedString
 		/**
-		 * 🤬 System error! Cannot add idea to not started brainstorm
+		 * 🤬 System error! Cannot add idea: brainstorm is not raging
 		 */
 		'StormNotStarted': () => LocalizedString
 		/**
