@@ -79,7 +79,7 @@ describe('Spawn new quest', () => {
         const newQuest = (await world.questStore.find({ description }))[0]
         expect(newQuest).toBeTruthy()
         expect(newQuest.memberIds.length).toEqual(2)
-        const validMmebers = [...world.upvoters, world.idea.meberId]
+        const validMmebers = [...world.upvoters, world.idea.memberId]
         expect(validMmebers).toContain(newQuest.memberIds[0])
         expect(validMmebers).toContain(newQuest.memberIds[1])
     })

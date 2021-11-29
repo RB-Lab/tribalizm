@@ -38,7 +38,7 @@ function scenes() {
         const btns = i18n(ctx).rules.buttons
         const keyboard = Markup.inlineKeyboard(
             [
-                Markup.button.callback(btns.onBrainsotrm(), 'on-brainstorm'),
+                Markup.button.callback(btns.onBrainstorm(), 'on-brainstorm'),
                 Markup.button.callback(btns.onQuests(), 'on-quest'),
                 Markup.button.callback(btns.back(), 'rules'),
                 Markup.button.callback(btns.start(), 'start'),

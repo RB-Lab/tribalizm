@@ -102,7 +102,7 @@ describe('When brainstorm is over', () => {
         it('assigns it to idea starter', async () => {
             const world = await setUp()
             const { quest, idea } = await world.incarnateOneIdea()
-            expect(quest.memberIds).toContain(idea.meberId)
+            expect(quest.memberIds).toContain(idea.memberId)
         })
 
         it('should pick only upvoters', async () => {
@@ -137,7 +137,7 @@ describe('When brainstorm is over', () => {
                 ],
             })
             const { quest, idea } = await world.incarnateOneIdea()
-            expect(quest.memberIds).toContain(idea.meberId)
+            expect(quest.memberIds).toContain(idea.memberId)
             expect(quest.memberIds).toContain(world.members[2].id)
         })
         it('should pick chief for shaman', async () => {
@@ -151,7 +151,7 @@ describe('When brainstorm is over', () => {
                 ],
             })
             const { quest, idea } = await world.incarnateOneIdea()
-            expect(quest.memberIds).toContain(idea.meberId)
+            expect(quest.memberIds).toContain(idea.memberId)
             expect(quest.memberIds).toContain(world.members[2].id)
         })
         it('should pick wisest cheif if no shamans in tribe', async () => {
@@ -165,7 +165,7 @@ describe('When brainstorm is over', () => {
                 ],
             })
             const { quest, idea } = await world.incarnateOneIdea()
-            expect(quest.memberIds).toContain(idea.meberId)
+            expect(quest.memberIds).toContain(idea.memberId)
             expect(quest.memberIds).toContain(world.members[3].id)
         })
         it('should pick only those who has no active quests', async () => {
@@ -269,7 +269,7 @@ async function setUp(settings: Settings = {}) {
             new QuestIdea({
                 brainstormId: brainstorm.id,
                 description: 'let us FOOO!',
-                meberId: members[0].id,
+                memberId: members[0].id,
             })
     )
     const ideas = await context.stores.ideaStore.saveBulk(rawIdeas)

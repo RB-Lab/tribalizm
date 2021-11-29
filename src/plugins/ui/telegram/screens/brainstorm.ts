@@ -241,7 +241,7 @@ function actions(bot: Telegraf<TribeCtx>) {
         if (isBarinstormState(state)) {
             await ctx.tribalizm.addIdea.addIdea({
                 brainstormId: state.brainstormId,
-                meberId: state.memberId,
+                memberId: state.memberId,
                 description: ctx.message.text,
             })
         } else {

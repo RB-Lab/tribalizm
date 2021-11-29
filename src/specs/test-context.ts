@@ -177,7 +177,7 @@ export async function createContext() {
             new QuestIdea({
                 brainstormId: brainstorm.id,
                 description: 'let us FOOO!',
-                meberId: members[ideaCreater].id,
+                memberId: members[ideaCreater].id,
             })
         )
         ups.forEach((i) => idea.voteUp(members[i].id))

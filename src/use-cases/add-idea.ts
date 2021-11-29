@@ -5,7 +5,7 @@ import { NotYourTribe } from './utils/not-your-tribe'
 
 export class AddIdea extends ContextUser {
     addIdea = async (req: AddIdeaRequest) => {
-        const member = await this.getMember(req.meberId)
+        const member = await this.getMember(req.memberId)
         const members = await this.stores.memberStore.find({
             tribeId: member.tribeId,
         })
@@ -24,11 +24,11 @@ export class AddIdea extends ContextUser {
             new QuestIdea({
                 brainstormId: req.brainstormId,
                 description: req.description,
-                meberId: req.meberId,
+                memberId: req.memberId,
             })
         )
         members.forEach((m) => {
-            if (m.id === req.meberId) return
+            if (m.id === req.memberId) return
             if (m.isCandidate) return
             this.notify<NewIdeaMessage>({
                 type: 'new-idea-added',
@@ -45,7 +45,7 @@ export class AddIdea extends ContextUser {
 }
 
 export interface AddIdeaRequest {
-    meberId: string
+    memberId: string
     brainstormId: string
     description: string
 }

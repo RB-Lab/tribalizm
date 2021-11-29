@@ -1,8 +1,8 @@
 import { AddIdea } from '../use-cases/add-idea'
 import { BrainstormLifecycle } from '../use-cases/brainstorm-lifecycle'
 import {
-    BrainstromVote,
-    DoubelVotingError,
+    BrainstormVote,
+    DoubleVotingError,
     QuestIdea,
     SelfVotingIdeaError,
 } from '../use-cases/entities/brainstorm'
@@ -32,7 +32,7 @@ describe('Voting', () => {
         await expectAsync(world.getIdea()).toBeResolvedTo(
             jasmine.objectContaining<QuestIdea>({
                 votes: jasmine.arrayContaining([
-                    jasmine.objectContaining<BrainstromVote>({
+                    jasmine.objectContaining<BrainstormVote>({
                         vote: 'up',
                         memberId: world.votingMember.id,
                     }),
@@ -43,7 +43,7 @@ describe('Voting', () => {
         await expectAsync(world.getIdea()).toBeResolvedTo(
             jasmine.objectContaining<QuestIdea>({
                 votes: jasmine.arrayContaining([
-                    jasmine.objectContaining<BrainstromVote>({
+                    jasmine.objectContaining<BrainstormVote>({
                         vote: 'down',
                         memberId: world.votingMember.id,
                     }),
@@ -64,7 +64,7 @@ describe('Voting', () => {
         const world = await setUp()
         await world.stromCycle.toVoting(world.toVoteTask)
         await expectAsync(
-            world.voting.voteUp(world.idea.id, world.idea.meberId)
+            world.voting.voteUp(world.idea.id, world.idea.memberId)
         ).toBeRejectedWithError(SelfVotingIdeaError)
     })
     it('FAILs to vote twice', async () => {
@@ -73,7 +73,7 @@ describe('Voting', () => {
         await world.voting.voteUp(world.idea.id, world.votingMember.id)
         await expectAsync(
             world.voting.voteUp(world.idea.id, world.votingMember.id)
-        ).toBeRejectedWithError(DoubelVotingError)
+        ).toBeRejectedWithError(DoubleVotingError)
     })
     it('FAILs to vote for non-existing idea', async () => {
         const world = await setUp()
@@ -143,7 +143,7 @@ async function setUp() {
     await ideasAdder.addIdea({
         brainstormId: brainstorm.id,
         description: "let's FOO!",
-        meberId: members[3].id,
+        memberId: members[3].id,
     })
     const idea = await context.stores.ideaStore._last()
 

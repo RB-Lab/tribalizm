@@ -101,7 +101,7 @@ export class SpawnQuest extends ContextUser {
         const upvoterIds = idea.votes
             .filter((v) => v.vote === 'up')
             .map((v) => v.memberId)
-        const memberIds = [...upvoterIds, idea.meberId]
+        const memberIds = [...upvoterIds, idea.memberId]
         if (memberIds.length < 2) {
             throw new NotEnoughMembers(
                 `There is not enough members who liked idea ${idea.id}: ${memberIds.length} (2 min)`

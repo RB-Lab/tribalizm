@@ -127,7 +127,7 @@ export class QuestNegotiation extends ContextUser {
             )
         }
         const idea = await this.getIdea(ideaId)
-        if (idea.meberId === req.memberId && !quest.parentQuestId) {
+        if (idea.memberId === req.memberId && !quest.parentQuestId) {
             throw new IndeclinableError(
                 'You cannot decline quest created from your own idea'
             )
@@ -135,7 +135,7 @@ export class QuestNegotiation extends ContextUser {
         const upvoterIds = idea.votes
             .filter((v) => v.vote === 'up')
             .map((v) => v.memberId)
-        const memberIds = [...upvoterIds, idea.meberId]
+        const memberIds = [...upvoterIds, idea.memberId]
         const activeQuests = await this.stores.questStore.getActiveQuestsCount(
             memberIds
         )

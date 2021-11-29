@@ -104,7 +104,7 @@ export function attachNotifications(
                 payload.targetUserId
             )
 
-            const texts = i18n(elder).notifications.tribeAppliaction
+            const texts = i18n(elder).notifications.tribeApplication
 
             const keyboard = Markup.inlineKeyboard([
                 Markup.button.callback(
@@ -141,7 +141,7 @@ export function attachNotifications(
             const user = await telegramUsers.getTelegramUserForTribalism(
                 payload.targetUserId
             )
-            const texts = i18n(user).notifications.tribeAppliaction
+            const texts = i18n(user).notifications.tribeApplication
 
             bot.telegram.sendMessage(
                 user.chatId,
@@ -193,7 +193,7 @@ export function attachNotifications(
 
             bot.telegram.sendMessage(
                 user.chatId,
-                texts.appliactionApproved({ tribe: payload.tribe })
+                texts.applicationApproved({ tribe: payload.tribe })
             )
         }
     )

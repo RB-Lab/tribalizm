@@ -34,7 +34,7 @@ export class Brainstorm implements IBrainstorm {
     toVoting = () => {
         if (this.state === 'finished') {
             throw new UpdateFinishedBrainstormError(
-                `Cannot update brainstrom ${this.id}: it is already finished`
+                `Cannot update brainstorm ${this.id}: it is already finished`
             )
         }
         this.state = 'voting'
@@ -44,8 +44,8 @@ export class Brainstorm implements IBrainstorm {
     }
     finish = () => {
         if (this.state !== 'voting') {
-            throw new FinalyzeBeforeVotingError(
-                `Cannot finalyze storm ${this.id} in ${this.state} phase`
+            throw new FinalizeBeforeVotingError(
+                `Cannot finalize storm ${this.id} in ${this.state} phase`
             )
         }
         this.state = 'finished'
@@ -60,9 +60,9 @@ export class UpdateFinishedBrainstormError extends Error {
 export interface IQuestIdea {
     id: string | null
     description: string
-    meberId: string
+    memberId: string
     brainstormId: string
-    votes: BrainstromVote[]
+    votes: BrainstormVote[]
     voteUp: (memberId: string) => void
     voteDown: (memberId: string) => void
     getScore: () => number
@@ -74,18 +74,18 @@ export interface SavedQuestIdea extends IQuestIdea {
 export class QuestIdea implements IQuestIdea {
     public id: string | null
     public description: string
-    public meberId: string
+    public memberId: string
     public brainstormId: string
-    public votes: BrainstromVote[]
+    public votes: BrainstormVote[]
     constructor(params: {
         id?: string
         description: string
-        meberId: string
+        memberId: string
         brainstormId: string
-        votes?: BrainstromVote[]
+        votes?: BrainstormVote[]
     }) {
         this.id = params.id || null
-        this.meberId = params.meberId
+        this.memberId = params.memberId
         this.brainstormId = params.brainstormId
         this.description = params.description
         this.votes = params.votes || []
@@ -109,7 +109,7 @@ export class QuestIdea implements IQuestIdea {
         )
         if (currentMemberVote) {
             if (currentMemberVote.vote === vote) {
-                throw new DoubelVotingError('Cannot vote twice')
+                throw new DoubleVotingError('Cannot vote twice')
             }
             currentMemberVote.vote = vote
             return
@@ -117,10 +117,10 @@ export class QuestIdea implements IQuestIdea {
         this.votes.push({ vote, memberId })
     }
     private checkCanVote(memberId: string) {
-        if (this.meberId === memberId) {
+        if (this.memberId === memberId) {
             throw new SelfVotingIdeaError(
                 `Voting for own ideas is not allowed. 
-                Idea: ${this.id}, member: ${this.meberId}`
+                Idea: ${this.id}, member: ${this.memberId}`
             )
         }
     }
@@ -132,19 +132,19 @@ export class SelfVotingIdeaError extends Error {
     }
 }
 
-export class DoubelVotingError extends Error {
+export class DoubleVotingError extends Error {
     constructor(msg: string) {
         super(msg)
     }
 }
 
-export class FinalyzeBeforeVotingError extends Error {
+export class FinalizeBeforeVotingError extends Error {
     constructor(msg: string) {
         super(msg)
     }
 }
 
-export interface BrainstromVote {
+export interface BrainstormVote {
     vote: 'up' | 'down'
     memberId: string
 }

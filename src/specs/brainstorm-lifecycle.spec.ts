@@ -9,7 +9,7 @@ import {
 } from '../use-cases/brainstorm-lifecycle'
 import {
     Brainstorm,
-    FinalyzeBeforeVotingError,
+    FinalizeBeforeVotingError,
     IBrainstormData,
 } from '../use-cases/entities/brainstorm'
 import {
@@ -309,7 +309,7 @@ describe('Brainstorm lifecycle', () => {
                 done: false,
                 payload: { brainstormId: brainstorm.id },
             })
-        ).toBeRejectedWithError(FinalyzeBeforeVotingError)
+        ).toBeRejectedWithError(FinalizeBeforeVotingError)
     })
 })
 

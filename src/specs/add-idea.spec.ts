@@ -44,7 +44,7 @@ describe('Add idea', () => {
                     ideaId: idea!.id,
                     targetUserId: world.members[0].userId,
                     description: world.defReq.description,
-                    targetMemberId: world.defReq.meberId,
+                    targetMemberId: world.defReq.memberId,
                 },
             })
         )
@@ -77,7 +77,7 @@ describe('Add idea', () => {
             })
         )
         await expectAsync(
-            world.ideasAdder.addIdea({ ...world.defReq, meberId: member.id })
+            world.ideasAdder.addIdea({ ...world.defReq, memberId: member.id })
         ).toBeRejectedWithError(NotYourTribe)
     })
     it('FAILs if brainstorm is not in generating phase', async () => {
@@ -107,7 +107,7 @@ async function setUp() {
     const defReq = {
         brainstormId: brainstorm.id,
         description: 'Lets OLOLO!',
-        meberId: members[3].id,
+        memberId: members[3].id,
     }
     return {
         ideasAdder,

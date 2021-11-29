@@ -72,7 +72,7 @@ export class GatheringDeclare extends ContextUser {
         const upvoterIds = idea.votes
             .filter((v) => v.vote === 'up')
             .map((v) => v.memberId)
-        return [...upvoterIds, idea.meberId]
+        return [...upvoterIds, idea.memberId]
     }
 }
 

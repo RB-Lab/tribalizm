@@ -141,7 +141,7 @@ async function setUp() {
         members,
         tribe,
         idea,
-        upvoters: [...upvoters, idea.meberId],
+        upvoters: [...upvoters, idea.memberId],
         ...context.stores,
         spyOnMessage: context.testing.spyOnMessage,
     }

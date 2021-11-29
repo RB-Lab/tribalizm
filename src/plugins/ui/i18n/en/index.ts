@@ -2,7 +2,7 @@ import type { BaseTranslation } from '../i18n-types'
 
 const en: BaseTranslation = {
     start: {
-        text: 'Join tribes of likelly-minded people nearby!',
+        text: 'Join tribes of likely-minded people nearby!',
         buttons: {
             rules: 'ℹ️  Game rules',
             list: '📜 List tribes',
@@ -12,7 +12,7 @@ const en: BaseTranslation = {
         buttons: {
             back: '← Back',
             start: "🚀 Let's start!",
-            onBrainsotrm: 'What is brainstorm?',
+            onBrainstorm: 'What is brainstorm?',
             onQuests: 'Who are quests?',
             onShaman: 'Who is shaman?',
             onChief: 'Who is chief?',
@@ -21,11 +21,11 @@ const en: BaseTranslation = {
         apply:
             'To join a tribe you like you must send application. ' +
             "Tribe's chief and shaman will consider it and invite you to have a conversation with them. " +
-            'If they decide that you allign with the tribe spirit well, they will let you join',
+            'If they decide that you align with the tribe spirit well, they will let you join',
         onChief:
             "Chief is the most charismatic person in the tribe. Their duties is to maintain tribe's integrity.",
         onShaman:
-            "Shaman is the most wise person in the tribe. Thier duities is to assist tribe's chief.",
+            "Shaman is the most wise person in the tribe. Their duties is to assist tribe's chief.",
         inTribe: `Now, when you're in tribe you can participate in brainstorm and tribe's quests`,
         onBrainstorm:
             'In a brainstorm you will suggest activities for the tribe and vote for activities you like' +
@@ -50,8 +50,8 @@ const en: BaseTranslation = {
     },
     initiation: {
         declinePrompt:
-            'Please describe in a few words why did you decline an appliaction.',
-        declineOk: 'Ok, appliaction has been declined',
+            'Please describe in a few words why did you decline an application.',
+        declineOk: 'Ok, application has been declined',
         approvedOk: "Ok, you've approved the application",
         questNotification:
             '{name:string}, {elder:string} of the {tribe:string} proposes to meet: \n {proposal:string}',
@@ -63,7 +63,7 @@ const en: BaseTranslation = {
             "You've just met with {name:string}. Do you accept them in the tribe {tribe:string}?",
         accept: '👍 Yes, accept!',
         decline: '👎 No, decline.',
-        appliactionApproved:
+        applicationApproved:
             "🎉 Hooray! You've been accepted in {tribe:string} tribe! You'll meet with other members soon.",
     },
     introduction: {
@@ -88,14 +88,14 @@ const en: BaseTranslation = {
         questAssigned: '👌 Ok, quest assigned',
         what: {
             all: 'tribe',
-            upvoters: 'all intirested members',
+            upvoters: 'all interested members',
         },
         confirmPrompt:
             'Gather {what:string} for "{description:string}" at: \n {proposal:string}',
         proposal: ' • Time: {date:Date|date}\n • Place: {place}',
         confirm: '✅ Yes',
         edit: '🤔 Change',
-        gatheringDone: 'Ok, I proclame the gathering!',
+        gatheringDone: 'Ok, I proclaim the gathering!',
         buttons: {
             spawn: 'Create a sub-quest',
             gatherUpwoters: 'Gather idea supporters',
@@ -106,13 +106,13 @@ const en: BaseTranslation = {
     gathering: {
         declared: `New gathering for "{reason:string}": \n {proposal:string}`,
         proposal: ' • Time: {date:Date|date}\n • Place: {place}',
-        accept: 'Accnowledge',
+        accept: 'Acknowledge',
         decline: 'Decline',
         accepted: '☺️ Cool! See ya there!',
         declined: "🥺 Ahh, that's a pity...",
         ratePrompt: 'How was the gathering?',
         rates: { '0': '😩', '1': '😒', '2': '😐', '3': '😌', '4': '🥰' },
-        rateDone: "Ok, gathering coordinators have been properly acknowledged"
+        rateDone: 'Ok, gathering coordinators have been properly acknowledged',
     },
     calendar: {
         weekdays: 'Su,Mo,Tu,We,Th,Fr,St',
@@ -135,19 +135,19 @@ const en: BaseTranslation = {
         proposalAgreed: "📨 Ok, I'll notify the other participant{{s}}",
         proposalAgreedPersonal: "📨 Ok, I'll notify {who:string}",
         questAccepted:
-            'All particiepan agreed to meet for "{description:string}" at: \n {proposal:string}',
+            'All participants agreed to meet for "{description:string}" at: \n {proposal:string}',
         questAcceptedPersonal:
-            '{who:string} aggred to meet at: \n {proposal:string}',
+            '{who:string} agreed to meet at: \n {proposal:string}',
     },
     notifications: {
-        tribeAppliaction: {
-            title: 'A new member appliaction for tribe {tribe}!',
+        tribeApplication: {
+            title: 'A new member application for tribe {tribe}!',
             applicant: 'From user {username}.',
-            coverLetter: 'Cover leter:',
+            coverLetter: 'Cover letter:',
             assignInitiation: '👍 Propose a meeting',
             decline: '⛔️ Decline',
             applicationDeclined:
-                'Your appliaction to the tribe "{tribe}" has been declined',
+                'Your application to the tribe "{tribe}" has been declined',
         },
     },
     rateMember: {
@@ -171,9 +171,9 @@ const en: BaseTranslation = {
         confirm: '✅ Okay',
         edit: '🤔 Edit',
         done: "⛈ Ok. I'll arrange brainstorm ⛈",
-        brainstormDeclared: '⛈ New brainstorm is comming on {date:Date|date} ⛈',
+        brainstormDeclared: '⛈ New brainstorm is coming on {date:Date|date} ⛈',
         brainstormNotice:
-            '⛈ There is a brainstorm on the horison: {date:Date|date}! ⛈',
+            '⛈ There is a brainstorm on the horizon: {date:Date|date}! ⛈',
         started: 'Brainstorm started! Propose your ideas! 💥',
         toVote: "Brainstorm is over, it's time to vote for ideas!",
         end: 'Storm ended! Most popular ideas are to be incarnated.',
@@ -183,7 +183,7 @@ const en: BaseTranslation = {
         // TODO fill other errors texts!!
         UpdateFinishedBrainstormError: '',
         SelfVotingIdeaError: '',
-        DoubelVotingError: '',
+        DoubleVotingError: '',
         UpdateFinishedIdeaError: '',
         InvalidTimeProposal: '',
         InvalidAcceptanceTime: '',
@@ -210,10 +210,10 @@ const en: BaseTranslation = {
         NotAChiefError:
             '🚫 Sorry, you cannot start a brainstorm, only tribe chief can',
         FinalyzeBeforeVotingError:
-            '🤬 System error! Cannot finalyze storm before voting',
+            '🤬 System error! Cannot finalize storm before voting',
         StormNotStarted:
             '🤬 System error! Cannot add idea: brainstorm is not raging',
-        common: '😩 Oooops! Something awfull happend.',
+        common: '😩 Oops! Something awfully happened.',
         QuestFinishedError: '🚫 This quest is already over',
     },
 }

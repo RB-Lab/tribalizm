@@ -37,9 +37,9 @@ export class IdeasIncarnation extends ContextUser {
             }
             const idea = ideasMap[quest.ideaId]
 
-            const member = membersMap[idea.meberId]
+            const member = membersMap[idea.memberId]
             const partnerId = quest.memberIds.filter(
-                (id) => id != idea.meberId
+                (id) => id != idea.memberId
             )[0]
             const partner = membersViews[partnerId]
 
@@ -47,7 +47,7 @@ export class IdeasIncarnation extends ContextUser {
                 type: 'idea-incarnation',
                 payload: {
                     questId: quest.id,
-                    targetMemberId: idea.meberId,
+                    targetMemberId: idea.memberId,
                     targetUserId: member.userId,
                     description: quest.description,
                     partner: partner.name,
@@ -62,12 +62,12 @@ export class IdeasIncarnation extends ContextUser {
         const upvoterIds = idea.votes
             .filter((v) => v.vote === 'up')
             .map((v) => v.memberId)
-        const memberIds = [...upvoterIds, idea.meberId]
+        const memberIds = [...upvoterIds, idea.memberId]
         const members = await this.stores.memberStore.find({
             id: memberIds,
         })
-        const starter = members.find((m) => m.id === idea.meberId)
-        const others = members.filter((m) => m.id !== idea.meberId)
+        const starter = members.find((m) => m.id === idea.memberId)
+        const others = members.filter((m) => m.id !== idea.memberId)
         if (!starter) {
             throw new Error('Cannot find member who submitted quest idea')
         }

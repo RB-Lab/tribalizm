@@ -84,7 +84,7 @@ describe('Get into tribe [integration]', () => {
         ])
         await world.chief.chat(proposalPromptButtons[0], true)
 
-        // new user recieves proposal
+        // new user receives proposal
         const userUpdate = await world.newUser.chatLast()
         const userNotifButtons = getInlineKeyCallbacks(userUpdate)
         expect(userNotifButtons.length).toBe(2)
@@ -107,7 +107,7 @@ describe('Get into tribe [integration]', () => {
         )
         await world.newUser.chat(proposalPromptButtons2[0], true)
 
-        // chief recieves candidate's new proposal
+        // chief receives candidate's new proposal
         const chiefUpdates2 = await world.chief.chat()
         expect(chiefUpdates.length).toBe(1)
         const usersProposalButtons = getInlineKeyCallbacks(chiefUpdates2[0])
@@ -115,8 +115,8 @@ describe('Get into tribe [integration]', () => {
         await world.chief.chat(usersProposalButtons[0])
 
         // candidate gets proposal confirmation
-        const candidatesProposalConfiremdUpds = await world.newUser.chat()
-        expect(candidatesProposalConfiremdUpds.length).toBe(1)
+        const candidatesProposalConfirmedUpds = await world.newUser.chat()
+        expect(candidatesProposalConfirmedUpds.length).toBe(1)
 
         // time forward to the point when system asks about initiation
 
@@ -155,7 +155,7 @@ describe('Get into tribe [integration]', () => {
         )!
         await world.chief.chat(chiefAcceptButton, true)
 
-        // shaman recieves application
+        // shaman receives application
         const shamanUpdates = await world.shaman.chat()
         expect(shamanUpdates.length).toBe(1)
         const shamanNotice = shamanUpdates[0]
@@ -191,7 +191,7 @@ describe('Get into tribe [integration]', () => {
             shamansProposalUpd[0]
         )
         await world.newUser.chat(shamansProposalButtons[0])
-        // shaman recieves note that quest accepted
+        // shaman receives note that quest accepted
         const shUserAgreedUpd = await world.shaman.chat()
         expect(shUserAgreedUpd.length).toBe(1)
 
@@ -234,11 +234,11 @@ describe('Get into tribe [integration]', () => {
         )!
         await world.shaman.chat(shamanAcceptButton, true)
 
-        // new user is notified on thier approval
+        // new user is notified on their approval
         const acceptedUpdate = await world.newUser.chat()
         expect(acceptedUpdate.length).toBe(1)
 
-        // time forward to the point when intro task was alocated
+        // time forward to the point when intro task was allocated
         const introTask = await world.context.stores.taskStore._last()
         jasmine.clock().mockDate(new Date(introTask!.time + 1000))
         await world.context.requestTaskQueue()
@@ -313,14 +313,14 @@ describe('Get into tribe [integration]', () => {
             getInlineKeyCallbacks(rateNewbieWisdomUpd)
         expect(rateNewbieWisdomButtons.length).toBe(6)
         await world.oldie1.chatLast(rateNewbieWisdomButtons[3])
-        const newbieieMember = await world.context.stores.memberStore.getById(
+        const newbieMember = await world.context.stores.memberStore.getById(
             newUserMember.id
         )
-        expect(newbieieMember?.votes.length).toBe(1)
+        expect(newbieMember?.votes.length).toBe(1)
 
         // now oldie 2 is notified on intro quest
 
-        // time forward to the point when intro task was alocated
+        // time forward to the point when intro task was allocated
         const intro2Task = await world.context.stores.taskStore._last()
         jasmine.clock().mockDate(new Date(intro2Task!.time + 1000))
         await world.context.requestTaskQueue()
@@ -475,7 +475,7 @@ describe('Get into tribe [integration]', () => {
         )!
         await world.chief.chat(chiefAcceptButton, true)
 
-        // new user is notified on their accepance
+        // new user is notified on their acceptance
         const upd = await world.newUser.chat()
         expect(upd.length).toBe(1)
     })

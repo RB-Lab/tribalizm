@@ -13,7 +13,7 @@ export type Locales =
 export type Translation = {
 	'start': {	
 		/**
-		 * Join tribes of likelly-minded people nearby!
+		 * Join tribes of likely-minded people nearby!
 		 */
 		'text': string
 		'buttons': {	
@@ -40,7 +40,7 @@ export type Translation = {
 			/**
 			 * What is brainstorm?
 			 */
-			'onBrainsotrm': string
+			'onBrainstorm': string
 			/**
 			 * Who are quests?
 			 */
@@ -59,7 +59,7 @@ export type Translation = {
 			'next': string
 		}
 		/**
-		 * To join a tribe you like you must send application. Tribe's chief and shaman will consider it and invite you to have a conversation with them. If they decide that you allign with the tribe spirit well, they will let you join
+		 * To join a tribe you like you must send application. Tribe's chief and shaman will consider it and invite you to have a conversation with them. If they decide that you align with the tribe spirit well, they will let you join
 		 */
 		'apply': string
 		/**
@@ -67,7 +67,7 @@ export type Translation = {
 		 */
 		'onChief': string
 		/**
-		 * Shaman is the most wise person in the tribe. Thier duities is to assist tribe's chief.
+		 * Shaman is the most wise person in the tribe. Their duties is to assist tribe's chief.
 		 */
 		'onShaman': string
 		/**
@@ -131,11 +131,11 @@ export type Translation = {
 	}
 	'initiation': {	
 		/**
-		 * Please describe in a few words why did you decline an appliaction.
+		 * Please describe in a few words why did you decline an application.
 		 */
 		'declinePrompt': string
 		/**
-		 * Ok, appliaction has been declined
+		 * Ok, application has been declined
 		 */
 		'declineOk': string
 		/**
@@ -185,7 +185,7 @@ export type Translation = {
 		 * 🎉 Hooray! You've been accepted in {tribe} tribe! You'll meet with other members soon.
 		 * @param {string} tribe
 		 */
-		'appliactionApproved': RequiredParams1<'tribe'>
+		'applicationApproved': RequiredParams1<'tribe'>
 	}
 	'introduction': {	
 		/**
@@ -268,7 +268,7 @@ export type Translation = {
 			 */
 			'all': string
 			/**
-			 * all intirested members
+			 * all interested members
 			 */
 			'upvoters': string
 		}
@@ -296,7 +296,7 @@ export type Translation = {
 		 */
 		'edit': string
 		/**
-		 * Ok, I proclame the gathering!
+		 * Ok, I proclaim the gathering!
 		 */
 		'gatheringDone': string
 		'buttons': {	
@@ -334,7 +334,7 @@ export type Translation = {
 		 */
 		'proposal': RequiredParams2<'date|date', 'place'>
 		/**
-		 * Accnowledge
+		 * Acknowledge
 		 */
 		'accept': string
 		/**
@@ -458,14 +458,14 @@ export type Translation = {
 		 */
 		'proposalAgreedPersonal': RequiredParams1<'who'>
 		/**
-		 * All particiepan agreed to meet for "{description}" at: 
+		 * All participants agreed to meet for "{description}" at: 
 	 {proposal}
 		 * @param {string} description
 		 * @param {string} proposal
 		 */
 		'questAccepted': RequiredParams2<'description', 'proposal'>
 		/**
-		 * {who} aggred to meet at: 
+		 * {who} agreed to meet at: 
 	 {proposal}
 		 * @param {string} proposal
 		 * @param {string} who
@@ -473,9 +473,9 @@ export type Translation = {
 		'questAcceptedPersonal': RequiredParams2<'proposal', 'who'>
 	}
 	'notifications': {	
-		'tribeAppliaction': {	
+		'tribeApplication': {	
 			/**
-			 * A new member appliaction for tribe {tribe}!
+			 * A new member application for tribe {tribe}!
 			 * @param {unknown} tribe
 			 */
 			'title': RequiredParams1<'tribe'>
@@ -485,7 +485,7 @@ export type Translation = {
 			 */
 			'applicant': RequiredParams1<'username'>
 			/**
-			 * Cover leter:
+			 * Cover letter:
 			 */
 			'coverLetter': string
 			/**
@@ -497,7 +497,7 @@ export type Translation = {
 			 */
 			'decline': string
 			/**
-			 * Your appliaction to the tribe "{tribe}" has been declined
+			 * Your application to the tribe "{tribe}" has been declined
 			 * @param {unknown} tribe
 			 */
 			'applicationDeclined': RequiredParams1<'tribe'>
@@ -611,12 +611,12 @@ export type Translation = {
 		 */
 		'done': string
 		/**
-		 * ⛈ New brainstorm is comming on {date|date} ⛈
+		 * ⛈ New brainstorm is coming on {date|date} ⛈
 		 * @param {Date} date
 		 */
 		'brainstormDeclared': RequiredParams1<'date|date'>
 		/**
-		 * ⛈ There is a brainstorm on the horison: {date|date}! ⛈
+		 * ⛈ There is a brainstorm on the horizon: {date|date}! ⛈
 		 * @param {Date} date
 		 */
 		'brainstormNotice': RequiredParams1<'date|date'>
@@ -636,7 +636,7 @@ export type Translation = {
 	'errors': {	
 		'UpdateFinishedBrainstormError': string
 		'SelfVotingIdeaError': string
-		'DoubelVotingError': string
+		'DoubleVotingError': string
 		'UpdateFinishedIdeaError': string
 		'InvalidTimeProposal': string
 		'InvalidAcceptanceTime': string
@@ -671,7 +671,7 @@ export type Translation = {
 		 */
 		'NotAChiefError': string
 		/**
-		 * 🤬 System error! Cannot finalyze storm before voting
+		 * 🤬 System error! Cannot finalize storm before voting
 		 */
 		'FinalyzeBeforeVotingError': string
 		/**
@@ -679,7 +679,7 @@ export type Translation = {
 		 */
 		'StormNotStarted': string
 		/**
-		 * 😩 Oooops! Something awfull happend.
+		 * 😩 Oops! Something awfully happened.
 		 */
 		'common': string
 		/**
@@ -692,7 +692,7 @@ export type Translation = {
 export type TranslationFunctions = {
 	'start': {	
 		/**
-		 * Join tribes of likelly-minded people nearby!
+		 * Join tribes of likely-minded people nearby!
 		 */
 		'text': () => LocalizedString
 		'buttons': {	
@@ -719,7 +719,7 @@ export type TranslationFunctions = {
 			/**
 			 * What is brainstorm?
 			 */
-			'onBrainsotrm': () => LocalizedString
+			'onBrainstorm': () => LocalizedString
 			/**
 			 * Who are quests?
 			 */
@@ -738,7 +738,7 @@ export type TranslationFunctions = {
 			'next': () => LocalizedString
 		}
 		/**
-		 * To join a tribe you like you must send application. Tribe's chief and shaman will consider it and invite you to have a conversation with them. If they decide that you allign with the tribe spirit well, they will let you join
+		 * To join a tribe you like you must send application. Tribe's chief and shaman will consider it and invite you to have a conversation with them. If they decide that you align with the tribe spirit well, they will let you join
 		 */
 		'apply': () => LocalizedString
 		/**
@@ -746,7 +746,7 @@ export type TranslationFunctions = {
 		 */
 		'onChief': () => LocalizedString
 		/**
-		 * Shaman is the most wise person in the tribe. Thier duities is to assist tribe's chief.
+		 * Shaman is the most wise person in the tribe. Their duties is to assist tribe's chief.
 		 */
 		'onShaman': () => LocalizedString
 		/**
@@ -808,11 +808,11 @@ export type TranslationFunctions = {
 	}
 	'initiation': {	
 		/**
-		 * Please describe in a few words why did you decline an appliaction.
+		 * Please describe in a few words why did you decline an application.
 		 */
 		'declinePrompt': () => LocalizedString
 		/**
-		 * Ok, appliaction has been declined
+		 * Ok, application has been declined
 		 */
 		'declineOk': () => LocalizedString
 		/**
@@ -852,7 +852,7 @@ export type TranslationFunctions = {
 		/**
 		 * 🎉 Hooray! You've been accepted in {tribe} tribe! You'll meet with other members soon.
 		 */
-		'appliactionApproved': (arg: { tribe: string }) => LocalizedString
+		'applicationApproved': (arg: { tribe: string }) => LocalizedString
 	}
 	'introduction': {	
 		/**
@@ -921,7 +921,7 @@ export type TranslationFunctions = {
 			 */
 			'all': () => LocalizedString
 			/**
-			 * all intirested members
+			 * all interested members
 			 */
 			'upvoters': () => LocalizedString
 		}
@@ -944,7 +944,7 @@ export type TranslationFunctions = {
 		 */
 		'edit': () => LocalizedString
 		/**
-		 * Ok, I proclame the gathering!
+		 * Ok, I proclaim the gathering!
 		 */
 		'gatheringDone': () => LocalizedString
 		'buttons': {	
@@ -978,7 +978,7 @@ export type TranslationFunctions = {
 		 */
 		'proposal': (arg: { date: Date, place: unknown }) => LocalizedString
 		/**
-		 * Accnowledge
+		 * Acknowledge
 		 */
 		'accept': () => LocalizedString
 		/**
@@ -1098,20 +1098,20 @@ export type TranslationFunctions = {
 		 */
 		'proposalAgreedPersonal': (arg: { who: string }) => LocalizedString
 		/**
-		 * All particiepan agreed to meet for "{description}" at: 
+		 * All participants agreed to meet for "{description}" at: 
 	 {proposal}
 		 */
 		'questAccepted': (arg: { description: string, proposal: string }) => LocalizedString
 		/**
-		 * {who} aggred to meet at: 
+		 * {who} agreed to meet at: 
 	 {proposal}
 		 */
 		'questAcceptedPersonal': (arg: { proposal: string, who: string }) => LocalizedString
 	}
 	'notifications': {	
-		'tribeAppliaction': {	
+		'tribeApplication': {	
 			/**
-			 * A new member appliaction for tribe {tribe}!
+			 * A new member application for tribe {tribe}!
 			 */
 			'title': (arg: { tribe: unknown }) => LocalizedString
 			/**
@@ -1119,7 +1119,7 @@ export type TranslationFunctions = {
 			 */
 			'applicant': (arg: { username: unknown }) => LocalizedString
 			/**
-			 * Cover leter:
+			 * Cover letter:
 			 */
 			'coverLetter': () => LocalizedString
 			/**
@@ -1131,7 +1131,7 @@ export type TranslationFunctions = {
 			 */
 			'decline': () => LocalizedString
 			/**
-			 * Your appliaction to the tribe "{tribe}" has been declined
+			 * Your application to the tribe "{tribe}" has been declined
 			 */
 			'applicationDeclined': (arg: { tribe: unknown }) => LocalizedString
 		}
@@ -1240,11 +1240,11 @@ export type TranslationFunctions = {
 		 */
 		'done': () => LocalizedString
 		/**
-		 * ⛈ New brainstorm is comming on {date|date} ⛈
+		 * ⛈ New brainstorm is coming on {date|date} ⛈
 		 */
 		'brainstormDeclared': (arg: { date: Date }) => LocalizedString
 		/**
-		 * ⛈ There is a brainstorm on the horison: {date|date}! ⛈
+		 * ⛈ There is a brainstorm on the horizon: {date|date}! ⛈
 		 */
 		'brainstormNotice': (arg: { date: Date }) => LocalizedString
 		/**
@@ -1263,7 +1263,7 @@ export type TranslationFunctions = {
 	'errors': {	
 		'UpdateFinishedBrainstormError': () => LocalizedString
 		'SelfVotingIdeaError': () => LocalizedString
-		'DoubelVotingError': () => LocalizedString
+		'DoubleVotingError': () => LocalizedString
 		'UpdateFinishedIdeaError': () => LocalizedString
 		'InvalidTimeProposal': () => LocalizedString
 		'InvalidAcceptanceTime': () => LocalizedString
@@ -1298,7 +1298,7 @@ export type TranslationFunctions = {
 		 */
 		'NotAChiefError': () => LocalizedString
 		/**
-		 * 🤬 System error! Cannot finalyze storm before voting
+		 * 🤬 System error! Cannot finalize storm before voting
 		 */
 		'FinalyzeBeforeVotingError': () => LocalizedString
 		/**
@@ -1306,7 +1306,7 @@ export type TranslationFunctions = {
 		 */
 		'StormNotStarted': () => LocalizedString
 		/**
-		 * 😩 Oooops! Something awfull happend.
+		 * 😩 Oops! Something awfully happened.
 		 */
 		'common': () => LocalizedString
 		/**
