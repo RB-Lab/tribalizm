@@ -1,6 +1,6 @@
 // TODO this file is probably in wrong folder...
 
-export function isMultiPoligon(feature: any): feature is MultiPolygon {
+export function isMultiPolygon(feature: any): feature is MultiPolygon {
     return feature.type === 'MultiPolygon'
 }
 

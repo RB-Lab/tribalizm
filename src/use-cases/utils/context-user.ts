@@ -6,11 +6,11 @@ import { Scheduler } from './scheduler'
 
 export class ContextUser {
     protected stores: Context['stores']
-    protected bus: Context['async']['notififcationBus']
+    protected bus: Context['async']['notificationBus']
     protected scheduler: Scheduler
     constructor(context: Context) {
         this.stores = context.stores
-        this.bus = context.async.notififcationBus
+        this.bus = context.async.notificationBus
         this.scheduler = new Scheduler(context.stores.taskStore)
     }
     protected notify<T extends Message>(message: T) {

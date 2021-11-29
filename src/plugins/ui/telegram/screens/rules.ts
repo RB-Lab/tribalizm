@@ -2,10 +2,8 @@ import { Markup, Scenes, Telegraf } from 'telegraf'
 import { i18n } from '../../i18n/i18n-ctx'
 import { TribeCtx } from '../tribe-ctx'
 
-function scenes() {
-    const helpScene = new Scenes.BaseScene<Scenes.SceneContext>('help')
-
-    helpScene.enter((ctx) => {
+export function rulesScreen(bot: Telegraf<TribeCtx>) {
+    bot.action('rules', (ctx) => {
         const btns = i18n(ctx).rules.buttons
         const keyboard = Markup.inlineKeyboard(
             [
@@ -18,7 +16,7 @@ function scenes() {
         )
         ctx.editMessageText(i18n(ctx).rules.apply(), keyboard)
     })
-    helpScene.action('on-chief', (ctx) => {
+    bot.action('on-chief', (ctx) => {
         const btns = i18n(ctx).rules.buttons
         const keyboard = Markup.inlineKeyboard([
             Markup.button.callback(btns.back(), 'rules'),
@@ -26,7 +24,7 @@ function scenes() {
         ])
         ctx.editMessageText(i18n(ctx).rules.onChief(), keyboard)
     })
-    helpScene.action('on-shaman', (ctx) => {
+    bot.action('on-shaman', (ctx) => {
         const btns = i18n(ctx).rules.buttons
         const keyboard = Markup.inlineKeyboard([
             Markup.button.callback(btns.back(), 'rules'),
@@ -34,7 +32,7 @@ function scenes() {
         ])
         ctx.editMessageText(i18n(ctx).rules.onShaman(), keyboard)
     })
-    helpScene.action('in-tribe', (ctx) => {
+    bot.action('in-tribe', (ctx) => {
         const btns = i18n(ctx).rules.buttons
         const keyboard = Markup.inlineKeyboard(
             [
@@ -47,7 +45,7 @@ function scenes() {
         )
         ctx.editMessageText(i18n(ctx).rules.inTribe(), keyboard)
     })
-    helpScene.action('on-brainstorm', (ctx) => {
+    bot.action('on-brainstorm', (ctx) => {
         const btns = i18n(ctx).rules.buttons
         const keyboard = Markup.inlineKeyboard([
             Markup.button.callback(btns.back(), 'in-tribe'),
@@ -55,7 +53,7 @@ function scenes() {
         ])
         ctx.editMessageText(i18n(ctx).rules.inTribe(), keyboard)
     })
-    helpScene.action('on-quest', (ctx) => {
+    bot.action('on-quest', (ctx) => {
         const btns = i18n(ctx).rules.buttons
         const keyboard = Markup.inlineKeyboard([
             Markup.button.callback(btns.back(), 'in-tribe'),
@@ -63,7 +61,7 @@ function scenes() {
         ])
         ctx.editMessageText(i18n(ctx).rules.onQuests(), keyboard)
     })
-    helpScene.action('start', (ctx) => {
+    bot.action('start', (ctx) => {
         const btns = i18n(ctx).start.buttons
 
         const keyboard = Markup.inlineKeyboard([
@@ -73,13 +71,5 @@ function scenes() {
         ctx.editMessageText(i18n(ctx).start.text(), keyboard)
     })
 
-    return [helpScene]
+    return [bot]
 }
-
-function actions(bot: Telegraf<TribeCtx>) {
-    bot.action('rules', (ctx) => {
-        ctx.scene.enter('help')
-    })
-}
-
-export const rulesScreen = { scenes, actions }

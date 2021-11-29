@@ -35,7 +35,7 @@ interface BotConfig {
     webHook: PublicHookConfig
     tribalism: Tribalizm
     token: string | undefined
-    notifcationsBus: NotificationBus
+    notificationBus: NotificationBus
     telegramURL?: string
 }
 
@@ -76,6 +76,7 @@ export async function makeBot(config: BotConfig) {
             config.tribalism,
             reportContextError
         )
+
         ctx.reportError = reportContextError
         next()
     })
@@ -113,23 +114,14 @@ export async function makeBot(config: BotConfig) {
 
     const datePicker = new DateTimePicker(bot)
     bot.use(async (ctx, next) => {
-        ctx.getCalenar = datePicker.getCalerndar
+        ctx.getCalendar = datePicker.getCalendar
         next()
     })
 
-    bot.use(session())
-
-    const stage = new Scenes.Stage([
-        ...(rulesScreen.scenes() as any),
-        ...tribesListScreen.scenes(),
-        ...initiationScreen.scenes(),
-    ])
-    bot.use(stage.middleware() as any)
-
-    rulesScreen.actions(bot)
+    rulesScreen(bot)
     initiationScreen.actions(bot)
     questNegotiationScreen.actions(bot)
-    tribesListScreen.actions(bot)
+    tribesListScreen(bot)
     rateMemberScreen.actions(bot)
     brainstormScreen.actions(bot)
     coordinationScreen.actions(bot)
@@ -138,37 +130,37 @@ export async function makeBot(config: BotConfig) {
 
     questNegotiationScreen.attachNotifications(
         bot,
-        config.notifcationsBus,
+        config.notificationBus,
         config.telegramUsersAdapter
     )
     initiationScreen.attachNotifications(
         bot,
-        config.notifcationsBus,
+        config.notificationBus,
         config.telegramUsersAdapter
     )
     rateMemberScreen.attachNotifications(
         bot,
-        config.notifcationsBus,
+        config.notificationBus,
         config.telegramUsersAdapter
     )
     introQuests.attachNotifications(
         bot,
-        config.notifcationsBus,
+        config.notificationBus,
         config.telegramUsersAdapter
     )
     brainstormScreen.attachNotifications(
         bot,
-        config.notifcationsBus,
+        config.notificationBus,
         config.telegramUsersAdapter
     )
     coordinationScreen.attachNotifications(
         bot,
-        config.notifcationsBus,
+        config.notificationBus,
         config.telegramUsersAdapter
     )
     gatheringScreen.attachNotifications(
         bot,
-        config.notifcationsBus,
+        config.notificationBus,
         config.telegramUsersAdapter
     )
 

@@ -8,7 +8,7 @@ describe('Quest finale', () => {
     it('FAILs to finalyse by not quest assignee', async () => {
         const world = await setUp()
         await expectAsync(
-            world.questFinale.finalyze({
+            world.questFinale.finalize({
                 ...world.defaultFinalReq,
                 memberId: 'not-assigned',
             })
@@ -17,7 +17,7 @@ describe('Quest finale', () => {
     it('FAILs to finalyse non-existing quest', async () => {
         const world = await setUp()
         await expectAsync(
-            world.questFinale.finalyze({
+            world.questFinale.finalize({
                 ...world.defaultFinalReq,
                 questId: 'non-existing',
             })
@@ -25,7 +25,7 @@ describe('Quest finale', () => {
     })
     it('marks quest as done for the memeber', async () => {
         const world = await setUp()
-        await world.questFinale.finalyze(world.defaultFinalReq)
+        await world.questFinale.finalize(world.defaultFinalReq)
         const quest = await world.questStore.getById(world.quest.id)
         expect(quest!.finishedIds).toEqual([world.member1.id])
     })
@@ -34,7 +34,7 @@ describe('Quest finale', () => {
         it('FAILs to cast for self', async () => {
             const world = await setUp()
             await expectAsync(
-                world.questFinale.finalyze({
+                world.questFinale.finalize({
                     ...world.defaultFinalReq,
                     votes: [
                         {
@@ -48,7 +48,7 @@ describe('Quest finale', () => {
         it('FAILs to cast more than 10 or less than 1', async () => {
             const world = await setUp()
             await expectAsync(
-                world.questFinale.finalyze({
+                world.questFinale.finalize({
                     ...world.defaultFinalReq,
                     votes: [
                         {
@@ -60,7 +60,7 @@ describe('Quest finale', () => {
                 })
             ).toBeRejectedWithError(VoteRangeError)
             await expectAsync(
-                world.questFinale.finalyze({
+                world.questFinale.finalize({
                     ...world.defaultFinalReq,
                     votes: [
                         {
@@ -75,7 +75,7 @@ describe('Quest finale', () => {
         })
         it(`casts votes`, async () => {
             const world = await setUp()
-            await world.questFinale.finalyze(world.defaultFinalReq)
+            await world.questFinale.finalize(world.defaultFinalReq)
             const member2 = await world.memberStore.getById(world.member2.id)
             expect(member2?.votes.length).toEqual(1)
             const vote = member2!.votes[0]
@@ -224,7 +224,7 @@ async function setUp() {
                     new Quest({ memberIds: [memberId, voteForId] })
                 )
                 const wisdom = votesWisdom ? votesWisdom[i] : votesCharisma[i]
-                await questFinale.finalyze({
+                await questFinale.finalize({
                     memberId,
                     questId: quest.id,
                     votes: [{ voteForId, charisma: votesCharisma[i], wisdom }],

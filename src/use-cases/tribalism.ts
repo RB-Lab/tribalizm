@@ -1,12 +1,13 @@
 import { AddIdea } from './add-idea'
 import { TribeApplication } from './apply-tribe'
 import { BrainstormLifecycle } from './brainstorm-lifecycle'
-import { GateringAcknowledge } from './gathering-acknowledge'
+import { GatheringAcknowledge } from './gathering-acknowledge'
 import { GatheringDeclare } from './gathering-declare'
 import { GatheringFinale } from './gathering-finale'
 import { IdeasIncarnation } from './incarnate-ideas'
 import { Initiation } from './initiation'
 import { IntroductionQuests } from './introduction-quests'
+import { LocateUser } from './locate-user'
 import { QuestNegotiation } from './negotiate-quest'
 import { QuestFinale } from './quest-finale'
 import { SpawnQuest } from './spawn-quest'
@@ -17,7 +18,7 @@ import { Voting } from './vote-idea'
 export interface Tribalizm {
     addIdea: Omit<AddIdea, keyof ContextUser>
     brainstormLifecycle: Omit<BrainstormLifecycle, keyof ContextUser>
-    gateringAcknowledge: Omit<GateringAcknowledge, keyof ContextUser>
+    gatheringAcknowledge: Omit<GatheringAcknowledge, keyof ContextUser>
     gatheringDeclare: Omit<GatheringDeclare, keyof ContextUser>
     gatheringFinale: Omit<GatheringFinale, keyof ContextUser>
     initiation: Omit<Initiation, keyof ContextUser>
@@ -29,6 +30,7 @@ export interface Tribalizm {
     questFinale: Omit<QuestFinale, keyof ContextUser>
     spawnQuest: Omit<SpawnQuest, keyof ContextUser>
     voting: Omit<Voting, keyof ContextUser>
+    locateUser: Omit<LocateUser, keyof ContextUser>
 }
 
 export function wrapWithErrorHandler(
@@ -39,20 +41,25 @@ export function wrapWithErrorHandler(
         return { ...tr, [key]: proxy(useCase) }
     }, {}) as Tribalizm
     function proxy(obj: any) {
-        return Object.entries(obj).reduce((r, [k, v]) => {
-            if (typeof v === 'function') {
-                const fn = function (...args: any[]) {
-                    const value = v.apply(obj, args)
-                    if ('catch' in value && typeof value.catch === 'function') {
-                        return new Promise((resolve, reject) =>
-                            value.then(resolve).catch(reject)
-                        ).catch(handler)
+        return new Proxy(obj, {
+            get(obj, name) {
+                if (typeof obj[name] === 'function') {
+                    const fn = function (...args: any[]) {
+                        const value = obj[name].apply(obj, args)
+                        if (
+                            'catch' in value &&
+                            typeof value.catch === 'function'
+                        ) {
+                            return new Promise((resolve, reject) =>
+                                value.then(resolve).catch(reject)
+                            ).catch(handler)
+                        }
+                        return value
                     }
-                    return value
+                    return fn
                 }
-                return { ...r, [k]: fn }
-            }
-            return { ...r, [k]: v }
-        }, {})
+                return obj[name]
+            },
+        })
     }
 }

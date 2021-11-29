@@ -5,17 +5,17 @@ import { NotificationBus } from '../../../../use-cases/utils/notification-bus'
 import { i18n } from '../../i18n/i18n-ctx'
 import { TribeCtx } from '../tribe-ctx'
 import { TelegramUsersAdapter } from '../users-adapter'
-import { makeCalbackDataParser } from './calback-parser'
+import { makeCallbackDataParser } from './callback-parser'
 
 function actions(bot: Telegraf<TribeCtx>) {
     bot.action(accept.regex, async (ctx) => {
         const data = accept.parse(ctx.match[0])
-        await ctx.tribalizm.gateringAcknowledge.accept(data)
+        await ctx.tribalizm.gatheringAcknowledge.accept(data)
         ctx.reply(i18n(ctx).gathering.accepted())
     })
     bot.action(decline.regex, async (ctx) => {
         const data = decline.parse(ctx.match[0])
-        await ctx.tribalizm.gateringAcknowledge.decline(data)
+        await ctx.tribalizm.gatheringAcknowledge.decline(data)
         ctx.reply(i18n(ctx).gathering.declined())
     })
     bot.action(vote.regex, async (ctx) => {
@@ -25,16 +25,16 @@ function actions(bot: Telegraf<TribeCtx>) {
     })
 }
 
-const accept = makeCalbackDataParser('gathering-ack', [
+const accept = makeCallbackDataParser('gathering-ack', [
     'memberId',
     'gatheringId',
 ])
-const decline = makeCalbackDataParser('gathering-decline', [
+const decline = makeCallbackDataParser('gathering-decline', [
     'memberId',
     'gatheringId',
 ])
 
-const vote = makeCalbackDataParser('rate-gathering', [
+const vote = makeCallbackDataParser('rate-gathering', [
     'memberId',
     'gatheringId',
     'score',

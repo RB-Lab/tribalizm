@@ -385,7 +385,7 @@ async function setUp() {
         })
     )
     const tribeApp = new TribeApplication(context)
-    await tribeApp.appyToTribe({
+    await tribeApp.applyToTribe({
         coverLetter: 'foo',
         userId: user!.id,
         tribeId: tribe.id,
@@ -414,7 +414,7 @@ async function setUp() {
         initiation,
         ...context.async,
         ...context.stores,
-        spyOnMessage: makeMessageSpy(context.async.notififcationBus),
+        spyOnMessage: makeMessageSpy(context.async.notificationBus),
     }
 }
 

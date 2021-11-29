@@ -381,6 +381,7 @@ async function setup() {
     const city = await context.stores.cityStore.save(
         new City({
             name: 'Novosibirsk',
+            timeZone: 'Asia/Novosibirsk',
         })
     )
     const tribe = await context.stores.tribeStore.save(

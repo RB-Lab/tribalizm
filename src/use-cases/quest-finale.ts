@@ -7,7 +7,7 @@ import { Message } from './utils/message'
 import { HowWasQuestTask, IntroductionTask } from './utils/scheduler'
 
 export class QuestFinale extends ContextUser {
-    finalyze = async (req: QuestFinaleRequest) => {
+    finalize = async (req: QuestFinaleRequest) => {
         const quest = await this.getQuest(req.questId)
         quest.finish(req.memberId)
         const member = await this.getMember(req.memberId)

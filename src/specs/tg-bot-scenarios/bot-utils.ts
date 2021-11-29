@@ -171,7 +171,7 @@ export async function createTelegramContext(
     await server.start()
 
     const bot = await makeBot({
-        notifcationsBus: context.async.notififcationBus,
+        notificationBus: context.async.notificationBus,
         token,
         tribalism: context.tribalism,
         webHook: {

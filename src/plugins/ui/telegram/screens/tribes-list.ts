@@ -1,15 +1,30 @@
-import { Markup, Scenes, Telegraf } from 'telegraf'
-import { Tribalizm } from '../../../../use-cases/tribalism'
+import { Markup, Telegraf } from 'telegraf'
+import { Maybe, notEmpty } from '../../../../ts-utils'
 import { TribeInfo } from '../../../../use-cases/tribes-show'
 import { i18n } from '../../i18n/i18n-ctx'
 import { removeInlineKeyboard } from '../telegraf-hacks'
 import { TribeCtx } from '../tribe-ctx'
+import { UserState } from '../users-adapter'
+import { makeCallbackDataParser } from './callback-parser'
 
-function scenes() {
-    const locationScene = new Scenes.BaseScene<TribeCtx>('set-location')
+interface LocateState extends UserState {
+    type: 'locate-state'
+}
+function isLocateState(state: Maybe<UserState>): state is LocateState {
+    return notEmpty(state) && state.type === 'locate-state'
+}
+interface ApplyState extends UserState {
+    type: 'apply-state'
+    tribeId: string
+}
+function isApplyState(state: Maybe<UserState>): state is ApplyState {
+    return notEmpty(state) && state.type === 'apply-state'
+}
 
-    locationScene.enter(async (ctx) => {
+export function tribesListScreen(bot: Telegraf<TribeCtx>) {
+    bot.action('list-tribes', async (ctx) => {
         const texts = i18n(ctx).tribesList
+        ctx.user.setState<LocateState>({ type: 'locate-state' })
 
         const keyboard = Markup.keyboard([
             Markup.button.locationRequest(texts.requestLocation()),
@@ -21,44 +36,66 @@ function scenes() {
         ctx.reply(texts.requestLocationText(), keyboard)
     })
 
-    locationScene.on('location', async (ctx) => {
-        ;(ctx.scene.state as any).location = ctx.message.location
-        const tribes = await ctx.tribalizm.tribesShow.getLocalTribes({
-            coordinates: ctx.message.location,
-            limit: 3,
-        })
-        showTribesList(ctx, tribes)
+    bot.on('location', async (ctx, next) => {
+        if (isLocateState(ctx.user.state)) {
+            await ctx.tribalizm.locateUser.locateUserByCoordinates({
+                latitude: ctx.message.location.latitude,
+                longitude: ctx.message.location.longitude,
+                userId: ctx.user.userId,
+            })
+            const tribes = await ctx.tribalizm.tribesShow.getLocalTribes({
+                limit: 3,
+                userId: ctx.user.userId,
+            })
+            showTribesList(ctx, tribes)
+            ctx.user.setState(null)
+        } else {
+            next()
+        }
     })
 
-    locationScene.on('text', async (ctx) => {
-        const texts = i18n(ctx).tribesList
-        ;(ctx.scene.state as any).citySearchString = ctx.message.text
-        const tribes = await ctx.tribalizm.tribesShow.getLocalTribes({
-            coordinates: null,
-            citySearchString: ctx.message.text,
-            limit: 3,
-        })
-        // remove "share location" button
-        await ctx.reply(
-            texts.searchIn({ city: ctx.message.text }),
-            Markup.removeKeyboard()
-        )
-        showTribesList(ctx, tribes)
+    bot.on('text', async (ctx, next) => {
+        const state = ctx.user.state
+        if (isLocateState(state)) {
+            await ctx.tribalizm.locateUser.locateUserByCityName({
+                cityName: ctx.message.text,
+                userId: ctx.user.userId,
+            })
+            const tribes = await ctx.tribalizm.tribesShow.getLocalTribes({
+                limit: 3,
+                userId: ctx.user.userId,
+            })
+            // remove "share location" button
+            await ctx.reply(
+                i18n(ctx).tribesList.searchIn({ city: ctx.message.text }),
+                Markup.removeKeyboard()
+            )
+            showTribesList(ctx, tribes)
+            ctx.user.setState(null)
+        } else if (isApplyState(state)) {
+            const texts = i18n(ctx).tribesList
+            await ctx.tribalizm.tribeApplication.applyToTribe({
+                coverLetter: ctx.message.text,
+                tribeId: state.tribeId,
+                userId: ctx.user.userId,
+            })
+
+            ctx.reply(texts.applicationSent())
+            ctx.user.setState(null)
+        } else {
+            next()
+        }
     })
 
-    interface Ctx {
-        replyWithHTML: (string: string, keyboard: any) => any
-        from?: { language_code?: string }
-    }
-
-    function showTribesList(ctx: Ctx, tribes: TribeInfo[]) {
+    const applyTribe = makeCallbackDataParser('apply-tribe', ['tribeId'])
+    function showTribesList(ctx: TribeCtx, tribes: TribeInfo[]) {
         const texts = i18n(ctx).tribesList
 
         tribes.forEach((tribe) => {
             const keyboard = Markup.inlineKeyboard([
                 Markup.button.callback(
                     texts.apply(),
-                    `apply-tribe:${tribe.id}`
+                    applyTribe.serialize({ tribeId: tribe.id })
                 ),
             ])
             ctx.replyWithHTML(
@@ -69,41 +106,15 @@ function scenes() {
             )
         })
     }
-
-    const applyTribeScene = new Scenes.BaseScene<TribeCtx>('apply-tribe')
-    applyTribeScene.enter(async (ctx) => {
+    bot.action(applyTribe.regex, async (ctx) => {
+        const { tribeId } = applyTribe.parse(ctx.match.input)
         const texts = i18n(ctx).tribesList
+
+        ctx.user.setState<ApplyState>({ type: 'apply-state', tribeId })
         const tribe = await ctx.tribalizm.tribesShow.getTribeInfo({
-            tribeId: (ctx.scene.state as any).tribeId,
+            tribeId,
         })
+        removeInlineKeyboard(ctx, texts.applicationSentShort())
         ctx.reply(texts.applyText({ tribe: tribe.name }))
     })
-    applyTribeScene.on('text', async (ctx) => {
-        const texts = i18n(ctx).tribesList
-        await ctx.tribalizm.tribeApplication.appyToTribe({
-            coverLetter: ctx.message.text,
-            tribeId: (ctx.scene.state as any).tribeId,
-            userId: ctx.user.userId,
-        })
-
-        ctx.reply(texts.applicationSent())
-        ctx.scene.leave()
-    })
-
-    return [locationScene, applyTribeScene]
 }
-
-function actions(bot: Telegraf<TribeCtx>) {
-    bot.action('list-tribes', (ctx) => {
-        ctx.scene.enter('set-location')
-    })
-
-    bot.action(/apply-tribe:+/, (ctx) => {
-        const texts = i18n(ctx).tribesList
-        removeInlineKeyboard(ctx, `\n${texts.applicationSentShort()}`)
-        ctx.scene.enter('apply-tribe', {
-            tribeId: ctx.match.input.replace('apply-tribe:', ''),
-        })
-    })
-}
-export const tribesListScreen = { scenes, actions }

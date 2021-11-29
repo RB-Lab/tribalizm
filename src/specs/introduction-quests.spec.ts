@@ -161,7 +161,7 @@ async function setUp(size?: number) {
     const questFinale = new QuestFinale(context)
 
     const getApproval = async () => {
-        await tribeApplication.appyToTribe({
+        await tribeApplication.applyToTribe({
             coverLetter: 'I want to FOO!',
             tribeId: tribe.id,
             userId: user.id,
@@ -206,7 +206,7 @@ async function setUp(size?: number) {
             await introQuests.notifyOldMember(task)
             const quest = await context.stores.questStore._last()
             for (let id of quest!.memberIds) {
-                await questFinale.finalyze({
+                await questFinale.finalize({
                     memberId: id,
                     questId: quest!.id,
                     votes: [],

@@ -11,7 +11,7 @@ import {
     isHowWasGatheringTask,
 } from './scheduler'
 
-export class TaskDiscpatcher {
+export class TaskDispatcher {
     private tribalism: Tribalizm
     private scheduler: Scheduler
     constructor(tribalism: Tribalizm, scheduler: Scheduler) {

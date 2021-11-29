@@ -227,6 +227,6 @@ async function setUp() {
                 })
             )[0] as CoordinationQuest
         },
-        spyOnMessage: makeMessageSpy(context.async.notififcationBus),
+        spyOnMessage: makeMessageSpy(context.async.notificationBus),
     }
 }

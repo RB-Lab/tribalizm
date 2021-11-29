@@ -1,7 +1,7 @@
 import { NotYourTribe } from './utils/not-your-tribe'
 import { ContextUser } from './utils/context-user'
 
-export class GateringAcknowledge extends ContextUser {
+export class GatheringAcknowledge extends ContextUser {
     accept = async (req: GatheringAcknowledgeRequest) => {
         const gathering = await this.getGathering(req.gatheringId)
         await this.checkTribe(req)

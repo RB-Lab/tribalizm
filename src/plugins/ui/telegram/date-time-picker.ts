@@ -2,13 +2,13 @@ import { Markup, Telegraf } from 'telegraf'
 import Calendar from 'telegraf-calendar-telegram'
 import { i18n } from '../i18n/i18n-ctx'
 import { TribeCtx } from './tribe-ctx'
-import { makeCalbackDataParser } from './screens/calback-parser'
+import { makeCallbackDataParser } from './screens/callback-parser'
 
-const calendarHours = makeCalbackDataParser('date-time-picker-hours', [
+const calendarHours = makeCallbackDataParser('date-time-picker-hours', [
     'date',
     'hours',
 ])
-const calendarMinutes = makeCalbackDataParser('date-time-picker-minutes', [
+const calendarMinutes = makeCallbackDataParser('date-time-picker-minutes', [
     'dateString',
     'minutes',
 ])
@@ -69,7 +69,7 @@ export class DateTimePicker {
             }
         })
     }
-    getCalerndar = (handler: SetDateHandler, locale = 'en') => {
+    getCalendar = (handler: SetDateHandler, locale = 'en') => {
         this.locale = locale
         const texts = i18n({ locale }).calendar
 

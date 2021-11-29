@@ -251,13 +251,13 @@ async function setUp() {
         const declined = [10, 7]
         for (let m of members) {
             if (accepted.includes(members.indexOf(m))) {
-                await context.tribalism.gateringAcknowledge.accept({
+                await context.tribalism.gatheringAcknowledge.accept({
                     gatheringId: gathering.id,
                     memberId: m.id,
                 })
             }
             if (declined.includes(members.indexOf(m))) {
-                await context.tribalism.gateringAcknowledge.decline({
+                await context.tribalism.gatheringAcknowledge.decline({
                     gatheringId: gathering.id,
                     memberId: m.id,
                 })

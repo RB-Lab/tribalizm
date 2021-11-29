@@ -1,14 +1,13 @@
-import { Markup, Scenes, Telegraf } from 'telegraf'
+import { Markup, Telegraf } from 'telegraf'
 import { RateElderMessage } from '../../../../use-cases/initiation'
 import { RateMemberMessage } from '../../../../use-cases/quest-finale'
-import { Tribalizm } from '../../../../use-cases/tribalism'
 import { NotificationBus } from '../../../../use-cases/utils/notification-bus'
 import { i18n } from '../../i18n/i18n-ctx'
 import { TribeCtx } from '../tribe-ctx'
 import { TelegramUsersAdapter } from '../users-adapter'
-import { makeCalbackDataParser } from './calback-parser'
+import { makeCallbackDataParser } from './callback-parser'
 
-const parser = makeCalbackDataParser('rate-member', [
+const parser = makeCallbackDataParser('rate-member', [
     'memberId',
     'voteFor',
     'questId',
@@ -22,7 +21,7 @@ function actions(bot: Telegraf<TribeCtx>) {
         const data = parser.parse(ctx.match[0])
 
         if (data.charisma) {
-            ctx.tribalizm.questFinale.finalyze({
+            ctx.tribalizm.questFinale.finalize({
                 memberId: data.memberId,
                 questId: data.questId,
                 votes: [

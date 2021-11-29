@@ -354,7 +354,7 @@ async function setUp(settings: Settings = {}) {
                 )
             )
         },
-        spyOnMessage: makeMessageSpy(context.async.notififcationBus),
+        spyOnMessage: makeMessageSpy(context.async.notificationBus),
     }
 }
 

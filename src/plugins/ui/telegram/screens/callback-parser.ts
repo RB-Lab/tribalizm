@@ -1,5 +1,8 @@
-// TODO add constarin so that T's values are only strings
-export function makeCalbackDataParser<T>(cbName: string, keys: Array<keyof T>) {
+// TODO add constrain so that T's values are only strings
+export function makeCallbackDataParser<T>(
+    cbName: string,
+    keys: Array<keyof T>
+) {
     return {
         serialize: (data?: T) => {
             if (!data) {

@@ -15,9 +15,9 @@ import { i18n } from '../../i18n/i18n-ctx'
 import { removeInlineKeyboard } from '../telegraf-hacks'
 import { TribeCtx } from '../tribe-ctx'
 import { TelegramUsersAdapter, UserState } from '../users-adapter'
-import { makeCalbackDataParser } from './calback-parser'
+import { makeCallbackDataParser } from './callback-parser'
 
-const startBrst = makeCalbackDataParser('storm-start', ['memberId'])
+const startBrst = makeCallbackDataParser('storm-start', ['memberId'])
 
 interface Message {
     brainstormId: string
@@ -182,14 +182,14 @@ function attachNotifications(
     )
 }
 
-const voteParser = makeCalbackDataParser('vote-idea', [
+const voteParser = makeCallbackDataParser('vote-idea', [
     'brainstormId',
     'memberId',
     'ideaId',
     'vote',
 ])
 
-const stormConfirm = makeCalbackDataParser('storm-confirm', [
+const stormConfirm = makeCallbackDataParser('storm-confirm', [
     'memberId',
     'time',
 ])
@@ -218,7 +218,7 @@ function actions(bot: Telegraf<TribeCtx>) {
         }
         ctx.reply(
             texts.proposeDate(),
-            ctx.getCalenar(onDateSet, ctx.from?.language_code)
+            ctx.getCalendar(onDateSet, ctx.from?.language_code)
         )
     })
     bot.action(stormConfirm.regex, async (ctx) => {

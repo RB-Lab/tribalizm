@@ -1,6 +1,7 @@
 import { loadCities } from '../scripts/load-cities'
 import { City } from '../use-cases/entities/city'
 import { Storable } from '../use-cases/entities/store'
+import { User } from '../use-cases/entities/user'
 import { TribeShow } from '../use-cases/tribes-show'
 import { createContext } from './test-context'
 
@@ -8,7 +9,7 @@ describe('Show tribe(s)', () => {
     it('list tribes for coordinates', async () => {
         const world = await setUp()
         const tribes = await world.tribeShow.getLocalTribes({
-            coordinates: { latitude: 59.92, longitude: 10.8 },
+            userId: world.user.id,
         })
         expect(tribes.length).toBe(2)
         expect(tribes).toEqual(
@@ -61,13 +62,19 @@ async function setUp() {
         const cities = await context.stores.cityStore.find({ name: 'Oslo' })
         city = cities[0]
     } else {
-        city = await context.stores.cityStore.save(new City({ name: 'Oslo' }))
+        city = await context.stores.cityStore.save(
+            new City({ name: 'Oslo', timeZone: 'Europe/Oslo' })
+        )
     }
+    const user = await context.stores.userStore.save(
+        new User({
+            name: 'Rual Amudsen',
+            cityId: city.id,
+        })
+    )
     const { tribe, members, users } = await context.testing.makeTribe()
-    const {
-        tribe: tribe2,
-        members: members2,
-    } = await context.testing.makeTribe(12)
+    const { tribe: tribe2, members: members2 } =
+        await context.testing.makeTribe(12)
     const { tribe: tribe3 } = await context.testing.makeTribe()
     await context.stores.tribeStore.save({ ...tribe, cityId: city.id })
     await context.stores.tribeStore.save({ ...tribe2, cityId: city.id })
@@ -81,6 +88,7 @@ async function setUp() {
         tribe3,
         members,
         members2,
+        user,
         users,
         ...context.stores,
         spyOnMessage: context.testing.spyOnMessage,

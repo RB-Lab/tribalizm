@@ -1,13 +1,13 @@
 import {
     IGathering,
     Gathering,
-    GatheringtStore,
+    GatheringStore,
 } from '../../../use-cases/entities/gathering'
 import { MongoStore } from './mongo-store'
 
 export class MongoGatheringStore
     extends MongoStore<IGathering>
-    implements GatheringtStore
+    implements GatheringStore
 {
     _class = Gathering
 }

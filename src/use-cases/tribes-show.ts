@@ -1,6 +1,3 @@
-import { City } from './entities/city'
-import { Coordinates } from './entities/location'
-import { Storable } from './entities/store'
 import { TribeType } from './entities/tribe'
 import { ContextUser } from './utils/context-user'
 
@@ -16,8 +13,7 @@ export interface TribeInfo {
 }
 
 export interface TribesRequest {
-    coordinates: Coordinates | null
-    citySearchString?: string
+    userId: string
     after?: string
     limit?: number
 }
@@ -43,16 +39,9 @@ export class TribeShow extends ContextUser {
         return response
     }
     getLocalTribes = async (req: TribesRequest) => {
-        let city: (City & Storable) | null = null
-        if (req.coordinates) {
-            city = await this.stores.cityStore.findByCoordinates(
-                req.coordinates
-            )
-        } else if (req.citySearchString) {
-            city = (
-                await this.stores.cityStore.find({ name: req.citySearchString })
-            )[0]
-        }
+        const user = await this.getUser(req.userId)
+        if (!user.cityId) return []
+        const city = await this.stores.cityStore.getById(user.cityId)
         if (!city) {
             return []
         }

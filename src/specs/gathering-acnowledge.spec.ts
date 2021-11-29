@@ -1,6 +1,6 @@
 import { Gathering } from '../use-cases/entities/gathering'
 import { Member } from '../use-cases/entities/member'
-import { GateringAcknowledge } from '../use-cases/gathering-acknowledge'
+import { GatheringAcknowledge } from '../use-cases/gathering-acknowledge'
 import { NotYourTribe } from '../use-cases/utils/not-your-tribe'
 import { createContext } from './test-context'
 
@@ -11,7 +11,7 @@ describe('Gathering acknowledgement', () => {
         const gathering = await world.gatheringStore.getById(world.gathering.id)
         expect(gathering!.accepted).toContain(world.members[0].id)
     })
-    it('FAILs to acknoledge if member is from different tribe', async () => {
+    it('FAILs to acknowledge if member is from different tribe', async () => {
         const world = await setUp()
         const anotherMember = await world.memberStore.save(
             new Member({
@@ -52,7 +52,7 @@ describe('Gathering acknowledgement', () => {
 
 async function setUp() {
     const context = await createContext()
-    const gatheringAck = new GateringAcknowledge(context)
+    const gatheringAck = new GatheringAcknowledge(context)
 
     const { tribe, members } = await context.testing.makeTribe()
     const gathering = await context.stores.gatheringStore.save(

@@ -8,7 +8,7 @@ import { i18n } from '../../i18n/i18n-ctx'
 import { removeInlineKeyboard } from '../telegraf-hacks'
 import { TribeCtx } from '../tribe-ctx'
 import { TelegramUsersAdapter, UserState } from '../users-adapter'
-import { makeCalbackDataParser } from './calback-parser'
+import { makeCallbackDataParser } from './callback-parser'
 import { negotiate } from './quest-negotiation'
 
 interface SpawnState extends UserState {
@@ -159,7 +159,7 @@ function actions(bot: Telegraf<TribeCtx>) {
             if (!state.date) {
                 ctx.reply(
                     texts.gatheringWhen(),
-                    ctx.getCalenar(onDateSet, ctx.from?.language_code)
+                    ctx.getCalendar(onDateSet, ctx.from?.language_code)
                 )
             } else {
                 await showConfirm(ctx)
@@ -170,15 +170,15 @@ function actions(bot: Telegraf<TribeCtx>) {
     })
 }
 
-const gatherConfirm = makeCalbackDataParser('gather-confrim', [])
+const gatherConfirm = makeCallbackDataParser('gather-confirm', [])
 
-const spawn = makeCalbackDataParser('spawn-quest', ['questId', 'memberId'])
-const gathering = makeCalbackDataParser('declare-gathering', [
+const spawn = makeCallbackDataParser('spawn-quest', ['questId', 'memberId'])
+const gathering = makeCallbackDataParser('declare-gathering', [
     'questId',
     'memberId',
     'type',
 ])
-const reQuest = makeCalbackDataParser('re-quest', ['questId', 'memberId'])
+const reQuest = makeCallbackDataParser('re-quest', ['questId', 'memberId'])
 
 function attachNotifications(
     bot: Telegraf<TribeCtx>,

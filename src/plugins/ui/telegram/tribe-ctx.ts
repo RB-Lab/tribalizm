@@ -7,7 +7,7 @@ export interface TribeCtx extends Scenes.SceneContext {
     user: TelegramUser
     tribalizm: Tribalizm
     reportError: (err: any) => void
-    getCalenar: (
+    getCalendar: (
         hanlder: (date: Date, ctx: TribeCtx) => void,
         locale?: string
     ) => ExtraReplyMessage

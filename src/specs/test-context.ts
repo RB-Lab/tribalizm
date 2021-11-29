@@ -28,12 +28,13 @@ import { Brainstorm, QuestIdea } from '../use-cases/entities/brainstorm'
 import { IMember, Member } from '../use-cases/entities/member'
 import { Tribe } from '../use-cases/entities/tribe'
 import { User } from '../use-cases/entities/user'
-import { GateringAcknowledge } from '../use-cases/gathering-acknowledge'
+import { GatheringAcknowledge } from '../use-cases/gathering-acknowledge'
 import { GatheringDeclare } from '../use-cases/gathering-declare'
 import { GatheringFinale } from '../use-cases/gathering-finale'
 import { IdeasIncarnation } from '../use-cases/incarnate-ideas'
 import { Initiation } from '../use-cases/initiation'
 import { IntroductionQuests } from '../use-cases/introduction-quests'
+import { LocateUser } from '../use-cases/locate-user'
 import { QuestNegotiation } from '../use-cases/negotiate-quest'
 import { QuestFinale } from '../use-cases/quest-finale'
 import { SpawnQuest } from '../use-cases/spawn-quest'
@@ -41,7 +42,7 @@ import { TribeShow } from '../use-cases/tribes-show'
 import { Message } from '../use-cases/utils/message'
 import { NotificationBus } from '../use-cases/utils/notification-bus'
 import { Scheduler } from '../use-cases/utils/scheduler'
-import { TaskDiscpatcher } from '../use-cases/utils/task-dispatcher'
+import { TaskDispatcher } from '../use-cases/utils/task-dispatcher'
 import { Voting } from '../use-cases/vote-idea'
 
 function createInmemroyStores() {
@@ -116,7 +117,7 @@ async function createMongoStores() {
 }
 
 export async function createContext() {
-    const notififcationBus = new TestNotificationBus()
+    const notificationBus = new TestNotificationBus()
     const stores =
         process.env.FULL_TEST === 'true'
             ? await createMongoStores()
@@ -162,7 +163,7 @@ export async function createContext() {
         ups = [1, 3, 4, 6],
         downs = [2, 5],
         neutrals: number[] = [],
-        ideaCreater = 0
+        ideaCreator = 0
     ) => {
         const tribeSize = ups.length + downs.length + neutrals.length + 1
         const { tribe, members, users } = await makeTribe(tribeSize)
@@ -177,7 +178,7 @@ export async function createContext() {
             new QuestIdea({
                 brainstormId: brainstorm.id,
                 description: 'let us FOOO!',
-                memberId: members[ideaCreater].id,
+                memberId: members[ideaCreator].id,
             })
         )
         ups.forEach((i) => idea.voteUp(members[i].id))
@@ -190,7 +191,7 @@ export async function createContext() {
         return { tribe, members, users, idea, upvoters, downvoters, allTribe }
     }
     const testing = {
-        spyOnMessage: makeMessageSpy(notififcationBus),
+        spyOnMessage: makeMessageSpy(notificationBus),
         makeTribe,
         makeIdea,
     }
@@ -198,7 +199,7 @@ export async function createContext() {
     const context = {
         stores,
         async: {
-            notififcationBus,
+            notificationBus,
         },
     }
     async function addVotes(member: IMember, c: number, w: number) {
@@ -219,7 +220,7 @@ export async function createContext() {
     const tribalism = {
         addIdea: new AddIdea(context),
         brainstormLifecycle: new BrainstormLifecycle(context),
-        gateringAcknowledge: new GateringAcknowledge(context),
+        gatheringAcknowledge: new GatheringAcknowledge(context),
         gatheringDeclare: new GatheringDeclare(context),
         gatheringFinale: new GatheringFinale(context),
         initiation: new Initiation(context),
@@ -231,9 +232,10 @@ export async function createContext() {
         questFinale: new QuestFinale(context),
         spawnQuest: new SpawnQuest(context),
         voting: new Voting(context),
+        locateUser: new LocateUser(context),
     }
     const scheduler = new Scheduler(context.stores.taskStore)
-    const taskDiscpatcher = new TaskDiscpatcher(tribalism, scheduler)
+    const taskDispatcher = new TaskDispatcher(tribalism, scheduler)
 
     async function requestTaskQueue() {
         if (process.env.chatDebug) {
@@ -246,7 +248,7 @@ export async function createContext() {
                 } ---`
             )
         }
-        await taskDiscpatcher.run()
+        await taskDispatcher.run()
     }
 
     return {

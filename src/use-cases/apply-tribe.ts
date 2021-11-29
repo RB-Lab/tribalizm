@@ -11,7 +11,7 @@ export interface ApplicationRequest {
 }
 
 export class TribeApplication extends ContextUser {
-    appyToTribe = async (req: ApplicationRequest) => {
+    applyToTribe = async (req: ApplicationRequest) => {
         const user = await this.getUser(req.userId)
         const tribe = await this.getTribe(req.tribeId)
         if (!tribe.chiefId) {

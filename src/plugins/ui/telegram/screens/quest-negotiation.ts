@@ -10,16 +10,19 @@ import { i18n } from '../../i18n/i18n-ctx'
 import { removeInlineKeyboard } from '../telegraf-hacks'
 import { TribeCtx } from '../tribe-ctx'
 import { TelegramUsersAdapter, UserState } from '../users-adapter'
-import { makeCalbackDataParser } from './calback-parser'
+import { makeCallbackDataParser } from './callback-parser'
 
-export const negotiate = makeCalbackDataParser('negotiate-quest', [
+export const negotiate = makeCallbackDataParser('negotiate-quest', [
     'questId',
     'memberId',
     'elder',
 ])
 
-const agreeQuest = makeCalbackDataParser('agree-quest', ['questId', 'memberId'])
-const confirmProposal = makeCalbackDataParser('confirm-proposal', [])
+const agreeQuest = makeCallbackDataParser('agree-quest', [
+    'questId',
+    'memberId',
+])
+const confirmProposal = makeCallbackDataParser('confirm-proposal', [])
 
 interface NegotiationState extends UserState {
     type: 'negotiation-state'
@@ -47,7 +50,7 @@ function actions(bot: Telegraf<TribeCtx>) {
         })
         ctx.reply(
             texts.proposeDate(),
-            ctx.getCalenar(onDateSet, ctx.from?.language_code)
+            ctx.getCalendar(onDateSet, ctx.from?.language_code)
         )
     })
 
@@ -70,7 +73,7 @@ function actions(bot: Telegraf<TribeCtx>) {
         if (!state.date) {
             ctx.reply(
                 texts.proposeDate(),
-                ctx.getCalenar(onDateSet, ctx.from?.language_code)
+                ctx.getCalendar(onDateSet, ctx.from?.language_code)
             )
             return
         }
@@ -107,7 +110,7 @@ function actions(bot: Telegraf<TribeCtx>) {
             if (!state.date) {
                 ctx.reply(
                     texts.proposeDate(),
-                    ctx.getCalenar(onDateSet, ctx.from?.language_code)
+                    ctx.getCalendar(onDateSet, ctx.from?.language_code)
                 )
                 return
             }

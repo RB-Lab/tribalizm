@@ -54,7 +54,8 @@ async function run() {
 
     const city = await context.stores.cityStore.save(
         new City({
-            name: 'Aya Napa',
+            name: 'Oslo',
+            timeZone: 'Europe/Oslo',
         })
     )
     const tribes = await context.stores.tribeStore.saveBulk([
@@ -96,7 +97,7 @@ async function run() {
         },
         tribalism: context.tribalism,
         token,
-        notifcationsBus: context.async.notififcationBus,
+        notificationBus: context.async.notificationBus,
     }).then((bot) => {
         testLauncher(bot, telegramUsersAdapter)
     })

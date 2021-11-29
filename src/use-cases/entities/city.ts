@@ -12,18 +12,24 @@ export interface ICity {
     id: string | null
     name: string
     geometry: MultiPolygon
+    timeZone: string
 }
 
+export type StoredCity = ICity & Storable
 export class City implements ICity {
     public id: string | null
     public name: string
     geometry: MultiPolygon
-    constructor(params: Pick<ICity, 'name'> & Partial<ICity & Storable>) {
+    timeZone: string
+    constructor(
+        params: Pick<ICity, 'timeZone' | 'name'> & Partial<StoredCity>
+    ) {
         this.id = params.id || null
         this.name = params.name
         this.geometry = params.geometry || {
             type: 'MultiPolygon',
             coordinates: [[[]]],
         }
+        this.timeZone = params.timeZone
     }
 }

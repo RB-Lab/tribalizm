@@ -7,11 +7,9 @@ import {
     ApplicationPhase,
     IApplication,
 } from '../use-cases/entities/application'
-import { Coordinates } from '../use-cases/entities/location'
 import { SavedMember } from '../use-cases/entities/member'
 import {
     InitiationQuest,
-    IQuest,
     QuestStatus,
     QuestType,
 } from '../use-cases/entities/quest'
@@ -23,11 +21,11 @@ describe('Stranger application', () => {
     it('notifies target tribe chief', async () => {
         const world = await setUp()
         const onApplication = jasmine.createSpy('onApplication')
-        world.notififcationBus.subscribe<ApplicationMessage>(
+        world.notificationBus.subscribe<ApplicationMessage>(
             'application-message',
             onApplication
         )
-        await world.tribeApplication.appyToTribe(world.defReq)
+        await world.tribeApplication.applyToTribe(world.defReq)
 
         expect(onApplication).toHaveBeenCalledTimes(1)
         expect(onApplication).toHaveBeenCalledWith(
@@ -48,7 +46,7 @@ describe('Stranger application', () => {
 
     it('stores properly initialized application', async () => {
         const world = await setUp()
-        await world.tribeApplication.appyToTribe(world.defReq)
+        await world.tribeApplication.applyToTribe(world.defReq)
         const savedApp = await world.applicationStore._last()
         expect(savedApp).toEqual(
             jasmine.objectContaining<IApplication>({
@@ -62,7 +60,7 @@ describe('Stranger application', () => {
     it('creates an initiation quest', async () => {
         const world = await setUp()
 
-        await world.tribeApplication.appyToTribe(world.defReq)
+        await world.tribeApplication.applyToTribe(world.defReq)
         const quest = await world.questStore._last()
         const app = await world.applicationStore._last()
 
@@ -85,7 +83,7 @@ describe('Stranger application', () => {
             new Tribe({ name: 'tribe', cityId: 'city-42' })
         )
         await expectAsync(
-            world.tribeApplication.appyToTribe({
+            world.tribeApplication.applyToTribe({
                 ...world.defReq,
                 tribeId: tribe.id,
             })
@@ -95,7 +93,7 @@ describe('Stranger application', () => {
     it('creates a new member candidate', async () => {
         const world = await setUp()
 
-        await world.tribeApplication.appyToTribe(world.defReq)
+        await world.tribeApplication.applyToTribe(world.defReq)
         const app = await world.applicationStore._last()
         const members = await world.memberStore.find({
             tribeId: world.tribe.id,

@@ -1,6 +1,6 @@
 import { Storable, Store } from './store'
 
-export interface GatheringtStore extends Store<IGathering> {}
+export interface GatheringStore extends Store<IGathering> {}
 
 export type GatheringType = 'upvoters' | 'all'
 export interface IGatheringData {

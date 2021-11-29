@@ -274,7 +274,7 @@ export class Initiation extends ContextUser {
 
 export interface ApplicationChangeRequest {
     questId: string
-    // TODO think about memberId instead, if it looks like we're moving it around anyway
+    // TODO get memberId back
     elderUserId: string
 }
 export type InitiationRequest = ApplicationChangeRequest
