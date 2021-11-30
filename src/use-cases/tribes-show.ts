@@ -41,11 +41,10 @@ export class TribeShow extends ContextUser {
     getLocalTribes = async (req: TribesRequest) => {
         const user = await this.getUser(req.userId)
         if (!user.cityId) return []
-        const city = await this.stores.cityStore.getById(user.cityId)
-        if (!city) {
-            return []
-        }
-        const tribes = await this.stores.tribeStore.find({ cityId: city.id })
+        const tribes = await this.stores.tribeStore.find({
+            cityId: user.cityId,
+        })
+
         const counts = await this.stores.memberStore.countTribeMembers(
             tribes.map((t) => t.id)
         )

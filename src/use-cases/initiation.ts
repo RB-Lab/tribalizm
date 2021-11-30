@@ -105,7 +105,7 @@ export class Initiation extends ContextUser {
         )
         this.checkElder(app.shamanId, elder.id, app.memberId)
         app.nextPhase()
-        this.stores.applicationStore.save(app)
+        await this.stores.applicationStore.save(app)
     }
     approveByShaman = async (req: ShamanApprovalRequest) => {
         const { app } = await this.getQuestAndApplication(req.questId)
@@ -261,7 +261,7 @@ export class Initiation extends ContextUser {
         }
         const n = Math.floor(Math.random() * members.length)
         this.scheduler.schedule<IntroductionTask>({
-            type: 'intorduction-quest',
+            type: 'introduction-quest',
             done: false,
             time: Date.now() + 20 * 3_600_000,
             payload: {

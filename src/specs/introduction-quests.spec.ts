@@ -16,11 +16,11 @@ describe('Introduction quests', () => {
     it('allocates introduction task on member approval', async () => {
         const world = await setUp()
         const newMember = await world.getApproval()
-        const tasks = await world.taskStore.find({ type: 'intorduction-quest' })
+        const tasks = await world.taskStore.find({ type: 'introduction-quest' })
         expect(tasks.length).toBe(1)
         expect(tasks[0]).toEqual(
             jasmine.objectContaining<IntroductionTask>({
-                type: 'intorduction-quest',
+                type: 'introduction-quest',
                 done: false,
                 time: jasmine.any(Number),
                 payload: {
@@ -190,7 +190,7 @@ async function setUp(size?: number) {
 
     const getNewItroTask = async () => {
         const tasks = await context.stores.taskStore.find({
-            type: 'intorduction-quest',
+            type: 'introduction-quest',
             done: false,
         })
         return tasks.length ? (tasks[0] as IntroductionTask & Storable) : null

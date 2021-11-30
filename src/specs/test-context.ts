@@ -45,7 +45,7 @@ import { Scheduler } from '../use-cases/utils/scheduler'
 import { TaskDispatcher } from '../use-cases/utils/task-dispatcher'
 import { Voting } from '../use-cases/vote-idea'
 
-function createInmemroyStores() {
+function createInMemoryStores() {
     const ideaStore = new InMemoryIdeaStore()
     const brainstormStore = new InMemoryBrainstormStore()
     const applicationStore = new InMemoryApplicationStore()
@@ -121,7 +121,7 @@ export async function createContext() {
     const stores =
         process.env.FULL_TEST === 'true'
             ? await createMongoStores()
-            : createInmemroyStores()
+            : createInMemoryStores()
 
     const makeTribe = async (n = 6) => {
         let tribe = await stores.tribeStore.save(

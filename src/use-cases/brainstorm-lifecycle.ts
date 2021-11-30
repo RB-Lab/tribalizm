@@ -1,6 +1,6 @@
 import { Brainstorm } from './entities/brainstorm'
 import {
-    StormFinalyze,
+    StormFinalize,
     StormNotify,
     StormStart,
     StormToVoting,
@@ -35,13 +35,13 @@ export class BrainstormLifecycle extends ContextUser {
         })
 
         await this.scheduler.schedule<StormNotify>({
-            type: 'notfy-brainstorm',
+            type: 'notify-brainstorm',
             done: false,
             time: storm.time - 6 * 3_600_000,
             payload: { brainstormId: storm.id },
         })
         await this.scheduler.schedule<StormNotify>({
-            type: 'notfy-brainstorm',
+            type: 'notify-brainstorm',
             done: false,
             time: storm.time - 5 * 60_000,
             payload: { brainstormId: storm.id },
@@ -138,8 +138,8 @@ export class BrainstormLifecycle extends ContextUser {
                 },
             })
         })
-        this.scheduler.schedule<StormFinalyze>({
-            type: 'brainstorm-to-finalyze',
+        this.scheduler.schedule<StormFinalize>({
+            type: 'brainstorm-to-finalize',
             done: false,
             time: Date.now() + 5 * 60_000,
             payload: { brainstormId: storm.id },
@@ -148,7 +148,7 @@ export class BrainstormLifecycle extends ContextUser {
         await this.stores.brainstormStore.save(storm)
         await this.scheduler.markDone(task.id)
     }
-    finalyze = async (task: StormFinalyze) => {
+    finalyze = async (task: StormFinalize) => {
         const brainstorm = await this.getBrainstorm(task.payload.brainstormId)
         brainstorm.finish()
         await this.stores.brainstormStore.save(brainstorm)

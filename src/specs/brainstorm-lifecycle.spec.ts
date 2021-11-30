@@ -13,11 +13,11 @@ import {
     IBrainstormData,
 } from '../use-cases/entities/brainstorm'
 import {
-    isStormFinalyze,
+    isStormFinalize,
     isStormNotify,
     isStormStart,
     isStormToVoting,
-    StormFinalyze,
+    StormFinalize,
     StormNotify,
     StormStart,
     StormToVoting,
@@ -76,14 +76,14 @@ describe('Brainstorm lifecycle', () => {
     it('alocates two tasks to notify about storm', async () => {
         const world = await setUp()
         await world.stromCycle.declare(world.defReq)
-        const tasks = await world.taskStore.find({ type: 'notfy-brainstorm' })
+        const tasks = await world.taskStore.find({ type: 'notify-brainstorm' })
         const storms = await world.brainstormStore.find({})
         expect(tasks.length).toEqual(2)
         expect(tasks[0]).toEqual(
             jasmine.objectContaining<StormNotify>({
                 done: false,
                 time: storms[0].time - 6 * 3600_000,
-                type: 'notfy-brainstorm',
+                type: 'notify-brainstorm',
                 payload: {
                     brainstormId: storms[0].id,
                 },
@@ -93,7 +93,7 @@ describe('Brainstorm lifecycle', () => {
             jasmine.objectContaining<StormNotify>({
                 done: false,
                 time: storms[0].time - 5 * 60_000,
-                type: 'notfy-brainstorm',
+                type: 'notify-brainstorm',
                 payload: {
                     brainstormId: storms[0].id,
                 },
@@ -139,7 +139,7 @@ describe('Brainstorm lifecycle', () => {
             })
         )
         const task = await world.taskStore.save({
-            type: 'notfy-brainstorm',
+            type: 'notify-brainstorm',
             done: false,
             time: Date.now(),
             payload: { brainstormId: brainstorm.id },
@@ -249,14 +249,14 @@ describe('Brainstorm lifecycle', () => {
         const world = await setUp()
         const { brainstorm } = await world.stormToVoting()
         const tasks = await world.taskStore.find({
-            type: 'brainstorm-to-finalyze',
+            type: 'brainstorm-to-finalize',
         })
         expect(tasks.length).toEqual(1)
         expect(tasks[0]).toEqual(
-            jasmine.objectContaining<StormFinalyze>({
+            jasmine.objectContaining<StormFinalize>({
                 done: false,
                 time: jasmine.any(Number),
-                type: 'brainstorm-to-finalyze',
+                type: 'brainstorm-to-finalize',
                 payload: { brainstormId: brainstorm.id },
             })
         )
@@ -269,7 +269,7 @@ describe('Brainstorm lifecycle', () => {
         const { brainstorm } = await world.stormToVoting()
         const task = await world.taskStore._last()
 
-        if (isStormFinalyze(task)) {
+        if (isStormFinalize(task)) {
             await world.stromCycle.finalyze(task)
         }
         const storm = await world.brainstormStore.getById(brainstorm.id)
@@ -283,7 +283,7 @@ describe('Brainstorm lifecycle', () => {
         const { brainstorm } = await world.stormToVoting()
         const task = await world.taskStore._last()
 
-        if (isStormFinalyze(task)) {
+        if (isStormFinalize(task)) {
             await world.stromCycle.finalyze(task)
         }
         expect(onEnded).toHaveBeenCalledTimes(world.members.length - 1)
@@ -304,7 +304,7 @@ describe('Brainstorm lifecycle', () => {
         const { brainstorm } = await world.startStorm()
         return expectAsync(
             world.stromCycle.finalyze({
-                type: 'brainstorm-to-finalyze',
+                type: 'brainstorm-to-finalize',
                 time: Date.now(),
                 done: false,
                 payload: { brainstormId: brainstorm.id },

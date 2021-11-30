@@ -20,7 +20,7 @@ export class Scheduler {
         this.taskStore = taskStore
     }
     schedule = async <T extends ITask>(task: T) => {
-        this.taskStore.save(task)
+        await this.taskStore.save(task)
     }
     getTasks = async () => {
         return await this.taskStore.getAwaitingTasks(Date.now())
@@ -28,7 +28,7 @@ export class Scheduler {
     markDone = async (taskId: string) => {
         const task = await this.getTask(taskId)
         task.done = true
-        this.taskStore.save(task)
+        await this.taskStore.save(task)
     }
     private async getTask(taskId: string) {
         const task = await this.taskStore.getById(taskId)
@@ -42,14 +42,14 @@ export class Scheduler {
 export interface StormNotify extends ITask {
     time: number
     done: boolean
-    type: 'notfy-brainstorm'
+    type: 'notify-brainstorm'
     payload: {
         brainstormId: string
     }
 }
 export function isStormNotify(task: ITask): task is StormNotify {
     return (
-        task.type === 'notfy-brainstorm' &&
+        task.type === 'notify-brainstorm' &&
         task.payload !== null &&
         'brainstormId' in task.payload
     )
@@ -85,17 +85,17 @@ export function isStormToVoting(task: ITask): task is StormToVoting {
         'brainstormId' in task.payload
     )
 }
-export interface StormFinalyze extends ITask {
+export interface StormFinalize extends ITask {
     time: number
     done: boolean
-    type: 'brainstorm-to-finalyze'
+    type: 'brainstorm-to-finalize'
     payload: {
         brainstormId: string
     }
 }
-export function isStormFinalyze(task: ITask): task is StormFinalyze {
+export function isStormFinalize(task: ITask): task is StormFinalize {
     return (
-        task.type === 'brainstorm-to-finalyze' &&
+        task.type === 'brainstorm-to-finalize' &&
         task.payload !== null &&
         'brainstormId' in task.payload
     )
@@ -104,7 +104,7 @@ export function isStormFinalyze(task: ITask): task is StormFinalyze {
 export interface IntroductionTask extends ITask {
     time: number
     done: boolean
-    type: 'intorduction-quest'
+    type: 'introduction-quest'
     payload: {
         newMemberId: string
         oldMemberId: string
@@ -112,7 +112,7 @@ export interface IntroductionTask extends ITask {
 }
 export function isIntroductionTask(task: ITask): task is IntroductionTask {
     return (
-        task.type === 'intorduction-quest' &&
+        task.type === 'introduction-quest' &&
         task.payload !== null &&
         'newMemberId' in task.payload &&
         'oldMemberId' in task.payload
@@ -128,9 +128,7 @@ export interface HowWasQuestTask extends ITask {
         questType: QuestType
     }
 }
-// NOTE HowWasQuestTask should be handled differently depentding on quest type:
-//      - cast votes for intro and coordination and init for new member
-//      - accept or decline application for init for chief/shaman
+
 export function isHowWasQuestTask(task: ITask): task is HowWasQuestTask {
     return (
         task.type === 'how-was-quest' &&

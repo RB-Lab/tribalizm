@@ -11,15 +11,17 @@ import {
 describe('Get into tribe [integration]', () => {
     let world: Awaited<ReturnType<typeof setup>>
     beforeEach(async () => {
+        jasmine.DEFAULT_TIMEOUT_INTERVAL = 10000
         jasmine.clock().install()
         jasmine.clock().mockDate(new Date('2021-11-02'))
         world = await setup()
-
         // process.env.chatDebug = 'true'
     })
     afterEach(async () => {
+        jasmine.DEFAULT_TIMEOUT_INTERVAL = 5000
         await world.tearDown()
         jasmine.clock().uninstall()
+        process.env.chatDebug = ''
     })
 
     it('Main scenario', async () => {
@@ -140,7 +142,10 @@ describe('Get into tribe [integration]', () => {
         const rateChiefWisdomButtons = getInlineKeyCallbacks(rateChiefWisdomUpd)
         expect(rateChiefWisdomButtons.length).toBe(6)
         await world.newUser.chatLast(rateChiefWisdomButtons[3])
-        expect(world.chief.member.votes.length).toBe(votesBefore + 1)
+        const chiefAfter = await world.context.stores.memberStore.getById(
+            world.chief.member.id
+        )
+        expect(chiefAfter!.votes.length).toBe(votesBefore + 1)
 
         // chief is asked if they accept member
         const chiefFeedbackUpd = await world.chief.chat()
@@ -217,7 +222,11 @@ describe('Get into tribe [integration]', () => {
             getInlineKeyCallbacks(rateShamanWisdomUpd)
         expect(rateShamanWisdomButtons.length).toBe(6)
         await world.newUser.chatLast(rateShamanWisdomButtons[3])
-        expect(world.shaman.member.votes.length).toBe(shVotesBefore + 1)
+
+        const shamanAfter = await world.context.stores.memberStore.getById(
+            world.shaman.member.id
+        )
+        expect(shamanAfter!.votes.length).toBe(shVotesBefore + 1)
 
         // shaman is asked if they accept member
         const shamanFeedbackUpd = await world.shaman.chat()
@@ -330,13 +339,22 @@ describe('Get into tribe [integration]', () => {
     })
 
     it('Shows tribes list on location sharing', async () => {
-        pending('need to implement location query')
         await world.newUser.chatLast('/start')
         const response = await world.newUser.chatLast('list-tribes')
         // should have button for sharing location
         const btn = getKeyboardButtons(response)[0]
         expect(btn).toBeTruthy()
         expect(typeof btn === 'object' && 'request_location' in btn).toBeTrue()
+        await world.newUser.client.sendMessage(
+            world.newUser.client.makeMessage('', {
+                location: {
+                    latitude: 55,
+                    longitude: 83,
+                },
+            })
+        )
+        const tribesListUpdate = await world.newUser.chat()
+        expect(tribesListUpdate.length).toBe(world.tribes.length)
     })
     it('Decline application', async () => {
         await world.newUser.chat('/start')
@@ -485,11 +503,24 @@ async function setup() {
     const context = await createContext()
     const { server, addTribeMember, makeClient, bot } =
         await createTelegramContext(context)
-
     const city = await context.stores.cityStore.save(
         new City({
             name: 'Novosibirsk',
             timeZone: 'Asia/Novosibirsk',
+            geometry: {
+                type: 'MultiPolygon',
+                coordinates: [
+                    [
+                        [
+                            [82.7, 55.1],
+                            [83.2, 55.1],
+                            [83.2, 54.7],
+                            [82.7, 54.7],
+                            [82.7, 55.1],
+                        ],
+                    ],
+                ],
+            },
         })
     )
     const tribes = await context.stores.tribeStore.saveBulk([

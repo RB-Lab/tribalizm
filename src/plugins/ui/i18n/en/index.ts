@@ -43,6 +43,7 @@ const en: BaseTranslation = {
         applicationSent:
             '📨 Your application has been sent. Tribe chief will propose a meeting soon.',
         applicationSentShort: '☑️ Applied!',
+        cantFindCity: "Can't find your city, please type it's name."
     },
     elders: {
         chief: 'chief',

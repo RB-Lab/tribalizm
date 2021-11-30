@@ -27,7 +27,7 @@ export class QuestFinale extends ContextUser {
                 )
             if (nextOldMember) {
                 this.scheduler.schedule<IntroductionTask>({
-                    type: 'intorduction-quest',
+                    type: 'introduction-quest',
                     done: false,
                     time: Date.now() + 48 * 3_600_000,
                     payload: {

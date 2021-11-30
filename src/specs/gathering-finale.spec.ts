@@ -10,7 +10,7 @@ import { IdeasIncarnation } from '../use-cases/incarnate-ideas'
 import { SpawnQuest } from '../use-cases/spawn-quest'
 import {
     isHowWasGatheringTask,
-    StormFinalyze,
+    StormFinalize,
 } from '../use-cases/utils/scheduler'
 import { createContext } from './test-context'
 
@@ -202,11 +202,11 @@ async function setUp() {
     const task = (await context.stores.taskStore.save({
         time: Date.now(),
         done: false,
-        type: 'brainstorm-to-finalyze',
+        type: 'brainstorm-to-finalize',
         payload: {
             brainstormId: idea.brainstormId,
         },
-    })) as StormFinalyze & Storable
+    })) as StormFinalize & Storable
     await incarnation.incarnateIdeas(task)
     const quest0 = await context.stores.questStore._last()
     const source = new SpawnQuest(context)

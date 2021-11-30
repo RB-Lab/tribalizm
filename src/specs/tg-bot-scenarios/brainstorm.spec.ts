@@ -262,7 +262,10 @@ describe('Brainstorm [integration]', () => {
         const chiefFdbWiBtns = getInlineKeyCallbacks(chiefFdbWiUpd)
         expect(chiefFdbWiBtns.length).toBe(6)
         await world.chief.chatLast(chiefFdbWiBtns[3])
-        expect(world.user3.member.votes.length).toBe(votesBefore + 1)
+        const userAfter = await world.context.stores.memberStore.getById(
+            world.user3.member.id
+        )
+        expect(userAfter!.votes.length).toBe(votesBefore + 1)
 
         const u3FeedbackUpd = await world.user3.chat()
         const u3FdbChButtons = getInlineKeyCallbacks(u3FeedbackUpd[0])

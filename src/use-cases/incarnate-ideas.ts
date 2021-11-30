@@ -5,10 +5,10 @@ import { Storable } from './entities/store'
 import { ContextUser } from './utils/context-user'
 import { getBestFreeMember, minQuests } from './utils/members-utils'
 import { Message } from './utils/message'
-import { StormFinalyze } from './utils/scheduler'
+import { StormFinalize } from './utils/scheduler'
 
 export class IdeasIncarnation extends ContextUser {
-    incarnateIdeas = async (task: StormFinalyze & Storable) => {
+    incarnateIdeas = async (task: StormFinalize & Storable) => {
         const brainstorm = await this.getBrainstorm(task.payload.brainstormId)
         const ideas = await this.stores.ideaStore.find({
             brainstormId: brainstorm.id,

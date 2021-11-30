@@ -26,13 +26,13 @@ export class Voting extends ContextUser {
     voteUp = async (ideaId: string, memberId: string) => {
         const idea = await this.checkVotingAllowed(ideaId, memberId)
         idea.voteUp(memberId)
-        this.stores.ideaStore.save(idea)
+        await this.stores.ideaStore.save(idea)
     }
 
     voteDown = async (ideaId: string, memberId: string) => {
         const idea = await this.checkVotingAllowed(ideaId, memberId)
         idea.voteDown(memberId)
-        this.stores.ideaStore.save(idea)
+        await this.stores.ideaStore.save(idea)
     }
 }
 

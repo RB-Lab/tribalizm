@@ -13,7 +13,7 @@ import {
     IdeasIncarnation,
 } from '../use-cases/incarnate-ideas'
 import { createContext, makeMessageSpy } from './test-context'
-import { StormFinalyze } from '../use-cases/utils/scheduler'
+import { StormFinalize } from '../use-cases/utils/scheduler'
 import { Storable } from '../use-cases/entities/store'
 
 describe('When brainstorm is over', () => {
@@ -276,11 +276,11 @@ async function setUp(settings: Settings = {}) {
     const task = (await context.stores.taskStore.save({
         time: Date.now(),
         done: false,
-        type: 'brainstorm-to-finalyze',
+        type: 'brainstorm-to-finalize',
         payload: {
             brainstormId: brainstorm.id,
         },
-    })) as StormFinalyze & Storable
+    })) as StormFinalize & Storable
 
     async function makeTribe(ms: MemberFake[]) {
         const { tribe, members } = await context.testing.makeTribe(ms.length)

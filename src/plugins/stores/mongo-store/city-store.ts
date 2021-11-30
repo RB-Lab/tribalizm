@@ -5,7 +5,7 @@ import { MongoStore } from './mongo-store'
 export class MongoCityStore extends MongoStore<ICity> implements CityStore {
     _class = City
     findByCoordinates = async (coordinates: Coordinates) => {
-        // FIXME make it work with actual coordinates
+        // TODO search in nearby cities
         const res = await this._collection.findOne({
             geometry: {
                 $geoIntersects: {

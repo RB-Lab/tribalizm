@@ -38,11 +38,16 @@ export function tribesListScreen(bot: Telegraf<TribeCtx>) {
 
     bot.on('location', async (ctx, next) => {
         if (isLocateState(ctx.user.state)) {
-            await ctx.tribalizm.locateUser.locateUserByCoordinates({
-                latitude: ctx.message.location.latitude,
-                longitude: ctx.message.location.longitude,
-                userId: ctx.user.userId,
-            })
+            const city = await ctx.tribalizm.locateUser.locateUserByCoordinates(
+                {
+                    latitude: ctx.message.location.latitude,
+                    longitude: ctx.message.location.longitude,
+                    userId: ctx.user.userId,
+                }
+            )
+            if (!city) {
+                ctx.reply(i18n(ctx).tribesList.cantFindCity())
+            }
             const tribes = await ctx.tribalizm.tribesShow.getLocalTribes({
                 limit: 3,
                 userId: ctx.user.userId,

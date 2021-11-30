@@ -118,6 +118,10 @@ export type Translation = {
 		 * ☑️ Applied!
 		 */
 		'applicationSentShort': string
+		/**
+		 * Can't find your city, please type it's name.
+		 */
+		'cantFindCity': string
 	}
 	'elders': {	
 		/**
@@ -795,6 +799,10 @@ export type TranslationFunctions = {
 		 * ☑️ Applied!
 		 */
 		'applicationSentShort': () => LocalizedString
+		/**
+		 * Can't find your city, please type it's name.
+		 */
+		'cantFindCity': () => LocalizedString
 	}
 	'elders': {	
 		/**
