@@ -1,4 +1,4 @@
-import { Context, Markup, Telegraf } from 'telegraf'
+import { Markup, Telegraf } from 'telegraf'
 import { Maybe, notEmpty } from '../../../../ts-utils'
 import { NewIdeaMessage } from '../../../../use-cases/add-idea'
 import { TimeToStormMessage } from '../../../../use-cases/admin'
@@ -6,43 +6,113 @@ import {
     BrainstormDeclarationMessage,
     BrainstormNoticeMessage,
     BrainstormStartedMessage,
-    StormEndeddMessage,
+    StormEndedMessage,
     VotingStartedMessage,
 } from '../../../../use-cases/brainstorm-lifecycle'
 import { NotificationBus } from '../../../../use-cases/utils/notification-bus'
-import { InMemoryStore } from '../../../stores/in-memory-store/in-memory-store'
 import { i18n } from '../../i18n/i18n-ctx'
+import { TelegramMessageStore } from '../message-store'
 import { removeInlineKeyboard } from '../telegraf-hacks'
 import { TribeCtx } from '../tribe-ctx'
 import { TelegramUsersAdapter, UserState } from '../users-adapter'
 import { makeCallbackDataParser } from './callback-parser'
 
-const startBrst = makeCallbackDataParser('storm-start', ['memberId'])
-
-interface Message {
-    brainstormId: string
-    chatId: string
-    messageId: number
-    text: string
-    ideaId: string
-}
-
-// TODO user real store here!!!
-const messageStore = new InMemoryStore<Message>()
+const startBrainstorm = makeCallbackDataParser('storm-start', ['memberId'])
 
 interface BrainstormState extends UserState {
     type: 'brainstorm'
     memberId: string
     brainstormId: string
 }
-function isBarinstormState(state: Maybe<UserState>): state is BrainstormState {
+function isBrainstormState(state: Maybe<UserState>): state is BrainstormState {
     return notEmpty(state) && state.type === 'brainstorm'
 }
-function attachNotifications(
+
+const voteParser = makeCallbackDataParser('vote-idea', [
+    'brainstormId',
+    'memberId',
+    'ideaId',
+    'vote',
+])
+
+const stormConfirm = makeCallbackDataParser('storm-confirm', [
+    'memberId',
+    'time',
+])
+
+export function brainstormScreen(
     bot: Telegraf<TribeCtx>,
     bus: NotificationBus,
-    telegramUsers: TelegramUsersAdapter
+    telegramUsers: TelegramUsersAdapter,
+    messageStore: TelegramMessageStore
 ) {
+    bot.action(startBrainstorm.regex, async (ctx) => {
+        const texts = i18n(ctx).brainstorm
+        const { memberId } = startBrainstorm.parse(ctx.match[0])
+        const onDateSet = (date: Date, ctxIn: TribeCtx) => {
+            ctxIn.editMessageText(
+                texts.confirmPrompt({ date }),
+                Markup.inlineKeyboard([
+                    Markup.button.callback(
+                        texts.confirm(),
+                        stormConfirm.serialize({
+                            memberId,
+                            time: date.getTime(),
+                        })
+                    ),
+                    Markup.button.callback(
+                        texts.edit(),
+                        startBrainstorm.serialize({ memberId })
+                    ),
+                ])
+            )
+        }
+        ctx.reply(
+            texts.proposeDate(),
+            ctx.getCalendar(onDateSet, ctx.from?.language_code)
+        )
+    })
+    bot.action(stormConfirm.regex, async (ctx) => {
+        const texts = i18n(ctx).brainstorm
+        const { memberId, time } = stormConfirm.parse(ctx.match[0])
+        await ctx.tribalizm.brainstormLifecycle.declare({
+            memberId,
+            time: Number(time),
+        })
+        // remove buttons
+        ctx.editMessageText(
+            texts.confirmPrompt({ date: new Date(Number(time)) }),
+            Markup.inlineKeyboard([])
+        )
+        ctx.reply(texts.done())
+    })
+
+    bot.on('text', async (ctx, next) => {
+        const state = ctx.user.state
+        if (isBrainstormState(state)) {
+            await ctx.tribalizm.addIdea.addIdea({
+                brainstormId: state.brainstormId,
+                memberId: state.memberId,
+                description: ctx.message.text,
+            })
+        } else {
+            next()
+        }
+    })
+
+    bot.action(voteParser.regex, async (ctx) => {
+        const data = voteParser.parse(ctx.match[0])
+
+        if (data.vote === 'up') {
+            await ctx.tribalizm.voting.voteUp(data.ideaId, data.memberId)
+        } else {
+            await ctx.tribalizm.voting.voteDown(data.ideaId, data.memberId)
+        }
+        await removeInlineKeyboard(ctx)
+    })
+
+    // ======== Handle Notifications =========
+
     bus.subscribe<TimeToStormMessage>('time-to-storm', async ({ payload }) => {
         const user = await telegramUsers.getTelegramUserForTribalism(
             payload.targetUserId
@@ -54,7 +124,9 @@ function attachNotifications(
             Markup.inlineKeyboard([
                 Markup.button.callback(
                     texts.toStormButton(),
-                    startBrst.serialize({ memberId: payload.targetMemberId })
+                    startBrainstorm.serialize({
+                        memberId: payload.targetMemberId,
+                    })
                 ),
             ])
         )
@@ -167,7 +239,7 @@ function attachNotifications(
         }
     )
 
-    bus.subscribe<StormEndeddMessage>(
+    bus.subscribe<StormEndedMessage>(
         'brainstorm-ended',
         async ({ payload }) => {
             const user = await telegramUsers.getTelegramUserForTribalism(
@@ -181,84 +253,3 @@ function attachNotifications(
         }
     )
 }
-
-const voteParser = makeCallbackDataParser('vote-idea', [
-    'brainstormId',
-    'memberId',
-    'ideaId',
-    'vote',
-])
-
-const stormConfirm = makeCallbackDataParser('storm-confirm', [
-    'memberId',
-    'time',
-])
-
-function actions(bot: Telegraf<TribeCtx>) {
-    bot.action(startBrst.regex, async (ctx) => {
-        const texts = i18n(ctx).brainstorm
-        const { memberId } = startBrst.parse(ctx.match[0])
-        const onDateSet = (date: Date, ctxIn: TribeCtx) => {
-            ctxIn.editMessageText(
-                texts.confirmPrompt({ date }),
-                Markup.inlineKeyboard([
-                    Markup.button.callback(
-                        texts.confirm(),
-                        stormConfirm.serialize({
-                            memberId,
-                            time: date.getTime(),
-                        })
-                    ),
-                    Markup.button.callback(
-                        texts.edit(),
-                        startBrst.serialize({ memberId })
-                    ),
-                ])
-            )
-        }
-        ctx.reply(
-            texts.proposeDate(),
-            ctx.getCalendar(onDateSet, ctx.from?.language_code)
-        )
-    })
-    bot.action(stormConfirm.regex, async (ctx) => {
-        const texts = i18n(ctx).brainstorm
-        const { memberId, time } = stormConfirm.parse(ctx.match[0])
-        await ctx.tribalizm.brainstormLifecycle.declare({
-            memberId,
-            time: Number(time),
-        })
-        // remove buttons
-        ctx.editMessageText(
-            texts.confirmPrompt({ date: new Date(Number(time)) }),
-            Markup.inlineKeyboard([])
-        )
-        ctx.reply(texts.done())
-    })
-
-    bot.on('text', async (ctx, next) => {
-        const state = ctx.user.state
-        if (isBarinstormState(state)) {
-            await ctx.tribalizm.addIdea.addIdea({
-                brainstormId: state.brainstormId,
-                memberId: state.memberId,
-                description: ctx.message.text,
-            })
-        } else {
-            next()
-        }
-    })
-
-    bot.action(voteParser.regex, async (ctx) => {
-        const data = voteParser.parse(ctx.match[0])
-
-        if (data.vote === 'up') {
-            await ctx.tribalizm.voting.voteUp(data.ideaId, data.memberId)
-        } else {
-            await ctx.tribalizm.voting.voteDown(data.ideaId, data.memberId)
-        }
-        await removeInlineKeyboard(ctx)
-    })
-}
-
-export const brainstormScreen = { actions, attachNotifications }

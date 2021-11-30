@@ -1,6 +1,7 @@
 import TelegramServer from 'telegram-test-api'
 import { InMemoryStore } from '../../plugins/stores/in-memory-store/in-memory-store'
 import { makeBot } from '../../plugins/ui/telegram/bot'
+import { TelegramMessageInMemoryStore } from '../../plugins/ui/telegram/message-store'
 import {
     ITelegramUser,
     StoreTelegramUsersAdapter,
@@ -49,8 +50,8 @@ function flatten<T>(arr: T[][]): T[] {
 export function wrapClient(server: TelegramServer, client: TelegramClient) {
     let lastUpdate: BotUpdate
     /**
-     * Send reply to chat of scpecific client
-     * @param text if ommited, chat will just wait for updates, if starts with `/`
+     * Send reply to chat of specific client
+     * @param text if omitted, chat will just wait for updates, if starts with `/`
      *             command will be sent, if last message contained `text` among its
      *             buttons callbacks, then callback reply to that message will be sent
      * @returns last update from bot or previous message if bot edited it
@@ -170,6 +171,7 @@ export async function createTelegramContext(
     const server = new TelegramServer({ port: 9001 })
     await server.start()
 
+    const messageStore = new TelegramMessageInMemoryStore()
     const bot = await makeBot({
         notificationBus: context.async.notificationBus,
         token,
@@ -182,6 +184,7 @@ export async function createTelegramContext(
             context.stores.userStore,
             new TgUserStore()
         ),
+        messageStore,
         telegramURL: server.config.apiURL,
         reportError: (err) => {
             if (process.env.chatDebug) {

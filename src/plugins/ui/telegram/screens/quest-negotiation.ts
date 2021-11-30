@@ -38,7 +38,11 @@ function isNegotiationState(
     return notEmpty(state) && state.type === 'negotiation-state'
 }
 
-function actions(bot: Telegraf<TribeCtx>) {
+export function questNegotiationScreen(
+    bot: Telegraf<TribeCtx>,
+    bus: NotificationBus,
+    telegramUsers: TelegramUsersAdapter
+) {
     bot.action(negotiate.regex, (ctx) => {
         const { memberId, questId, elder } = negotiate.parse(ctx.match[0])
         const texts = i18n(ctx).questNegotiation
@@ -158,13 +162,8 @@ function actions(bot: Telegraf<TribeCtx>) {
         }
         ctx.reply(text)
     })
-}
 
-export function attachNotifications(
-    bot: Telegraf<TribeCtx>,
-    bus: NotificationBus,
-    telegramUsers: TelegramUsersAdapter
-) {
+    // ========= Handle Notifications ============
     bus.subscribe<QuestChangeMessage>(
         'quest-change-proposed',
         async ({ payload }) => {
@@ -272,5 +271,3 @@ export function attachNotifications(
         }
     )
 }
-
-export const questNegotiationScreen = { actions, attachNotifications }

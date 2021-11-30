@@ -24,9 +24,9 @@ export interface ITelegramUser {
     state?: UserState
 }
 
-export type SavetdTelegramUser = ITelegramUser & Storable
+export type SavedTelegramUser = ITelegramUser & Storable
 
-export class TelegramUser implements SavetdTelegramUser {
+export class TelegramUser implements SavedTelegramUser {
     private store: TelegramUserStore
     id: string
     userId: string
@@ -34,7 +34,7 @@ export class TelegramUser implements SavetdTelegramUser {
     username?: string
     locale?: string
     state?: UserState
-    constructor(store: TelegramUserStore, data: SavetdTelegramUser) {
+    constructor(store: TelegramUserStore, data: SavedTelegramUser) {
         this.id = data.id
         this.userId = data.userId
         this.chatId = data.chatId
@@ -55,7 +55,7 @@ export class TelegramUser implements SavetdTelegramUser {
 
 export interface TelegramUsersAdapter {
     /**
-     * @reurns new user id
+     * @returns new user id
      */
     createUser: (
         name: string,
@@ -104,7 +104,7 @@ export class StoreTelegramUsersAdapter implements TelegramUsersAdapter {
     }
     /**
      * @param tribalismUserId userId in Tribalism system
-     * @returns telegarm user instans that map to one in Tribalizm, whos ID provided
+     * @returns telegram user instance that map to one in Tribalizm, whose ID provided
      */
     async getTelegramUserForTribalism(tribalismUserId: string) {
         const users = await this.tgUserStore.find({ userId: tribalismUserId })

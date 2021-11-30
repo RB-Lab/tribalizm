@@ -15,7 +15,11 @@ const parser = makeCallbackDataParser('rate-member', [
     'charisma',
 ])
 
-function actions(bot: Telegraf<TribeCtx>) {
+export function rateMemberScreen(
+    bot: Telegraf<TribeCtx>,
+    bus: NotificationBus,
+    telegramUsers: TelegramUsersAdapter
+) {
     bot.action(parser.regex, (ctx) => {
         const texts = i18n(ctx).rateMember
         const data = parser.parse(ctx.match[0])
@@ -54,13 +58,8 @@ function actions(bot: Telegraf<TribeCtx>) {
             )
         }
     })
-}
 
-export function attachNotifications(
-    bot: Telegraf<TribeCtx>,
-    bus: NotificationBus,
-    telegramUsers: TelegramUsersAdapter
-) {
+    // ================ Handle Notifications ===========
     bus.subscribe<RateElderMessage>(
         'rate-elder-message',
         async ({ payload }) => {
@@ -125,5 +124,3 @@ export function attachNotifications(
         }
     )
 }
-
-export const rateMemberScreen = { actions, attachNotifications }

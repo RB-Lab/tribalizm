@@ -5,7 +5,7 @@ import {
     BrainstormLifecycle,
     NotAChiefError,
     VotingStartedMessage,
-    StormEndeddMessage,
+    StormEndedMessage,
 } from '../use-cases/brainstorm-lifecycle'
 import {
     Brainstorm,
@@ -279,7 +279,7 @@ describe('Brainstorm lifecycle', () => {
     it('notifies all the members that storm ended', async () => {
         const world = await setUp()
         const onEnded =
-            world.spyOnMessage<StormEndeddMessage>('brainstorm-ended')
+            world.spyOnMessage<StormEndedMessage>('brainstorm-ended')
         const { brainstorm } = await world.stormToVoting()
         const task = await world.taskStore._last()
 
@@ -288,7 +288,7 @@ describe('Brainstorm lifecycle', () => {
         }
         expect(onEnded).toHaveBeenCalledTimes(world.members.length - 1)
         expect(onEnded).toHaveBeenCalledWith(
-            jasmine.objectContaining<StormEndeddMessage>({
+            jasmine.objectContaining<StormEndedMessage>({
                 type: 'brainstorm-ended',
                 payload: {
                     targetUserId: world.members[1].userId,

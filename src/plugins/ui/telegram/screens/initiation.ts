@@ -36,7 +36,11 @@ const appDeclineParser = makeCallbackDataParser('application-decline', [
     'questId',
 ])
 
-function actions(bot: Telegraf<TribeCtx>) {
+export function initiationScreen(
+    bot: Telegraf<TribeCtx>,
+    bus: NotificationBus,
+    telegramUsers: TelegramUsersAdapter
+) {
     // this is from the get-go, @see notifications/ApplicationMessage
     bot.action(declineParser.regex, (ctx) => {
         const data = declineParser.parse(ctx.match.input)
@@ -89,13 +93,9 @@ function actions(bot: Telegraf<TribeCtx>) {
             next()
         }
     })
-}
 
-export function attachNotifications(
-    bot: Telegraf<TribeCtx>,
-    bus: NotificationBus,
-    telegramUsers: TelegramUsersAdapter
-) {
+    // ================= Handle Notifications
+
     bus.subscribe<ApplicationMessage>(
         'application-message',
         async ({ payload }) => {
@@ -197,5 +197,3 @@ export function attachNotifications(
         }
     )
 }
-
-export const initiationScreen = { actions, attachNotifications }

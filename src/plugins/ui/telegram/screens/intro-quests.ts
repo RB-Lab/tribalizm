@@ -6,7 +6,7 @@ import { TribeCtx } from '../tribe-ctx'
 import { TelegramUsersAdapter } from '../users-adapter'
 import { negotiate } from './quest-negotiation'
 
-export function attachNotifications(
+export function introQuestsScreen(
     bot: Telegraf<TribeCtx>,
     bus: NotificationBus,
     telegramUsers: TelegramUsersAdapter
@@ -39,5 +39,3 @@ export function attachNotifications(
         }
     )
 }
-
-export const introQuests = { attachNotifications }

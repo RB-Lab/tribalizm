@@ -3,11 +3,12 @@ import { Tribalizm, wrapWithErrorHandler } from '../../../use-cases/tribalism'
 import { NotificationBus } from '../../../use-cases/utils/notification-bus'
 import { i18n } from '../i18n/i18n-ctx'
 import { DateTimePicker } from './date-time-picker'
+import { TelegramMessageStore } from './message-store'
 import { brainstormScreen } from './screens/brainstorm'
 import { coordinationScreen } from './screens/coordination'
 import { gatheringScreen } from './screens/gathering'
 import { initiationScreen } from './screens/initiation'
-import { introQuests } from './screens/intro-quests'
+import { introQuestsScreen } from './screens/intro-quests'
 import { questNegotiationScreen } from './screens/quest-negotiation'
 import { rateMemberScreen } from './screens/rate-member'
 import { rulesScreen } from './screens/rules'
@@ -36,6 +37,7 @@ interface BotConfig {
     tribalism: Tribalizm
     token: string | undefined
     notificationBus: NotificationBus
+    messageStore: TelegramMessageStore
     telegramURL?: string
 }
 
@@ -119,50 +121,25 @@ export async function makeBot(config: BotConfig) {
     })
 
     rulesScreen(bot)
-    initiationScreen.actions(bot)
-    questNegotiationScreen.actions(bot)
     tribesListScreen(bot)
-    rateMemberScreen.actions(bot)
-    brainstormScreen.actions(bot)
-    coordinationScreen.actions(bot)
-    gatheringScreen.actions(bot)
     startScreenActions(bot)
 
-    questNegotiationScreen.attachNotifications(
+    questNegotiationScreen(
         bot,
         config.notificationBus,
         config.telegramUsersAdapter
     )
-    initiationScreen.attachNotifications(
+    initiationScreen(bot, config.notificationBus, config.telegramUsersAdapter)
+    rateMemberScreen(bot, config.notificationBus, config.telegramUsersAdapter)
+    introQuestsScreen(bot, config.notificationBus, config.telegramUsersAdapter)
+    brainstormScreen(
         bot,
         config.notificationBus,
-        config.telegramUsersAdapter
+        config.telegramUsersAdapter,
+        config.messageStore
     )
-    rateMemberScreen.attachNotifications(
-        bot,
-        config.notificationBus,
-        config.telegramUsersAdapter
-    )
-    introQuests.attachNotifications(
-        bot,
-        config.notificationBus,
-        config.telegramUsersAdapter
-    )
-    brainstormScreen.attachNotifications(
-        bot,
-        config.notificationBus,
-        config.telegramUsersAdapter
-    )
-    coordinationScreen.attachNotifications(
-        bot,
-        config.notificationBus,
-        config.telegramUsersAdapter
-    )
-    gatheringScreen.attachNotifications(
-        bot,
-        config.notificationBus,
-        config.telegramUsersAdapter
-    )
+    coordinationScreen(bot, config.notificationBus, config.telegramUsersAdapter)
+    gatheringScreen(bot, config.notificationBus, config.telegramUsersAdapter)
 
     if ('domain' in config.webHook) {
         await bot.launch({

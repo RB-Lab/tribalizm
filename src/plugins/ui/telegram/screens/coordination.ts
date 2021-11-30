@@ -32,7 +32,23 @@ function isGatherState(state: Maybe<UserState>): state is GatherState {
     return notEmpty(state) && state.type === 'gather-state'
 }
 
-function actions(bot: Telegraf<TribeCtx>) {
+
+const gatherConfirm = makeCallbackDataParser('gather-confirm', [])
+
+const spawn = makeCallbackDataParser('spawn-quest', ['questId', 'memberId'])
+const gathering = makeCallbackDataParser('declare-gathering', [
+    'questId',
+    'memberId',
+    'type',
+])
+const reQuest = makeCallbackDataParser('re-quest', ['questId', 'memberId'])
+
+export function coordinationScreen(
+    bot: Telegraf<TribeCtx>,
+    bus: NotificationBus,
+    telegramUsers: TelegramUsersAdapter
+) {
+
     bot.action(spawn.regex, async (ctx) => {
         const { questId, memberId } = spawn.parse(ctx.match[0])
         ctx.user.setState<SpawnState>({
@@ -168,23 +184,9 @@ function actions(bot: Telegraf<TribeCtx>) {
             next()
         }
     })
-}
 
-const gatherConfirm = makeCallbackDataParser('gather-confirm', [])
+    // ===================== Handle Notifications ===================
 
-const spawn = makeCallbackDataParser('spawn-quest', ['questId', 'memberId'])
-const gathering = makeCallbackDataParser('declare-gathering', [
-    'questId',
-    'memberId',
-    'type',
-])
-const reQuest = makeCallbackDataParser('re-quest', ['questId', 'memberId'])
-
-function attachNotifications(
-    bot: Telegraf<TribeCtx>,
-    bus: NotificationBus,
-    telegramUsers: TelegramUsersAdapter
-) {
     bus.subscribe<IdeaIncarnationMessage>(
         'idea-incarnation',
         async ({ payload }) => {
@@ -294,5 +296,3 @@ function attachNotifications(
         }
     )
 }
-
-export const coordinationScreen = { attachNotifications, actions }

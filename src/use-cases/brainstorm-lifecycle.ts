@@ -157,7 +157,7 @@ export class BrainstormLifecycle extends ContextUser {
         })
         members.forEach((member) => {
             if (member.isCandidate) return
-            this.notify<StormEndeddMessage>({
+            this.notify<StormEndedMessage>({
                 type: 'brainstorm-ended',
                 payload: {
                     brainstormId: brainstorm.id,
@@ -210,7 +210,7 @@ export interface VotingStartedMessage extends Message {
     }
 }
 
-export interface StormEndeddMessage extends Message {
+export interface StormEndedMessage extends Message {
     type: 'brainstorm-ended'
     payload: {
         brainstormId: string

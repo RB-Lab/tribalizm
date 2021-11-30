@@ -7,24 +7,6 @@ import { TribeCtx } from '../tribe-ctx'
 import { TelegramUsersAdapter } from '../users-adapter'
 import { makeCallbackDataParser } from './callback-parser'
 
-function actions(bot: Telegraf<TribeCtx>) {
-    bot.action(accept.regex, async (ctx) => {
-        const data = accept.parse(ctx.match[0])
-        await ctx.tribalizm.gatheringAcknowledge.accept(data)
-        ctx.reply(i18n(ctx).gathering.accepted())
-    })
-    bot.action(decline.regex, async (ctx) => {
-        const data = decline.parse(ctx.match[0])
-        await ctx.tribalizm.gatheringAcknowledge.decline(data)
-        ctx.reply(i18n(ctx).gathering.declined())
-    })
-    bot.action(vote.regex, async (ctx) => {
-        const data = vote.parse(ctx.match[0])
-        await ctx.tribalizm.gatheringFinale.finalize(data)
-        ctx.reply(i18n(ctx).gathering.rateDone())
-    })
-}
-
 const accept = makeCallbackDataParser('gathering-ack', [
     'memberId',
     'gatheringId',
@@ -40,11 +22,28 @@ const vote = makeCallbackDataParser('rate-gathering', [
     'score',
 ])
 
-function attachNotifications(
+export function gatheringScreen(
     bot: Telegraf<TribeCtx>,
     bus: NotificationBus,
     telegramUsers: TelegramUsersAdapter
 ) {
+    bot.action(accept.regex, async (ctx) => {
+        const data = accept.parse(ctx.match[0])
+        await ctx.tribalizm.gatheringAcknowledge.accept(data)
+        ctx.reply(i18n(ctx).gathering.accepted())
+    })
+    bot.action(decline.regex, async (ctx) => {
+        const data = decline.parse(ctx.match[0])
+        await ctx.tribalizm.gatheringAcknowledge.decline(data)
+        ctx.reply(i18n(ctx).gathering.declined())
+    })
+    bot.action(vote.regex, async (ctx) => {
+        const data = vote.parse(ctx.match[0])
+        await ctx.tribalizm.gatheringFinale.finalize(data)
+        ctx.reply(i18n(ctx).gathering.rateDone())
+    })
+
+    // =============== Handle Notification ===============
     bus.subscribe<GatheringMessage>(
         'new-gathering-message',
         async ({ payload }) => {
@@ -104,5 +103,3 @@ function attachNotifications(
         }
     )
 }
-
-export const gatheringScreen = { attachNotifications, actions }
