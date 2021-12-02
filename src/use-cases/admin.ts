@@ -14,7 +14,7 @@ export class Admin extends ContextUser {
             },
         })
     }
-    addTribeMemer = async (req: AddMemberRequest) => {
+    addTribeMember = async (req: AddMemberRequest) => {
         const tribe = await this.getTribe(req.tribeId)
         if (tribe.chiefId !== null) {
             throw new AlreadyHaveChief(

@@ -88,13 +88,13 @@ export function questNegotiationScreen(
         if (state.elder === 'chief') {
             await ctx.tribalizm.initiation.startInitiation({
                 questId: state.questId,
-                elderUserId: ctx.user.userId,
+                elderId: state.memberId,
             })
         }
         if (state.elder === 'shaman') {
             await ctx.tribalizm.initiation.startShamanInitiation({
                 questId: state.questId,
-                elderUserId: ctx.user.userId,
+                elderId: state.memberId,
             })
         }
         await ctx.tribalizm.questNegotiation.proposeChange({

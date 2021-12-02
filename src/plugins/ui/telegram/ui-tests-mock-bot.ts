@@ -5,6 +5,7 @@ import { Tribe } from '../../../use-cases/entities/tribe'
 import { User } from '../../../use-cases/entities/user'
 import { InMemoryStore } from '../../stores/in-memory-store/in-memory-store'
 import { makeBot } from './bot'
+import { TelegramMessageInMemoryStore } from './message-store'
 import { testLauncher } from './screens/test-launcher'
 import {
     ITelegramUser,
@@ -61,20 +62,20 @@ async function run() {
     const tribes = await context.stores.tribeStore.saveBulk([
         new Tribe({
             cityId: city.id,
-            name: 'Lex Fridman podcast descussion group',
+            name: 'Lex Fridman podcast discussion group',
             description:
-                'Here we discuss Lex fridman podcast and related stuff',
+                'Here we discuss Lex Fridman podcast and related stuff',
         }),
         new Tribe({
             cityId: city.id,
-            name: 'SpaceX gasers',
+            name: 'SpaceX gazers',
             description:
-                'We love to look at stuf in Boca Chica from the other side of the Earth',
+                'We love to look at stuff in Boca Chica from the other side of the Earth',
         }),
         new Tribe({
             cityId: city.id,
             name: 'Less Wrong Aya Napa',
-            description: 'The Rationa People Tribe!',
+            description: 'The Rational People Tribe!',
         }),
     ])
     const users = await context.stores.userStore.saveBulk([
@@ -83,9 +84,9 @@ async function run() {
         new User({ name: 'Eliser U' }),
         new User({ name: 'R.B.' }),
     ])
-    admin.addTribeMemer({ tribeId: tribes[0].id, userId: users[0].id })
-    admin.addTribeMemer({ tribeId: tribes[1].id, userId: users[1].id })
-    admin.addTribeMemer({ tribeId: tribes[2].id, userId: users[2].id })
+    admin.addTribeMember({ tribeId: tribes[0].id, userId: users[0].id })
+    admin.addTribeMember({ tribeId: tribes[1].id, userId: users[1].id })
+    admin.addTribeMember({ tribeId: tribes[2].id, userId: users[2].id })
     telegramUsersAdapter.user.userId = users[3].id
 
     makeBot({
@@ -98,6 +99,7 @@ async function run() {
         tribalism: context.tribalism,
         token,
         notificationBus: context.async.notificationBus,
+        messageStore: new TelegramMessageInMemoryStore(),
     }).then((bot) => {
         testLauncher(bot, telegramUsersAdapter)
     })

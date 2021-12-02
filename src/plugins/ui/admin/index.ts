@@ -93,7 +93,7 @@ export async function admin(
         ])
         const tribeId = answers.tribe.split('@')[1]
         const userId = answers.user.split('@')[1]
-        await admin.addTribeMemer({ tribeId, userId })
+        await admin.addTribeMember({ tribeId, userId })
         mainMenu()
     }
 

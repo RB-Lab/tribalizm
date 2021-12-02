@@ -20,7 +20,7 @@ describe('Admin', () => {
     it('adds a member to a tribe', async () => {
         const world = await setUp()
         const { user, tribe } = await world.makeUserAndTribe()
-        await world.admin.addTribeMemer({
+        await world.admin.addTribeMember({
             tribeId: tribe.id,
             userId: user.id,
         })
@@ -31,7 +31,7 @@ describe('Admin', () => {
     it('marks first member as tribe chief & shaman', async () => {
         const world = await setUp()
         const { user, tribe } = await world.makeUserAndTribe()
-        const member = await world.admin.addTribeMemer({
+        const member = await world.admin.addTribeMember({
             tribeId: tribe.id,
             userId: user.id,
         })
@@ -44,12 +44,12 @@ describe('Admin', () => {
         const world = await setUp()
         const { user, tribe } = await world.makeUserAndTribe()
         const { user: user2 } = await world.makeUserAndTribe()
-        await world.admin.addTribeMemer({
+        await world.admin.addTribeMember({
             tribeId: tribe.id,
             userId: user.id,
         })
         await expectAsync(
-            world.admin.addTribeMemer({
+            world.admin.addTribeMember({
                 tribeId: tribe.id,
                 userId: user2.id,
             })
@@ -61,7 +61,7 @@ describe('Admin', () => {
         const onMessage =
             world.spyOnMessage<TimeToStormMessage>('time-to-storm')
 
-        await world.admin.addTribeMemer({
+        await world.admin.addTribeMember({
             tribeId: tribe.id,
             userId: user.id,
         })

@@ -51,7 +51,7 @@ export function rulesScreen(bot: Telegraf<TribeCtx>) {
             Markup.button.callback(btns.back(), 'in-tribe'),
             Markup.button.callback(btns.start(), 'start'),
         ])
-        ctx.editMessageText(i18n(ctx).rules.inTribe(), keyboard)
+        ctx.editMessageText(i18n(ctx).rules.onBrainstorm(), keyboard)
     })
     bot.action('on-quest', (ctx) => {
         const btns = i18n(ctx).rules.buttons

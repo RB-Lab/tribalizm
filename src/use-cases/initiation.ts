@@ -15,11 +15,7 @@ export class Initiation extends ContextUser {
                 `Cannot initiate ${app.id}: chief is not assigned`
             )
         }
-        const elder = await this.getTribeMemberByUserId(
-            app.tribeId,
-            req.elderUserId
-        )
-        this.checkElder(app.chiefId, elder.id, app.memberId)
+        this.checkElder(app.chiefId, req.elderId, app.memberId)
         if (app.phase !== ApplicationPhase.initial) {
             throw new WrongPhaseError(
                 `Cannot startInitiation when application is in "${app.phase}" phase`
@@ -31,12 +27,9 @@ export class Initiation extends ContextUser {
 
     approveByElder = async (req: ApplicationChangeRequest) => {
         const { app } = await this.getQuestAndApplication(req.questId)
-        const elder = await this.getTribeMemberByUserId(
-            app.tribeId,
-            req.elderUserId
-        )
+
         // TODO make those methods private, leave only this one
-        if (app.chiefId === elder.id) {
+        if (app.chiefId === req.elderId) {
             this.approveByChief(req)
         } else {
             this.approveByShaman(req)
@@ -44,11 +37,7 @@ export class Initiation extends ContextUser {
     }
     approveByChief = async (req: ChiefApprovalRequest) => {
         const { app } = await this.getQuestAndApplication(req.questId)
-        const elder = await this.getTribeMemberByUserId(
-            app.tribeId,
-            req.elderUserId
-        )
-        this.checkElder(app.chiefId, elder.id, app.memberId)
+        this.checkElder(app.chiefId, req.elderId, app.memberId)
 
         if (app.phase !== ApplicationPhase.chiefInitiation) {
             throw new WrongPhaseError(
@@ -99,11 +88,7 @@ export class Initiation extends ContextUser {
                 `Cannot initiate ${app.id}: shaman is not assigned`
             )
         }
-        const elder = await this.getTribeMemberByUserId(
-            app.tribeId,
-            req.elderUserId
-        )
-        this.checkElder(app.shamanId, elder.id, app.memberId)
+        this.checkElder(app.shamanId, req.elderId, app.memberId)
         app.nextPhase()
         await this.stores.applicationStore.save(app)
     }
@@ -114,23 +99,15 @@ export class Initiation extends ContextUser {
                 `Cannot approveByShaman when application is in "${app.phase}" phase`
             )
         }
-        const elder = await this.getTribeMemberByUserId(
-            app.tribeId,
-            req.elderUserId
-        )
-        this.checkElder(app.shamanId, elder.id, app.memberId)
+        this.checkElder(app.shamanId, req.elderId, app.memberId)
 
         await this.approve(app)
     }
     decline = async (req: DeclineRequest) => {
         const { app, quest } = await this.getQuestAndApplication(req.questId)
-        const elder = await this.getTribeMemberByUserId(
-            app.tribeId,
-            req.elderUserId
-        )
         const newMember = await this.getMember(app.memberId)
         const tribe = await this.getTribe(app.tribeId)
-        if (app.chiefId === elder.id) {
+        if (app.chiefId === req.elderId) {
             if (
                 ![
                     ApplicationPhase.chiefInitiation,
@@ -141,7 +118,7 @@ export class Initiation extends ContextUser {
                     `Cannot decline by chief when application is in "${app.phase}" phase`
                 )
             }
-        } else if (app.shamanId === elder.id) {
+        } else if (app.shamanId === req.elderId) {
             if (app.phase !== ApplicationPhase.shamanInitiation) {
                 throw new WrongPhaseError(
                     `Cannot decline by shaman when application is in "${app.phase}" phase`
@@ -149,7 +126,7 @@ export class Initiation extends ContextUser {
             }
         } else {
             throw new ElderMismatchError(
-                `Member ${elder.id} is not allowed to initiate member ${app.memberId}`
+                `Member ${req.elderId} is not allowed to initiate member ${app.memberId}`
             )
         }
         app.decline()
@@ -275,7 +252,7 @@ export class Initiation extends ContextUser {
 export interface ApplicationChangeRequest {
     questId: string
     // TODO get memberId back
-    elderUserId: string
+    elderId: string
 }
 export type InitiationRequest = ApplicationChangeRequest
 export type ChiefApprovalRequest = ApplicationChangeRequest

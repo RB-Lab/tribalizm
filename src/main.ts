@@ -19,6 +19,7 @@ makeBot({
     tribalism: null as any,
     token: process.env.BOT_TOKEN,
     notificationBus: null as any,
+    messageStore: null as any,
 }).then((bot) => {
     app.use(bot.webhookCallback('/tg-hook'))
 

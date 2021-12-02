@@ -58,7 +58,7 @@ export function initiationScreen(
 
         ctx.tribalizm.initiation.approveByElder({
             questId: data.questId,
-            elderUserId: ctx.user.userId,
+            elderId: data.memberId,
         })
         ctx.editMessageText(
             i18n(ctx).initiation.approvedOk(),
@@ -70,7 +70,7 @@ export function initiationScreen(
 
         await ctx.tribalizm.initiation.decline({
             questId: data.questId,
-            elderUserId: ctx.user.userId,
+            elderId: data.memberId,
         })
         ctx.editMessageText(
             i18n(ctx).initiation.declineOk(),
@@ -86,7 +86,7 @@ export function initiationScreen(
             // TODO should use the text maybe?
             ctx.tribalizm.initiation.decline({
                 questId: state.questId,
-                elderUserId: ctx.user.userId,
+                elderId: state.memberId,
             })
             ctx.user.setState(null)
         } else {

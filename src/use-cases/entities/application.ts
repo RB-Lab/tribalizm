@@ -2,7 +2,7 @@ import { Storable, Store } from './store'
 
 export interface ApplicationStore extends Store<IApplication> {}
 
-type ApplicationStatus = 'approved' | 'decilned'
+type ApplicationStatus = 'approved' | 'declined'
 
 export interface IApplicationData {
     id: string | null
@@ -58,7 +58,7 @@ export class Application implements IApplication {
     }
     decline = () => {
         this.phase = ApplicationPhase.finished
-        this.status = 'decilned'
+        this.status = 'declined'
     }
 
     nextPhase = () => {

@@ -167,11 +167,11 @@ async function setUp(size?: number) {
             userId: user.id,
         })
         const initQuest = await context.stores.questStore._last()
-        const chiefUser = users[0]
-        const shamanUser = users[1]
+        const chief = members[0]
+        const shaman = members[1]
         const initReq = {
             questId: initQuest.id,
-            elderUserId: chiefUser.id,
+            elderId: chief.id,
             place: 'The Foo Bar',
             time: 1_700_100_500_000,
         }
@@ -180,7 +180,7 @@ async function setUp(size?: number) {
         const newInitQuest = await context.stores.questStore._last()
         const shamanReq = {
             ...initReq,
-            elderUserId: shamanUser.id,
+            elderId: shaman.id,
             questId: newInitQuest.id,
         }
         await initiation.startShamanInitiation(shamanReq)
