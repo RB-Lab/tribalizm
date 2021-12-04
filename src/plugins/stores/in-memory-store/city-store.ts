@@ -17,4 +17,7 @@ export class InMemoryCityStore
         )
         return res.map(this._instantiate)
     }
+    prune = async () => {
+        this._store = []
+    }
 }

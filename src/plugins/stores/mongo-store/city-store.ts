@@ -31,4 +31,8 @@ export class MongoCityStore extends MongoStore<ICity> implements CityStore {
         const res = await cursor.toArray()
         return res.map(this._instantiate)
     }
+
+    prune = async () => {
+        await this._collection.drop()
+    }
 }

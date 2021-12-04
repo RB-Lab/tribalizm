@@ -4,7 +4,8 @@ import { runAdmin } from './plugins/ui/admin/run-admin'
 import { Context } from './use-cases/utils/context'
 
 async function main() {
-    const url = `mongodb://${process.env.DB_USER}:${process.env.DB_PASS}@mongodb:27017`
+    const { DB_USER, DB_HOST, DB_PASS } = process.env
+    const url = `mongodb://${DB_USER}:${DB_PASS}@${[DB_HOST]}:27017`
     const client = new MongoClient(url, { useUnifiedTopology: true })
     try {
         await client.connect()

@@ -5,6 +5,7 @@ import { Storable, Store } from './store'
 export interface CityStore extends Store<ICity> {
     findByCoordinates: (coordinates: Coordinates) => Promise<StoredCity | null>
     autocomplete: (input?: string) => Promise<StoredCity[]>
+    prune: () => Promise<void>
 }
 
 export interface ICity {

@@ -3,6 +3,9 @@ import { Context } from '../../../use-cases/utils/context'
 import { TelegramUserStore } from '../telegram/users-adapter'
 import { addMember } from './prompts/add-member'
 import { addTribe } from './prompts/add-tribe'
+import { listMembers } from './prompts/list-members'
+import { listTgUsers } from './prompts/list-tg-users'
+import { listTribes } from './prompts/list-tribes'
 import { loadCities } from './prompts/load-cities'
 
 export async function runAdmin(context: Context, tgUsers: TelegramUserStore) {
@@ -15,11 +18,8 @@ export async function runAdmin(context: Context, tgUsers: TelegramUserStore) {
         loadCities = 'Load cities',
         exit = 'Exit',
     }
-    interface MainPrompt {
-        mainMenu: MainMenu
-    }
-    async function mainMenu() {
-        const answers = await inquirer.prompt<MainPrompt>([
+    async function mainMenu(): Promise<void> {
+        const answers = await inquirer.prompt<{ mainMenu: MainMenu }>([
             {
                 type: 'list',
                 name: 'mainMenu',
@@ -30,30 +30,11 @@ export async function runAdmin(context: Context, tgUsers: TelegramUserStore) {
 
         switch (answers.mainMenu) {
             case MainMenu.listTribes:
-                const tribes = await context.stores.tribeStore.find({})
-                console.table(tribes.map((t) => ({ id: t.id, name: t.name })))
-                return mainMenu()
+                return listTribes(context, mainMenu)
             case MainMenu.listTgUsers:
-                const users = await tgUsers.find({})
-                console.table(
-                    users.map((u) => ({
-                        id: u.id,
-                        user: u.userId,
-                        name: u.username,
-                    }))
-                )
-                return mainMenu()
+                return listTgUsers(tgUsers, mainMenu)
             case MainMenu.listMembers:
-                const members = await context.stores.memberStore.find({})
-                console.table(
-                    members.map((m) => ({
-                        id: m.id,
-                        user: m.userId,
-                        tribe: m.tribeId,
-                        charisma: m.charisma,
-                    }))
-                )
-                return mainMenu()
+                return listMembers(context, mainMenu)
             case MainMenu.addMember:
                 return addMember(context, mainMenu)
             case MainMenu.addTribe:

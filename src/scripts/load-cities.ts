@@ -1,13 +1,10 @@
 import * as fs from 'fs'
-import * as path from 'path'
 import { City, CityStore } from '../use-cases/entities/city'
 import { FeatureCollection, isMultiPolygon } from '../use-cases/utils/geo-json'
 
 export async function loadCities(src: string, store: CityStore) {
-    const filePath = path.join(process.cwd(), src)
-    const fc = JSON.parse(
-        fs.readFileSync(filePath, 'utf-8')
-    ) as FeatureCollection
+    const fc = JSON.parse(fs.readFileSync(src, 'utf-8')) as FeatureCollection
+    await store.prune()
     for (let feature of fc.features) {
         if (isMultiPolygon(feature.geometry)) {
             await store.save(

@@ -1,3 +1,4 @@
+import path from 'path'
 import { loadCities } from '../scripts/load-cities'
 import { City } from '../use-cases/entities/city'
 import { Storable } from '../use-cases/entities/store'
@@ -55,10 +56,11 @@ describe('Show tribe(s)', () => {
 
 async function setUp() {
     const context = await createContext()
+    const filePath = path.join(process.cwd(), 'meta/cities.geojson')
 
     let city: City & Storable
     if (process.env.FULL_TEST) {
-        await loadCities('meta/cities.geojson', context.stores.cityStore)
+        await loadCities(filePath, context.stores.cityStore)
         const cities = await context.stores.cityStore.find({ name: 'Oslo' })
         city = cities[0]
     } else {
