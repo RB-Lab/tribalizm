@@ -3,9 +3,8 @@ import { Coordinates } from './location'
 import { Storable, Store } from './store'
 
 export interface CityStore extends Store<ICity> {
-    findByCoordinates: (
-        coordinates: Coordinates
-    ) => Promise<(ICity & Storable) | null>
+    findByCoordinates: (coordinates: Coordinates) => Promise<StoredCity | null>
+    autocomplete: (input?: string) => Promise<StoredCity[]>
 }
 
 export interface ICity {

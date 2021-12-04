@@ -11,4 +11,10 @@ export class InMemoryCityStore
         const res = Object.values(this._store)[0]
         return res ? this._instantiate(res) : null
     }
+    autocomplete = async (input?: string) => {
+        const res = Object.values(this._store).filter((v) =>
+            v.name.startsWith(input)
+        )
+        return res.map(this._instantiate)
+    }
 }

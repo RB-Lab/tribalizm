@@ -3,6 +3,7 @@ import { InMemoryStore } from '../../stores/in-memory-store/in-memory-store'
 import { MongoStore } from '../../stores/mongo-store/mongo-store'
 
 export interface Message {
+    id?: string | null
     brainstormId: string
     chatId: string
     messageId: number

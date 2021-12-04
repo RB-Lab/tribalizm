@@ -43,8 +43,6 @@ export class MockTgUserAdapter extends StoreTelegramUsersAdapter {
         new TelegramUser(this.store, this.user)
 }
 async function run() {
-    const token = process.env.BOT_KEY_TEST1
-
     const context = await createContext()
     const tgStore = new TgUserStore()
     const telegramUsersAdapter = new MockTgUserAdapter(
@@ -97,7 +95,7 @@ async function run() {
             domain: 'tribalizm-1.rblab.net',
         },
         tribalism: context.tribalism,
-        token,
+        token: process.env.BOT_TOKEN,
         notificationBus: context.async.notificationBus,
         messageStore: new TelegramMessageInMemoryStore(),
     }).then((bot) => {

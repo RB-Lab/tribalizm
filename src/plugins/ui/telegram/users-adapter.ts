@@ -13,6 +13,7 @@ export interface UserState {
 }
 
 export interface ITelegramUser {
+    id?: string | null
     /** user id in  Tribalizm system */
     userId: string
     /** Telegram chat id */

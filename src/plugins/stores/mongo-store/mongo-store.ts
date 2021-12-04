@@ -6,7 +6,7 @@ interface Storable {
 }
 const defaultPage = { fields: 'id', limit: 100, order: 'asc' as 'asc' | 'desc' }
 
-export class MongoStore<T> implements Store<T> {
+export class MongoStore<T extends { id?: string | null }> implements Store<T> {
     protected _class?: new (record: any) => T
     protected _classTable?: Record<string, new (record: any) => T>
     protected _collection: Collection<T>
@@ -44,6 +44,7 @@ export class MongoStore<T> implements Store<T> {
             }
             return doc
         }
+        delete doc.id
         const res = await this._collection.insertOne(doc as any)
         if (res.result.ok !== 1) {
             throw new Error("Didn't save for some reason")

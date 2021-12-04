@@ -8,6 +8,7 @@ export interface TaskStore extends Store<ITask> {
 }
 
 export interface ITask {
+    id?: string | null
     time: number
     done: boolean
     type: string
