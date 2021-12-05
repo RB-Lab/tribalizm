@@ -1,4 +1,5 @@
 import { Markup, Telegraf } from 'telegraf'
+import { text } from 'telegraf/typings/button'
 import { Maybe, notEmpty } from '../../../../ts-utils'
 import { TribeInfo } from '../../../../use-cases/tribes-show'
 import { i18n } from '../../i18n/i18n-ctx'
@@ -24,7 +25,8 @@ function isApplyState(state: Maybe<UserState>): state is ApplyState {
 export function tribesListScreen(bot: Telegraf<TribeCtx>) {
     bot.action('list-tribes', async (ctx) => {
         const texts = i18n(ctx).tribesList
-        ctx.user.setState<LocateState>({ type: 'locate-state' })
+        // TODO check if city already set
+        await ctx.user.setState<LocateState>({ type: 'locate-state' })
 
         const keyboard = Markup.keyboard([
             Markup.button.locationRequest(texts.requestLocation()),
@@ -38,6 +40,7 @@ export function tribesListScreen(bot: Telegraf<TribeCtx>) {
 
     bot.on('location', async (ctx, next) => {
         if (isLocateState(ctx.user.state)) {
+            const texts = i18n(ctx).tribesList
             const city = await ctx.tribalizm.locateUser.locateUserByCoordinates(
                 {
                     latitude: ctx.message.location.latitude,
@@ -46,13 +49,19 @@ export function tribesListScreen(bot: Telegraf<TribeCtx>) {
                 }
             )
             if (!city) {
-                ctx.reply(i18n(ctx).tribesList.cantFindCity())
+                ctx.reply(texts.cantFindCity())
+                return
             }
+            await ctx.reply(texts.searchIn({ city }), Markup.removeKeyboard())
             const tribes = await ctx.tribalizm.tribesShow.getLocalTribes({
                 limit: 3,
                 userId: ctx.user.userId,
             })
-            showTribesList(ctx, tribes)
+            if (tribes.length) {
+                showTribesList(ctx, tribes)
+            } else {
+                ctx.reply(texts.nothingFound({ city }))
+            }
             ctx.user.setState(null)
         } else {
             next()
@@ -62,20 +71,32 @@ export function tribesListScreen(bot: Telegraf<TribeCtx>) {
     bot.on('text', async (ctx, next) => {
         const state = ctx.user.state
         if (isLocateState(state)) {
-            await ctx.tribalizm.locateUser.locateUserByCityName({
+            const texts = i18n(ctx).tribesList
+            const city = await ctx.tribalizm.locateUser.locateUserByCityName({
                 cityName: ctx.message.text,
                 userId: ctx.user.userId,
             })
+            if (!city) {
+                ctx.reply(texts.unknownCity())
+            }
+            // remove "share location" button
+            await ctx.reply(
+                texts.searchIn({ city: ctx.message.text }),
+                Markup.removeKeyboard()
+            )
             const tribes = await ctx.tribalizm.tribesShow.getLocalTribes({
                 limit: 3,
                 userId: ctx.user.userId,
             })
-            // remove "share location" button
-            await ctx.reply(
-                i18n(ctx).tribesList.searchIn({ city: ctx.message.text }),
-                Markup.removeKeyboard()
-            )
-            showTribesList(ctx, tribes)
+            if (tribes.length) {
+                showTribesList(ctx, tribes)
+            } else {
+                ctx.reply(
+                    texts.nothingFound({
+                        city: ctx.message.text,
+                    })
+                )
+            }
             ctx.user.setState(null)
         } else if (isApplyState(state)) {
             const texts = i18n(ctx).tribesList

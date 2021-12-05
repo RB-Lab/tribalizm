@@ -175,7 +175,7 @@ export async function createTelegramContext(
     const bot = await makeBot({
         notificationBus: context.async.notificationBus,
         token,
-        tribalism: context.tribalism,
+        tribalizm: context.tribalizm,
         webHook: {
             port: 9002,
             path: '/tg-hook',
@@ -192,6 +192,7 @@ export async function createTelegramContext(
             }
         },
     })
+    bot.telegram.setWebhook('http://localhost:9002/tg-hook')
 
     function makeClient(user: string, chat: string) {
         makeClient.counter++

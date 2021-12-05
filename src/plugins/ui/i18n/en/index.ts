@@ -37,13 +37,15 @@ const en: BaseTranslation = {
         requestLocation: '🌍 Share my location',
         apply: '🚀 Send application',
         count: 'Members count:',
-        searchIn: 'Searchin in {city}: ',
+        searchIn: 'Trines in {city}: ',
         applyText:
             'Please, write tribe\'s chief and shaman about yourself and why do you want to join "{tribe}" tribe?',
         applicationSent:
             '📨 Your application has been sent. Tribe chief will propose a meeting soon.',
         applicationSentShort: '☑️ Applied!',
-        cantFindCity: "Can't find your city, please type it's name."
+        cantFindCity: "Can't find your city, please type it's name.",
+        unknownCity: 'Cannot find such a city',
+        nothingFound: 'No tribes in {city} so far...',
     },
     elders: {
         chief: 'chief',
@@ -182,35 +184,38 @@ const en: BaseTranslation = {
 
     errors: {
         // TODO fill other errors texts!!
-        UpdateFinishedBrainstormError: '',
-        SelfVotingIdeaError: '',
-        DoubleVotingError: '',
-        UpdateFinishedIdeaError: '',
-        InvalidTimeProposal: '',
-        InvalidAcceptanceTime: '',
-        NotYourQuest: '',
-        IndeclinableError: '',
-        QuestIncompleteError: '',
-        NotParticipated: '',
-        VoteRangeError: '',
-        SelfVotingError: '',
-        ApplicationTransitionError: '',
-        NoChiefTribeError: '',
-        EntityNotFound: '',
-        NotYourTribe: '',
-        NoIdeaError: '',
-        AlreadyHaveChief: '',
-        ElderMismatchError: '',
-        WrongQuestError: '',
+        UpdateFinishedBrainstormError: '🚫 This brainstorm is already over.',
+        SelfVotingIdeaError: '🚫 You cannot vote for your own idea.',
+        DoubleVotingError: 'Cannot vote twice.',
+        UpdateFinishedIdeaError:
+            'This idea already in implementation (or implemented).',
+        InvalidTimeProposal: 'It is impossible to meet at that time!',
+        InvalidAcceptanceTime: '🤬  InvalidAcceptanceTime? 🤨',
+        NotYourQuest: '🚫 Nope. This is not your quest.',
+        IndeclinableError: 'You cannot decline this type of quests.',
+        QuestIncompleteError:
+            'Cannot agree on quest with incomplete information.',
+        NotParticipated: "🚫 Nope. You cannot vote for gathering you' declined",
+        VoteRangeError: 'This vot is out of available range.',
+        SelfVotingError: '🚫 Nope. You cannot rate yourself',
+        ApplicationTransitionError: '🤬  ApplicationTransitionError? 🤨',
+        NoChiefTribeError: '🤨 Hmm... this tribe has no chief.',
+        EntityNotFound: '🤨 404. Not found. What did you try to find?',
+        NotYourTribe: '🚫 Nope. You are not from this tribe (any more?).',
+        NoIdeaError: '🤬 NoIdeaError? 🤨',
+        AlreadyHaveChief: '🤨 Hmm... this tribe already has a chief.',
+        ElderMismatchError: '🤬 ElderMismatchError? 🤨',
+        WrongQuestError: '🤬 WrongQuestError? 🤨',
         NoChiefSetError: '🤨 Hmm... this tribe has no chief.',
-        NoShamanSetError: '',
+        NoShamanSetError: '🤨 Hmm... this tribe has no shaman.',
         WrongPhaseError: '🚫 Sorry, you cannot change application process now.',
-        VotingNotStartedError: '',
-        ExternalMemberVoteError: '',
-        NotEnoughMembers: '',
+        VotingNotStartedError: '🚫 Voting is not started yet',
+        ExternalMemberVoteError:
+            '🚫 Nope. You are not from this tribe (any more?).',
+        NotEnoughMembers: '🤬 NotEnoughMembers? 🤨',
         NotAChiefError:
             '🚫 Sorry, you cannot start a brainstorm, only tribe chief can',
-        FinalyzeBeforeVotingError:
+        FinalizeBeforeVotingError:
             '🤬 System error! Cannot finalize storm before voting',
         StormNotStarted:
             '🤬 System error! Cannot add idea: brainstorm is not raging',

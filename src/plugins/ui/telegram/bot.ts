@@ -33,8 +33,8 @@ interface PublicHookConfig {
 interface BotConfig {
     reportError?: (err: unknown) => Promise<void> | void
     telegramUsersAdapter: TelegramUsersAdapter
-    webHook: PublicHookConfig
-    tribalism: Tribalizm
+    webHook?: PublicHookConfig
+    tribalizm: Tribalizm
     token: string | undefined
     notificationBus: NotificationBus
     messageStore: TelegramMessageStore
@@ -75,7 +75,7 @@ export async function makeBot(config: BotConfig) {
             await reportError(err)
         }
         ctx.tribalizm = wrapWithErrorHandler(
-            config.tribalism,
+            config.tribalizm,
             reportContextError
         )
 
@@ -141,25 +141,13 @@ export async function makeBot(config: BotConfig) {
     coordinationScreen(bot, config.notificationBus, config.telegramUsersAdapter)
     gatheringScreen(bot, config.notificationBus, config.telegramUsersAdapter)
 
-    if ('domain' in config.webHook) {
+    if (config.webHook) {
         await bot.launch({
             webhook: { ...config.webHook, hookPath: config.webHook.path },
         })
-    } else if ('path' in config.webHook) {
-        await bot.telegram.setWebhook(
-            `http://localhost:${config.webHook.port}${config.webHook.path}`
-        )
-        await bot.launch({
-            webhook: {
-                hookPath: config.webHook.path,
-                port: config.webHook.port,
-            },
-        })
+        // Enable graceful stop
+        process.once('SIGINT', () => bot.stop('SIGINT'))
+        process.once('SIGTERM', () => bot.stop('SIGTERM'))
     }
-
-    // Enable graceful stop
-    process.once('SIGINT', () => bot.stop('SIGINT'))
-    process.once('SIGTERM', () => bot.stop('SIGTERM'))
-
     return bot
 }

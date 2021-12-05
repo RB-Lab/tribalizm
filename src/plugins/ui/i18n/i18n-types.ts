@@ -101,7 +101,7 @@ export type Translation = {
 		 */
 		'count': string
 		/**
-		 * Searchin in {city}: 
+		 * Trines in {city}: 
 		 * @param {unknown} city
 		 */
 		'searchIn': RequiredParams1<'city'>
@@ -122,6 +122,15 @@ export type Translation = {
 		 * Can't find your city, please type it's name.
 		 */
 		'cantFindCity': string
+		/**
+		 * Cannot find such a city
+		 */
+		'unknownCity': string
+		/**
+		 * No tribes in {city} so far...
+		 * @param {unknown} city
+		 */
+		'nothingFound': RequiredParams1<'city'>
 	}
 	'elders': {	
 		/**
@@ -638,37 +647,109 @@ export type Translation = {
 		'end': string
 	}
 	'errors': {	
+		/**
+		 * 🚫 This brainstorm is already over.
+		 */
 		'UpdateFinishedBrainstormError': string
+		/**
+		 * 🚫 You cannot vote for your own idea.
+		 */
 		'SelfVotingIdeaError': string
+		/**
+		 * Cannot vote twice.
+		 */
 		'DoubleVotingError': string
+		/**
+		 * This idea already in implementation (or implemented).
+		 */
 		'UpdateFinishedIdeaError': string
+		/**
+		 * It is impossible to meet at that time!
+		 */
 		'InvalidTimeProposal': string
+		/**
+		 * 🤬  InvalidAcceptanceTime? 🤨
+		 */
 		'InvalidAcceptanceTime': string
+		/**
+		 * 🚫 Nope. This is not your quest.
+		 */
 		'NotYourQuest': string
+		/**
+		 * You cannot decline this type of quests.
+		 */
 		'IndeclinableError': string
+		/**
+		 * Cannot agree on quest with incomplete information.
+		 */
 		'QuestIncompleteError': string
+		/**
+		 * 🚫 Nope. You cannot vote for gathering you' declined
+		 */
 		'NotParticipated': string
+		/**
+		 * This vot is out of available range.
+		 */
 		'VoteRangeError': string
+		/**
+		 * 🚫 Nope. You cannot rate yourself
+		 */
 		'SelfVotingError': string
+		/**
+		 * 🤬  ApplicationTransitionError? 🤨
+		 */
 		'ApplicationTransitionError': string
+		/**
+		 * 🤨 Hmm... this tribe has no chief.
+		 */
 		'NoChiefTribeError': string
+		/**
+		 * 🤨 404. Not found. What did you try to find?
+		 */
 		'EntityNotFound': string
+		/**
+		 * 🚫 Nope. You are not from this tribe (any more?).
+		 */
 		'NotYourTribe': string
+		/**
+		 * 🤬 NoIdeaError? 🤨
+		 */
 		'NoIdeaError': string
+		/**
+		 * 🤨 Hmm... this tribe already has a chief.
+		 */
 		'AlreadyHaveChief': string
+		/**
+		 * 🤬 ElderMismatchError? 🤨
+		 */
 		'ElderMismatchError': string
+		/**
+		 * 🤬 WrongQuestError? 🤨
+		 */
 		'WrongQuestError': string
 		/**
 		 * 🤨 Hmm... this tribe has no chief.
 		 */
 		'NoChiefSetError': string
+		/**
+		 * 🤨 Hmm... this tribe has no shaman.
+		 */
 		'NoShamanSetError': string
 		/**
 		 * 🚫 Sorry, you cannot change application process now.
 		 */
 		'WrongPhaseError': string
+		/**
+		 * 🚫 Voting is not started yet
+		 */
 		'VotingNotStartedError': string
+		/**
+		 * 🚫 Nope. You are not from this tribe (any more?).
+		 */
 		'ExternalMemberVoteError': string
+		/**
+		 * 🤬 NotEnoughMembers? 🤨
+		 */
 		'NotEnoughMembers': string
 		/**
 		 * 🚫 Sorry, you cannot start a brainstorm, only tribe chief can
@@ -677,7 +758,7 @@ export type Translation = {
 		/**
 		 * 🤬 System error! Cannot finalize storm before voting
 		 */
-		'FinalyzeBeforeVotingError': string
+		'FinalizeBeforeVotingError': string
 		/**
 		 * 🤬 System error! Cannot add idea: brainstorm is not raging
 		 */
@@ -784,7 +865,7 @@ export type TranslationFunctions = {
 		 */
 		'count': () => LocalizedString
 		/**
-		 * Searchin in {city}: 
+		 * Trines in {city}: 
 		 */
 		'searchIn': (arg: { city: unknown }) => LocalizedString
 		/**
@@ -803,6 +884,14 @@ export type TranslationFunctions = {
 		 * Can't find your city, please type it's name.
 		 */
 		'cantFindCity': () => LocalizedString
+		/**
+		 * Cannot find such a city
+		 */
+		'unknownCity': () => LocalizedString
+		/**
+		 * No tribes in {city} so far...
+		 */
+		'nothingFound': (arg: { city: unknown }) => LocalizedString
 	}
 	'elders': {	
 		/**
@@ -1269,37 +1358,109 @@ export type TranslationFunctions = {
 		'end': () => LocalizedString
 	}
 	'errors': {	
+		/**
+		 * 🚫 This brainstorm is already over.
+		 */
 		'UpdateFinishedBrainstormError': () => LocalizedString
+		/**
+		 * 🚫 You cannot vote for your own idea.
+		 */
 		'SelfVotingIdeaError': () => LocalizedString
+		/**
+		 * Cannot vote twice.
+		 */
 		'DoubleVotingError': () => LocalizedString
+		/**
+		 * This idea already in implementation (or implemented).
+		 */
 		'UpdateFinishedIdeaError': () => LocalizedString
+		/**
+		 * It is impossible to meet at that time!
+		 */
 		'InvalidTimeProposal': () => LocalizedString
+		/**
+		 * 🤬  InvalidAcceptanceTime? 🤨
+		 */
 		'InvalidAcceptanceTime': () => LocalizedString
+		/**
+		 * 🚫 Nope. This is not your quest.
+		 */
 		'NotYourQuest': () => LocalizedString
+		/**
+		 * You cannot decline this type of quests.
+		 */
 		'IndeclinableError': () => LocalizedString
+		/**
+		 * Cannot agree on quest with incomplete information.
+		 */
 		'QuestIncompleteError': () => LocalizedString
+		/**
+		 * 🚫 Nope. You cannot vote for gathering you' declined
+		 */
 		'NotParticipated': () => LocalizedString
+		/**
+		 * This vot is out of available range.
+		 */
 		'VoteRangeError': () => LocalizedString
+		/**
+		 * 🚫 Nope. You cannot rate yourself
+		 */
 		'SelfVotingError': () => LocalizedString
+		/**
+		 * 🤬  ApplicationTransitionError? 🤨
+		 */
 		'ApplicationTransitionError': () => LocalizedString
+		/**
+		 * 🤨 Hmm... this tribe has no chief.
+		 */
 		'NoChiefTribeError': () => LocalizedString
+		/**
+		 * 🤨 404. Not found. What did you try to find?
+		 */
 		'EntityNotFound': () => LocalizedString
+		/**
+		 * 🚫 Nope. You are not from this tribe (any more?).
+		 */
 		'NotYourTribe': () => LocalizedString
+		/**
+		 * 🤬 NoIdeaError? 🤨
+		 */
 		'NoIdeaError': () => LocalizedString
+		/**
+		 * 🤨 Hmm... this tribe already has a chief.
+		 */
 		'AlreadyHaveChief': () => LocalizedString
+		/**
+		 * 🤬 ElderMismatchError? 🤨
+		 */
 		'ElderMismatchError': () => LocalizedString
+		/**
+		 * 🤬 WrongQuestError? 🤨
+		 */
 		'WrongQuestError': () => LocalizedString
 		/**
 		 * 🤨 Hmm... this tribe has no chief.
 		 */
 		'NoChiefSetError': () => LocalizedString
+		/**
+		 * 🤨 Hmm... this tribe has no shaman.
+		 */
 		'NoShamanSetError': () => LocalizedString
 		/**
 		 * 🚫 Sorry, you cannot change application process now.
 		 */
 		'WrongPhaseError': () => LocalizedString
+		/**
+		 * 🚫 Voting is not started yet
+		 */
 		'VotingNotStartedError': () => LocalizedString
+		/**
+		 * 🚫 Nope. You are not from this tribe (any more?).
+		 */
 		'ExternalMemberVoteError': () => LocalizedString
+		/**
+		 * 🤬 NotEnoughMembers? 🤨
+		 */
 		'NotEnoughMembers': () => LocalizedString
 		/**
 		 * 🚫 Sorry, you cannot start a brainstorm, only tribe chief can
@@ -1308,7 +1469,7 @@ export type TranslationFunctions = {
 		/**
 		 * 🤬 System error! Cannot finalize storm before voting
 		 */
-		'FinalyzeBeforeVotingError': () => LocalizedString
+		'FinalizeBeforeVotingError': () => LocalizedString
 		/**
 		 * 🤬 System error! Cannot add idea: brainstorm is not raging
 		 */

@@ -50,7 +50,14 @@ export class TelegramUser implements SavedTelegramUser {
         } else {
             delete this.state
         }
-        await this.store.save({ ...this })
+        await this.store.save({
+            id: this.id,
+            chatId: this.chatId,
+            userId: this.userId,
+            locale: this.locale,
+            state: this.state,
+            username: this.username,
+        })
     }
 }
 

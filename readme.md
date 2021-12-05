@@ -5,8 +5,10 @@
 To run admin panel, run docker image:
 
 ```sh
-docker run --env-file=<env_file> -it --network tribalizm admin:1.0
+docker run --env-file=<env_file> -it --network <tribalizm|host> admin:1.0
 ```
+
+Network host is when developing locally.
 
 ## Development
 

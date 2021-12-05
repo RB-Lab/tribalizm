@@ -238,7 +238,7 @@ async function setUp() {
     const gatheringFinale = new GatheringFinale(context)
 
     async function makeGathering() {
-        await context.tribalism.gatheringDeclare.declare({
+        await context.tribalizm.gatheringDeclare.declare({
             description: 'lets OLOLO together!',
             place: 'the Foo Bar',
             time: 100500200500,
@@ -251,13 +251,13 @@ async function setUp() {
         const declined = [10, 7]
         for (let m of members) {
             if (accepted.includes(members.indexOf(m))) {
-                await context.tribalism.gatheringAcknowledge.accept({
+                await context.tribalizm.gatheringAcknowledge.accept({
                     gatheringId: gathering.id,
                     memberId: m.id,
                 })
             }
             if (declined.includes(members.indexOf(m))) {
-                await context.tribalism.gatheringAcknowledge.decline({
+                await context.tribalizm.gatheringAcknowledge.decline({
                     gatheringId: gathering.id,
                     memberId: m.id,
                 })

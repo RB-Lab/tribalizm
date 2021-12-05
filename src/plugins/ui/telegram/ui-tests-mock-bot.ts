@@ -94,7 +94,7 @@ async function run() {
             port: 3000,
             domain: 'tribalizm-1.rblab.net',
         },
-        tribalism: context.tribalism,
+        tribalizm: context.tribalizm,
         token: process.env.BOT_TOKEN,
         notificationBus: context.async.notificationBus,
         messageStore: new TelegramMessageInMemoryStore(),

@@ -25,11 +25,13 @@ describe('Brainstorm [integration]', () => {
     it('Main scenario', async () => {
         // Chief arranges brainstorm
         await world.admin.notifyBrainstorm({ memberId: world.chief.member.id })
-        const chiefBrstmNoteUpd = await world.chief.chat()
-        expect(chiefBrstmNoteUpd.length).toBe(1)
-        const brstBtns = getInlineKeyCallbacks(chiefBrstmNoteUpd[0])
-        expect(brstBtns.length).toBe(1)
-        const calendar = await world.chief.chatLast(brstBtns[0])
+        const chiefBrainstormNoteUpd = await world.chief.chat()
+        expect(chiefBrainstormNoteUpd.length).toBe(1)
+        const brainstormButtons = getInlineKeyCallbacks(
+            chiefBrainstormNoteUpd[0]
+        )
+        expect(brainstormButtons.length).toBe(1)
+        const calendar = await world.chief.chatLast(brainstormButtons[0])
         const dates = getInlineKeyCallbacks(calendar).filter((cb) =>
             cb.includes('date')
         )
@@ -169,7 +171,7 @@ describe('Brainstorm [integration]', () => {
         await world.user3.chat('confirm-proposal', true)
 
         // check that quest negotiation works on coordination quests as well
-        // new user recieves proposal
+        // new user receives proposal
         const chiefNotif = await world.chief.chatLast()
         const userNotifButtons = getInlineKeyCallbacks(chiefNotif)
         const calendar3 = await world.chief.chatLast(userNotifButtons[1])
@@ -243,7 +245,7 @@ describe('Brainstorm [integration]', () => {
         const spawnManageBtns = getInlineKeyCallbacks(
             await userToPropose.chatLast()
         )
-        const spwnHowWasItTask = await world.context.stores.taskStore._last()
+        const spawnHowWasItTask = await world.context.stores.taskStore._last()
 
         // Fast forward to feedback of original quest attenders
         jasmine.clock().mockDate(new Date(ideaQuestHowWasItTask!.time + 1000))
@@ -294,20 +296,20 @@ describe('Brainstorm [integration]', () => {
         )[0]
         await userToPropose.chat(arrMins)
         const gConfirmUpd = await userToPropose.chatLast('GalaDirilia park')
-        const gathRepyUpds = await userToPropose.chat(
+        const gathReplyUpds = await userToPropose.chat(
             getInlineKeyCallbacks(gConfirmUpd)[0]
         )
-        let propserConfirm: string | undefined
-        if (gathRepyUpds.length > 1) {
-            propserConfirm = getInlineKeyCallbacks(gathRepyUpds[1])[0]
+        let proposeConfirm: string | undefined
+        if (gathReplyUpds.length > 1) {
+            proposeConfirm = getInlineKeyCallbacks(gathReplyUpds[1])[0]
         }
         const gatheringHowWasItTask =
             await world.context.stores.taskStore._last()
 
         // all other users got notified
         for (let user of world.users) {
-            if (user === userToPropose && propserConfirm) {
-                await user.chat(propserConfirm)
+            if (user === userToPropose && proposeConfirm) {
+                await user.chat(proposeConfirm)
                 continue
             }
             const upds = await user.chat()
@@ -321,7 +323,7 @@ describe('Brainstorm [integration]', () => {
         }
 
         // Fast forward to feedback of spawned task
-        jasmine.clock().mockDate(new Date(spwnHowWasItTask!.time + 1000))
+        jasmine.clock().mockDate(new Date(spawnHowWasItTask!.time + 1000))
         await world.context.requestTaskQueue()
         const uToPrpzFeedbackUpd = await userToPropose.chat()
         const uToPrpzFdbChButtons = getInlineKeyCallbacks(uToPrpzFeedbackUpd[0])

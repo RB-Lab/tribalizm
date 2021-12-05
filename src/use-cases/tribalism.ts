@@ -12,6 +12,7 @@ import { QuestNegotiation } from './negotiate-quest'
 import { QuestFinale } from './quest-finale'
 import { SpawnQuest } from './spawn-quest'
 import { TribeShow } from './tribes-show'
+import { Context } from './utils/context'
 import { ContextUser } from './utils/context-user'
 import { Voting } from './vote-idea'
 
@@ -31,6 +32,26 @@ export interface Tribalizm {
     spawnQuest: Omit<SpawnQuest, keyof ContextUser>
     voting: Omit<Voting, keyof ContextUser>
     locateUser: Omit<LocateUser, keyof ContextUser>
+}
+
+export function makeTribalizm(context: Context) {
+    return {
+        addIdea: new AddIdea(context),
+        brainstormLifecycle: new BrainstormLifecycle(context),
+        gatheringAcknowledge: new GatheringAcknowledge(context),
+        gatheringDeclare: new GatheringDeclare(context),
+        gatheringFinale: new GatheringFinale(context),
+        initiation: new Initiation(context),
+        introductionQuests: new IntroductionQuests(context),
+        ideasIncarnation: new IdeasIncarnation(context),
+        tribeApplication: new TribeApplication(context),
+        tribesShow: new TribeShow(context),
+        questNegotiation: new QuestNegotiation(context),
+        questFinale: new QuestFinale(context),
+        spawnQuest: new SpawnQuest(context),
+        voting: new Voting(context),
+        locateUser: new LocateUser(context),
+    }
 }
 
 export function wrapWithErrorHandler(

@@ -354,7 +354,7 @@ describe('Get into tribe [integration]', () => {
             })
         )
         const tribesListUpdate = await world.newUser.chat()
-        expect(tribesListUpdate.length).toBe(world.tribes.length)
+        expect(tribesListUpdate.length).toBe(world.tribes.length + 1)
     })
     it('Decline application', async () => {
         await world.newUser.chat('/start')

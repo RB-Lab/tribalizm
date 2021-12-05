@@ -38,6 +38,7 @@ import { LocateUser } from '../use-cases/locate-user'
 import { QuestNegotiation } from '../use-cases/negotiate-quest'
 import { QuestFinale } from '../use-cases/quest-finale'
 import { SpawnQuest } from '../use-cases/spawn-quest'
+import { makeTribalizm } from '../use-cases/tribalism'
 import { TribeShow } from '../use-cases/tribes-show'
 import { Message } from '../use-cases/utils/message'
 import { NotificationBus } from '../use-cases/utils/notification-bus'
@@ -217,25 +218,9 @@ export async function createContext() {
         context.stores.memberStore.save(member)
     }
 
-    const tribalism = {
-        addIdea: new AddIdea(context),
-        brainstormLifecycle: new BrainstormLifecycle(context),
-        gatheringAcknowledge: new GatheringAcknowledge(context),
-        gatheringDeclare: new GatheringDeclare(context),
-        gatheringFinale: new GatheringFinale(context),
-        initiation: new Initiation(context),
-        introductionQuests: new IntroductionQuests(context),
-        ideasIncarnation: new IdeasIncarnation(context),
-        tribeApplication: new TribeApplication(context),
-        tribesShow: new TribeShow(context),
-        questNegotiation: new QuestNegotiation(context),
-        questFinale: new QuestFinale(context),
-        spawnQuest: new SpawnQuest(context),
-        voting: new Voting(context),
-        locateUser: new LocateUser(context),
-    }
+    const tribalizm = makeTribalizm(context)
     const scheduler = new Scheduler(context.stores.taskStore)
-    const taskDispatcher = new TaskDispatcher(tribalism, scheduler)
+    const taskDispatcher = new TaskDispatcher(tribalizm, scheduler)
 
     async function requestTaskQueue() {
         if (process.env.chatDebug) {
@@ -254,7 +239,7 @@ export async function createContext() {
     return {
         ...context,
         testing,
-        tribalism,
+        tribalizm,
         addVotes,
         requestTaskQueue,
     }
