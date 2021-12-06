@@ -1,0 +1,46 @@
+---
+- hosts: bot
+  vars:
+    registry: '{{ lookup("env", "REGISTRY") }}'
+
+  tasks:
+    - name: Establish network
+      docker_network:
+        name: tribalizm
+
+    - name: Deploy MongoDB
+      docker_container:
+        name: mongodb
+        image: mongo:5.0.4-focal
+        volumes:
+          - mongo-data:/data/db
+        networks:
+          - name: tribalizm
+        restart_policy: always
+        env:
+          MONGO_INITDB_ROOT_USERNAME: '{{ db_user | string}}'
+          MONGO_INITDB_ROOT_PASSWORD: '{{ db_pass | string}}'
+        # to get rid of warnings:
+        container_default_behavior: no_defaults
+        network_mode: tribalizm
+
+    - name: Log in to AWS ECR
+      shell: aws ecr get-login-password --region eu-central-1 | docker login --username AWS --password-stdin '{{ registry | string }}'
+
+    - name: Deploy Tribalizm bot
+      docker_container:
+        name: tribalizm-bot
+        image: '{{ registry | string }}/tribalizm-bot:1.0'
+        networks:
+          - name: tribalizm
+        ports:
+          - 5000:3000
+        restart_policy: always
+        env:
+          DB_HOST: mongodb # name of container from 'Deploy MongoDB' task
+          DB_USER: '{{ db_user | string}}'
+          DB_PASS: '{{ db_pass | string}}'
+          BOT_TOKEN: '{{ bot_token | string}}'
+        # to get rid of warnings:
+        container_default_behavior: no_defaults
+        network_mode: tribalizm

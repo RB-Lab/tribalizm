@@ -27,3 +27,11 @@
       name:
         - docker
         - docker-compose
+  
+  - name: install AWS ECR credentials helper
+    become: yes
+    apt:
+      name: 
+        - amazon-ecr-credential-helper
+        - awscli
+      update_cache: yes

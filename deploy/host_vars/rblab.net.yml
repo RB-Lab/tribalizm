@@ -2,3 +2,7 @@
 ansible_ssh_user: ansible
 ansible_ssh_private_key_file: ~/.ssh/ansible_ed25519
 ansible_become_pass: 7051d470-97c7-4e4b-bcb0-8284ef6fca45
+docker_registry: 296292975264.dkr.ecr.eu-central-1.amazonaws.com
+bot_token: 1682280139:AAG8wXiKPxmhG7YI6fX91nV7ctbsPEC3KUg
+db_user: muai
+db_pass: 5df3a2be-5a13-467a-af82-fe4e579e74d5

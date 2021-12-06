@@ -13,6 +13,24 @@ services:
       - mongo-data:/data/db
     networks:
       - tribalizm
+  tribalizm-bot:
+    image: tribalizm-bot:1.0
+    build: 
+      context: .
+      dockerfile: ./Dockerfile.bot
+    restart: always
+    environment:
+      DB_HOST: "${DB_HOST}"
+      DB_USER: "${DB_USER}"
+      DB_PASS: "${DB_PASS}"
+      BOT_TOKEN: "${BOT_TOKEN}"
+    networks:
+      - tribalizm
+  admin:
+    image: tribalizm-admin:1.0
+    build: 
+      context: .
+      dockerfile: ./Dockerfile.admin
 networks:
   tribalizm:
     name: tribalizm
