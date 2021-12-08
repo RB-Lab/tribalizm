@@ -1,26 +1,19 @@
 import { Db } from 'mongodb'
-import { TestNotificationBus } from './plugins/notification-bus'
 import { MongoApplicationStore } from './plugins/stores/mongo-store/application-store'
 import { MongoBrainstormStore } from './plugins/stores/mongo-store/brainstorm-store'
 import { MongoCityStore } from './plugins/stores/mongo-store/city-store'
 import { MongoGatheringStore } from './plugins/stores/mongo-store/gathering-store'
 import { MongoIdeaStore } from './plugins/stores/mongo-store/idea-store'
 import { MongoMemberStore } from './plugins/stores/mongo-store/member-store'
+import { MongoStore } from './plugins/stores/mongo-store/mongo-store'
 import { MongoQuestStore } from './plugins/stores/mongo-store/quest-store'
 import { MongoTaskStore } from './plugins/stores/mongo-store/task-store'
 import { MongoTribeStore } from './plugins/stores/mongo-store/tribe-store'
 import { MongoUserStore } from './plugins/stores/mongo-store/user-store'
-import { Context } from './use-cases/utils/context'
-import { MongoStore } from './plugins/stores/mongo-store/mongo-store'
-import {
-    ITelegramUser,
-    StoreTelegramUsersAdapter,
-} from './plugins/ui/telegram/users-adapter'
-import { UserStore } from './use-cases/entities/user'
 import { TelegramMessageMongoStore } from './plugins/ui/telegram/message-store'
-import { ILogger } from './use-cases/utils/logger'
+import { ITelegramUser } from './plugins/ui/telegram/users-adapter'
 
-export function createMongoContext(db: Db) {
+export function createMongoStores(db: Db) {
     const ideasCollection = db.collection('idea')
     const ideaStore = new MongoIdeaStore(ideasCollection)
     const brainstormsCollection = db.collection('brainstorm')
@@ -41,7 +34,14 @@ export function createMongoContext(db: Db) {
     const gatheringStore = new MongoGatheringStore(gatheringsCollection)
     const citiesCollection = db.collection('cities')
     const cityStore = new MongoCityStore(citiesCollection)
-    const context: Context['stores'] = {
+
+    class MongoTelegramUsersStore extends MongoStore<ITelegramUser> {}
+    const tgUsersCollection = db.collection('telegramUsers')
+    const tgUserStore = new MongoTelegramUsersStore(tgUsersCollection)
+    const messageCollection = db.collection('telegramMessages')
+    const messageStore = new TelegramMessageMongoStore(messageCollection)
+
+    const context = {
         applicationStore,
         brainstormStore,
         cityStore,
@@ -52,17 +52,8 @@ export function createMongoContext(db: Db) {
         taskStore,
         tribeStore,
         userStore,
+        tgUserStore,
+        messageStore,
     }
     return context
-}
-
-export function createMongoTelegramContext(db: Db, userStore: UserStore) {
-    class MongoTelegramUsersStore extends MongoStore<ITelegramUser> {}
-    const tgUsersCollection = db.collection('telegramUsers')
-    const tgUserStore = new MongoTelegramUsersStore(tgUsersCollection)
-    const tgUsersAdapter = new StoreTelegramUsersAdapter(userStore, tgUserStore)
-    const messageCollection = db.collection('telegramMessages')
-    const messageStore = new TelegramMessageMongoStore(messageCollection)
-
-    return { tgUserStore, tgUsersAdapter, messageStore }
 }

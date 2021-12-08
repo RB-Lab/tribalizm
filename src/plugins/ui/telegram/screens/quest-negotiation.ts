@@ -95,7 +95,7 @@ export function questNegotiationScreen({ bot, bus, tgUsers }: TgContext) {
         }
         await ctx.tribalizm.questNegotiation.proposeChange({
             place: state.place,
-            time: state.date.getTime(),
+            time: ctx.user.convertTime(state.date).getTime(),
             memberId: state.memberId,
             questId: state.questId,
         })

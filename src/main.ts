@@ -1,9 +1,10 @@
 import express, { ErrorRequestHandler } from 'express'
 import { MongoClient } from 'mongodb'
-import { createMongoContext, createMongoTelegramContext } from './mongo-context'
+import { createMongoStores } from './mongo-context'
 import { Logger } from './plugins/logger'
 import { TestNotificationBus } from './plugins/notification-bus'
 import { makeBot } from './plugins/ui/telegram/bot'
+import { StoreTelegramUsersAdapter } from './plugins/ui/telegram/users-adapter'
 import { makeTribalizm } from './use-cases/tribalism'
 import { Scheduler } from './use-cases/utils/scheduler'
 import { TaskDispatcher } from './use-cases/utils/task-dispatcher'
@@ -29,20 +30,20 @@ async function main() {
     try {
         const { db, client } = await getDb()
 
-        const stores = createMongoContext(db)
+        const stores = createMongoStores(db)
         const notificationBus = new TestNotificationBus(logger)
-
-        const { tgUsersAdapter, messageStore } = createMongoTelegramContext(
-            db,
-            stores.userStore
-        )
 
         const tribalizm = makeTribalizm({ stores, async: { notificationBus } })
 
+        const tgUsersAdapter = new StoreTelegramUsersAdapter(
+            stores.userStore,
+            stores.tgUserStore,
+            logger
+        )
         const bot = await makeBot({
             logger,
             telegramUsersAdapter: tgUsersAdapter,
-            messageStore: messageStore,
+            messageStore: stores.messageStore,
             tribalizm: tribalizm,
             token: process.env.BOT_TOKEN,
             notificationBus: notificationBus,

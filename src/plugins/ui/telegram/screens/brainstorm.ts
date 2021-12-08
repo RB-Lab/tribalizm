@@ -14,6 +14,7 @@ import { removeInlineKeyboard } from '../telegraf-hacks'
 import { TgContext, TribeCtx } from '../tribe-ctx'
 import { UserState } from '../users-adapter'
 import { makeCallbackDataParser } from './callback-parser'
+import tz from 'timezone-name-offsets'
 
 const startBrainstorm = makeCallbackDataParser('storm-start', ['memberId'])
 
@@ -55,7 +56,7 @@ export function brainstormScreen({
                         texts.confirm(),
                         stormConfirm.serialize({
                             memberId,
-                            time: date.getTime(),
+                            time: ctx.user.convertTime(date).getTime(),
                         })
                     ),
                     Markup.button.callback(

@@ -56,11 +56,15 @@ export function tribesListScreen({ bot }: TgContext) {
                 ctx.reply(texts.cantFindCity())
                 return
             }
+            ctx.user.locate(city.id, city.timeZone)
             const tribes = await ctx.tribalizm.tribesShow.getLocalTribes({
                 limit: 3,
                 userId: ctx.user.userId,
             })
-            await ctx.reply(texts.searchIn({ city }), Markup.removeKeyboard())
+            await ctx.reply(
+                texts.searchIn({ city: city.name }),
+                Markup.removeKeyboard()
+            )
             ctx.logEvent('Tribes list', {
                 city,
                 tribes: tribes.length,
@@ -69,7 +73,7 @@ export function tribesListScreen({ bot }: TgContext) {
             if (tribes.length) {
                 showTribesList(ctx, tribes)
             } else {
-                ctx.reply(texts.nothingFound({ city }))
+                ctx.reply(texts.nothingFound({ city: city.name }))
             }
             ctx.user.setState(null)
         } else {
@@ -91,7 +95,9 @@ export function tribesListScreen({ bot }: TgContext) {
                     location: ctx.message.text,
                 })
                 ctx.reply(texts.unknownCity())
+                return
             }
+            ctx.user.locate(city.id, city.timeZone)
             // remove "share location" button
             await ctx.reply(
                 texts.searchIn({ city: ctx.message.text }),

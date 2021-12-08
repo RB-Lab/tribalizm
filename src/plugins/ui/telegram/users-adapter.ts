@@ -22,6 +22,8 @@ export interface ITelegramUser {
     /** Telegram username (e.g. @rombek) */
     username?: string
     locale?: string
+    timeZone?: string
+    cityId?: string
     /** arbitrary data associated with user, i.e. permanent session */
     state?: UserState
 }
@@ -30,17 +32,19 @@ export type SavedTelegramUser = ITelegramUser & Storable
 
 export class TelegramUser implements SavedTelegramUser {
     private store: TelegramUserStore
-    private logger?: ILogger
+    private logger: ILogger
     id: string
     userId: string
     chatId: string
     username?: string
     locale?: string
     state?: UserState
+    timeZone?: string
+    cityId?: string
     constructor(
         store: TelegramUserStore,
-        data: SavedTelegramUser,
-        logger?: ILogger
+        logger: ILogger,
+        data: SavedTelegramUser
     ) {
         this.id = data.id
         this.userId = data.userId
@@ -50,10 +54,12 @@ export class TelegramUser implements SavedTelegramUser {
         this.store = store
         this.state = data.state
         this.logger = logger
+        this.timeZone = data.timeZone
+        this.cityId = data.cityId
     }
     async setState<T extends UserState>(state: T | null) {
         if (state) {
-            this.logger?.trace(`set-user-state: ${state.type}`, state)
+            this.logger.trace(`set-user-state: ${state.type}`, state)
             this.state = state
         } else {
             this.logger?.trace(
@@ -61,12 +67,38 @@ export class TelegramUser implements SavedTelegramUser {
             )
             delete this.state
         }
+        await this.save()
+    }
+    /**
+     * Sets information about user's position
+     */
+    async locate(cityId: string, timeZone: string) {
+        this.cityId = cityId
+        this.timeZone = timeZone
+        await this.save()
+    }
+
+    /**
+     * Converts from server's date to user's one (if timeZone is set)
+     */
+    convertTime(date: Date) {
+        if (!this.timeZone) return date
+        return new Date(
+            Date.parse(
+                date.toLocaleString('en-US', { timeZone: this.timeZone })
+            )
+        )
+    }
+
+    private async save() {
         await this.store.save({
             id: this.id,
             chatId: this.chatId,
             userId: this.userId,
             locale: this.locale,
             state: this.state,
+            timeZone: this.timeZone,
+            cityId: this.cityId,
             username: this.username,
         })
     }
@@ -87,11 +119,11 @@ export interface TelegramUsersAdapter {
 export class StoreTelegramUsersAdapter implements TelegramUsersAdapter {
     private userStore: UserStore
     private tgUserStore: TelegramUserStore
-    private logger?: ILogger
+    protected logger: ILogger
     constructor(
         userStore: UserStore,
         telegramUserStore: TelegramUserStore,
-        logger?: ILogger
+        logger: ILogger
     ) {
         this.userStore = userStore
         this.tgUserStore = telegramUserStore
@@ -114,7 +146,7 @@ export class StoreTelegramUsersAdapter implements TelegramUsersAdapter {
             locale: tgData.locale,
             username: tgData.username,
         })
-        return new TelegramUser(this.tgUserStore, savedUser, this.logger)
+        return new TelegramUser(this.tgUserStore, this.logger, savedUser)
     }
 
     /**
@@ -124,7 +156,7 @@ export class StoreTelegramUsersAdapter implements TelegramUsersAdapter {
     async getUserByChatId(chatId: string | number) {
         const users = await this.tgUserStore.find({ chatId: String(chatId) })
         return users.length
-            ? new TelegramUser(this.tgUserStore, users[0], this.logger)
+            ? new TelegramUser(this.tgUserStore, this.logger, users[0])
             : null
     }
     /**
@@ -138,6 +170,6 @@ export class StoreTelegramUsersAdapter implements TelegramUsersAdapter {
             throw new Error(`User ${tribalismUserId} does not use telegram`)
         }
 
-        return new TelegramUser(this.tgUserStore, users[0], this.logger)
+        return new TelegramUser(this.tgUserStore, this.logger, users[0])
     }
 }

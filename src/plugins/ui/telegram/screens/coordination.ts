@@ -140,7 +140,7 @@ export function coordinationScreen({ bot, bus, tgUsers }: TgContext) {
             memberId: state.memberId,
             parentQuestId: state.parentQuestId,
             place: state.place,
-            time: state.date.getTime(),
+            time: ctx.user.convertTime(state.date).getTime(),
             type: state.gatheringType,
         })
     })

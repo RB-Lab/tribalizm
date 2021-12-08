@@ -3,6 +3,7 @@ import { Admin } from '../../../use-cases/admin'
 import { City } from '../../../use-cases/entities/city'
 import { Tribe } from '../../../use-cases/entities/tribe'
 import { User } from '../../../use-cases/entities/user'
+import { ILogger } from '../../../use-cases/utils/logger'
 import { Logger } from '../../logger'
 import { InMemoryStore } from '../../stores/in-memory-store/in-memory-store'
 import { makeBot } from './bot'
@@ -36,19 +37,22 @@ export class MockTgUserAdapter extends StoreTelegramUsersAdapter {
         saveBulk: async () => [this.user as any],
     }
     async createUser() {
-        return new TelegramUser(this.store, this.user)
+        return new TelegramUser(this.store, this.logger, this.user)
     }
 
-    getUserByChatId = async () => new TelegramUser(this.store, this.user)
+    getUserByChatId = async () =>
+        new TelegramUser(this.store, this.logger, this.user)
     getTelegramUserForTribalism = async () =>
-        new TelegramUser(this.store, this.user)
+        new TelegramUser(this.store, this.logger, this.user)
 }
 async function run() {
     const context = await createContext()
     const tgStore = new TgUserStore()
+    const logger = new Logger()
     const telegramUsersAdapter = new MockTgUserAdapter(
         context.stores.userStore,
-        tgStore
+        tgStore,
+        logger
     )
     const admin = new Admin(context)
 
@@ -89,7 +93,7 @@ async function run() {
     telegramUsersAdapter.user.userId = users[3].id
 
     makeBot({
-        logger: new Logger(),
+        logger,
         telegramUsersAdapter,
         webHook: {
             path: '/tg-hook',

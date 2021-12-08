@@ -14,13 +14,17 @@ export class LocateUser extends ContextUser {
         if (!city) return null
 
         await this.locateUser(req.userId, city)
-        return city.name
+        return { name: city.name, id: city.id, timeZone: city.timeZone }
     }
     async locateUserByCityName(req: LocateByCityNameRequest) {
         const cities = await this.stores.cityStore.find({ name: req.cityName })
         if (!cities[0]) return null
         await this.locateUser(req.userId, cities[0])
-        return cities[0].name
+        return {
+            name: cities[0].name,
+            id: cities[0].id,
+            timeZone: cities[0].timeZone,
+        }
     }
     private async locateUser(userId: string, city: StoredCity) {
         const user = await this.getUser(userId)
