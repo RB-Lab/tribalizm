@@ -1,15 +1,14 @@
-import { Markup, Telegraf } from 'telegraf'
+import { Markup } from 'telegraf'
 import { Maybe, notEmpty } from '../../../../ts-utils'
 import { QuestType } from '../../../../use-cases/entities/quest'
 import {
     QuestAcceptedMessage,
     QuestChangeMessage,
 } from '../../../../use-cases/negotiate-quest'
-import { NotificationBus } from '../../../../use-cases/utils/notification-bus'
 import { i18n } from '../../i18n/i18n-ctx'
 import { removeInlineKeyboard } from '../telegraf-hacks'
-import { TribeCtx } from '../tribe-ctx'
-import { TelegramUsersAdapter, UserState } from '../users-adapter'
+import { TgContext, TribeCtx } from '../tribe-ctx'
+import { UserState } from '../users-adapter'
 import { makeCallbackDataParser } from './callback-parser'
 
 export const negotiate = makeCallbackDataParser('negotiate-quest', [
@@ -38,11 +37,7 @@ function isNegotiationState(
     return notEmpty(state) && state.type === 'negotiation-state'
 }
 
-export function questNegotiationScreen(
-    bot: Telegraf<TribeCtx>,
-    bus: NotificationBus,
-    telegramUsers: TelegramUsersAdapter
-) {
+export function questNegotiationScreen({ bot, bus, tgUsers }: TgContext) {
     bot.action(negotiate.regex, (ctx) => {
         const { memberId, questId, elder } = negotiate.parse(ctx.match[0])
         const texts = i18n(ctx).questNegotiation
@@ -73,6 +68,7 @@ export function questNegotiationScreen(
         if (!isNegotiationState(state)) {
             return
         }
+        ctx.logEvent('quest: proposal', { questId: state.questId })
         const texts = i18n(ctx).questNegotiation
         if (!state.date) {
             ctx.reply(
@@ -139,12 +135,13 @@ export function questNegotiationScreen(
             const proposal = texts.proposal({ date: state.date, place })
             ctx.reply(texts.proposalConfirmPrompt({ proposal }), kb)
         } else {
-            next()
+            return next()
         }
     })
 
     bot.action(agreeQuest.regex, async (ctx) => {
         const { memberId, questId } = agreeQuest.parse(ctx.match[0])
+        ctx.logEvent('quest: agree', { questId })
         await ctx.tribalizm.questNegotiation.acceptQuest({ memberId, questId })
         const quest = await ctx.tribalizm.questNegotiation.questDetails({
             questId,
@@ -167,7 +164,7 @@ export function questNegotiationScreen(
     bus.subscribe<QuestChangeMessage>(
         'quest-change-proposed',
         async ({ payload }) => {
-            const user = await telegramUsers.getTelegramUserForTribalism(
+            const user = await tgUsers.getTelegramUserForTribalism(
                 payload.targetUserId
             )
             const qnTexts = i18n(user).questNegotiation
@@ -239,7 +236,7 @@ export function questNegotiationScreen(
     bus.subscribe<QuestAcceptedMessage>(
         'quest-accepted',
         async ({ payload }) => {
-            const user = await telegramUsers.getTelegramUserForTribalism(
+            const user = await tgUsers.getTelegramUserForTribalism(
                 payload.targetUserId
             )
             const qnTexts = i18n(user).questNegotiation

@@ -1,20 +1,14 @@
-import { Markup, Telegraf } from 'telegraf'
+import { Markup } from 'telegraf'
 import { IntroMessage } from '../../../../use-cases/introduction-quests'
-import { NotificationBus } from '../../../../use-cases/utils/notification-bus'
 import { i18n } from '../../i18n/i18n-ctx'
-import { TribeCtx } from '../tribe-ctx'
-import { TelegramUsersAdapter } from '../users-adapter'
+import { TgContext } from '../tribe-ctx'
 import { negotiate } from './quest-negotiation'
 
-export function introQuestsScreen(
-    bot: Telegraf<TribeCtx>,
-    bus: NotificationBus,
-    telegramUsers: TelegramUsersAdapter
-) {
+export function introQuestsScreen({ bot, bus, tgUsers }: TgContext) {
     bus.subscribe<IntroMessage>(
         'intro-request-message',
         async ({ payload }) => {
-            const user = await telegramUsers.getTelegramUserForTribalism(
+            const user = await tgUsers.getTelegramUserForTribalism(
                 payload.targetUserId
             )
             const texts = i18n(user).introduction

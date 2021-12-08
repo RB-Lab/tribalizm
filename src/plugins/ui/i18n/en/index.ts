@@ -37,7 +37,7 @@ const en: BaseTranslation = {
         requestLocation: '🌍 Share my location',
         apply: '🚀 Send application',
         count: 'Members count:',
-        searchIn: 'Trines in {city}: ',
+        searchIn: 'Tribes in {city}: ',
         applyText:
             'Please, write tribe\'s chief and shaman about yourself and why do you want to join "{tribe}" tribe?',
         applicationSent:

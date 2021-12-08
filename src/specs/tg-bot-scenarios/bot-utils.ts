@@ -1,4 +1,6 @@
+import Transport from 'winston-transport'
 import TelegramServer from 'telegram-test-api'
+import { Logger } from '../../plugins/logger'
 import { InMemoryStore } from '../../plugins/stores/in-memory-store/in-memory-store'
 import { makeBot } from '../../plugins/ui/telegram/bot'
 import { TelegramMessageInMemoryStore } from '../../plugins/ui/telegram/message-store'
@@ -172,6 +174,12 @@ export async function createTelegramContext(
     await server.start()
 
     const messageStore = new TelegramMessageInMemoryStore()
+    class SpyTransport extends Transport {
+        log = (info: any, next: () => void) => {
+            console.log(info)
+            next()
+        }
+    }
     const bot = await makeBot({
         notificationBus: context.async.notificationBus,
         token,
@@ -182,15 +190,12 @@ export async function createTelegramContext(
         },
         telegramUsersAdapter: new StoreTelegramUsersAdapter(
             context.stores.userStore,
-            new TgUserStore()
+            new TgUserStore(),
+            context.logger
         ),
         messageStore,
         telegramURL: server.config.apiURL,
-        reportError: (err) => {
-            if (process.env.chatDebug) {
-                console.error(err)
-            }
-        },
+        logger: context.logger,
     })
     bot.telegram.setWebhook('http://localhost:9002/tg-hook')
 

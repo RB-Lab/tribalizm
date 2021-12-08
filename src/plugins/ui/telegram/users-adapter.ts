@@ -1,5 +1,6 @@
 import { Storable, Store } from '../../../use-cases/entities/store'
 import { User, UserStore } from '../../../use-cases/entities/user'
+import { ILogger } from '../../../use-cases/utils/logger'
 
 export interface TelegramUserStore extends Store<ITelegramUser> {}
 
@@ -29,13 +30,18 @@ export type SavedTelegramUser = ITelegramUser & Storable
 
 export class TelegramUser implements SavedTelegramUser {
     private store: TelegramUserStore
+    private logger?: ILogger
     id: string
     userId: string
     chatId: string
     username?: string
     locale?: string
     state?: UserState
-    constructor(store: TelegramUserStore, data: SavedTelegramUser) {
+    constructor(
+        store: TelegramUserStore,
+        data: SavedTelegramUser,
+        logger?: ILogger
+    ) {
         this.id = data.id
         this.userId = data.userId
         this.chatId = data.chatId
@@ -43,11 +49,16 @@ export class TelegramUser implements SavedTelegramUser {
         this.locale = data.locale
         this.store = store
         this.state = data.state
+        this.logger = logger
     }
     async setState<T extends UserState>(state: T | null) {
         if (state) {
+            this.logger?.trace(`set-user-state: ${state.type}`, state)
             this.state = state
         } else {
+            this.logger?.trace(
+                `droop-user-state, was: ${this.state?.type || 'null'}`
+            )
             delete this.state
         }
         await this.store.save({
@@ -76,9 +87,15 @@ export interface TelegramUsersAdapter {
 export class StoreTelegramUsersAdapter implements TelegramUsersAdapter {
     private userStore: UserStore
     private tgUserStore: TelegramUserStore
-    constructor(userStore: UserStore, telegramUserStore: TelegramUserStore) {
+    private logger?: ILogger
+    constructor(
+        userStore: UserStore,
+        telegramUserStore: TelegramUserStore,
+        logger?: ILogger
+    ) {
         this.userStore = userStore
         this.tgUserStore = telegramUserStore
+        this.logger = logger
     }
     /**
      * Creates user both in Telegram's user store and in Tribalizm system
@@ -97,7 +114,7 @@ export class StoreTelegramUsersAdapter implements TelegramUsersAdapter {
             locale: tgData.locale,
             username: tgData.username,
         })
-        return new TelegramUser(this.tgUserStore, savedUser)
+        return new TelegramUser(this.tgUserStore, savedUser, this.logger)
     }
 
     /**
@@ -107,7 +124,7 @@ export class StoreTelegramUsersAdapter implements TelegramUsersAdapter {
     async getUserByChatId(chatId: string | number) {
         const users = await this.tgUserStore.find({ chatId: String(chatId) })
         return users.length
-            ? new TelegramUser(this.tgUserStore, users[0])
+            ? new TelegramUser(this.tgUserStore, users[0], this.logger)
             : null
     }
     /**
@@ -121,6 +138,6 @@ export class StoreTelegramUsersAdapter implements TelegramUsersAdapter {
             throw new Error(`User ${tribalismUserId} does not use telegram`)
         }
 
-        return new TelegramUser(this.tgUserStore, users[0])
+        return new TelegramUser(this.tgUserStore, users[0], this.logger)
     }
 }

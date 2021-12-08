@@ -1,6 +1,8 @@
-import express from 'express'
+import express, { ErrorRequestHandler } from 'express'
 import { MongoClient } from 'mongodb'
 import { createMongoContext, createMongoTelegramContext } from './mongo-context'
+import { Logger } from './plugins/logger'
+import { TestNotificationBus } from './plugins/notification-bus'
 import { makeBot } from './plugins/ui/telegram/bot'
 import { makeTribalizm } from './use-cases/tribalism'
 import { Scheduler } from './use-cases/utils/scheduler'
@@ -23,54 +25,77 @@ async function getDb() {
 }
 
 async function main() {
-    const { db, client } = await getDb()
+    const logger = new Logger()
+    try {
+        const { db, client } = await getDb()
 
-    const context = createMongoContext(db)
+        const stores = createMongoContext(db)
+        const notificationBus = new TestNotificationBus(logger)
 
-    const { tgUsersAdapter, messageStore } = createMongoTelegramContext(
-        db,
-        context.stores.userStore
-    )
+        const { tgUsersAdapter, messageStore } = createMongoTelegramContext(
+            db,
+            stores.userStore
+        )
 
-    const tribalizm = makeTribalizm(context)
+        const tribalizm = makeTribalizm({ stores, async: { notificationBus } })
 
-    const bot = await makeBot({
-        telegramUsersAdapter: tgUsersAdapter,
-        messageStore: messageStore,
-        tribalizm: tribalizm,
-        token: process.env.BOT_TOKEN,
-        notificationBus: context.async.notificationBus,
-    })
+        const bot = await makeBot({
+            logger,
+            telegramUsersAdapter: tgUsersAdapter,
+            messageStore: messageStore,
+            tribalizm: tribalizm,
+            token: process.env.BOT_TOKEN,
+            notificationBus: notificationBus,
+        })
 
-    const scheduler = new Scheduler(context.stores.taskStore)
-    const taskDispatcher = new TaskDispatcher(tribalizm, scheduler)
+        const scheduler = new Scheduler(stores.taskStore)
+        const taskDispatcher = new TaskDispatcher(tribalizm, scheduler, logger)
 
-    const app = express()
-    app.use(express.json())
+        const app = express()
+        app.use(express.json())
 
-    /** this one used to check server is running */
-    // TODO replace with something form here:
-    //      https://expressjs.com/en/advanced/healthcheck-graceful-shutdown.html
-    app.get('/ping', (req, res) => {
-        console.log('ping received')
-        res.end('pong')
-    })
-    app.use(bot.webhookCallback('/tg-hook'))
-    app.get('/check-queue', async (req, res) => {
-        await taskDispatcher.run()
-        res.end('ok')
-    })
+        /** this one used to check server is running */
+        // TODO replace with something form here:
+        //      https://expressjs.com/en/advanced/healthcheck-graceful-shutdown.html
+        app.get('/ping', (req, res) => {
+            console.log('ping received')
+            res.end('pong')
+        })
+        app.use(bot.webhookCallback('/tg-hook'))
+        app.get('/check-queue', async (req, res) => {
+            await taskDispatcher.run()
+            res.send('ok')
+        })
 
-    const server = app.listen(3000, () => {
-        console.log('listening on 3000')
-        bot.telegram.setWebhook('https://tribalizm-1.rblab.net/tg-hook')
-    })
+        const globalErrorHandler: ErrorRequestHandler = (
+            error,
+            _req,
+            res,
+            _next
+        ) => {
+            logger.error(error)
+            res.status(500).send({
+                code: 500,
+                error: true,
+                message: 'Internal server error',
+            })
+        }
+        app.use(globalErrorHandler)
+        logger.enableUnhandledRejectionsHandler()
 
-    process.once('SIGINT', stop)
-    process.once('SIGTERM', stop)
-    async function stop() {
-        server.close()
-        await client.close()
+        const server = app.listen(3000, () => {
+            logger.trace('server started', { port: 3000 })
+            bot.telegram.setWebhook('https://tribalizm-1.rblab.net/tg-hook')
+        })
+
+        process.once('SIGINT', stop)
+        process.once('SIGTERM', stop)
+        async function stop() {
+            server.close()
+            await client.close()
+        }
+    } catch (e) {
+        logger.error(e)
     }
 }
 main().catch((e) => {

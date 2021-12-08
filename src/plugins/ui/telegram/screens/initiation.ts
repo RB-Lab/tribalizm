@@ -1,4 +1,4 @@
-import { Markup, Telegraf } from 'telegraf'
+import { Markup } from 'telegraf'
 import { Maybe, notEmpty } from '../../../../ts-utils'
 import { ApplicationMessage } from '../../../../use-cases/apply-tribe'
 import {
@@ -6,10 +6,9 @@ import {
     ApplicationDeclinedMessage,
     RequestApplicationFeedbackMessage,
 } from '../../../../use-cases/initiation'
-import { NotificationBus } from '../../../../use-cases/utils/notification-bus'
 import { i18n } from '../../i18n/i18n-ctx'
-import { TribeCtx } from '../tribe-ctx'
-import { TelegramUsersAdapter, UserState } from '../users-adapter'
+import { TgContext } from '../tribe-ctx'
+import { UserState } from '../users-adapter'
 import { makeCallbackDataParser } from './callback-parser'
 import { negotiate } from './quest-negotiation'
 
@@ -36,11 +35,7 @@ const appDeclineParser = makeCallbackDataParser('application-decline', [
     'questId',
 ])
 
-export function initiationScreen(
-    bot: Telegraf<TribeCtx>,
-    bus: NotificationBus,
-    telegramUsers: TelegramUsersAdapter
-) {
+export function initiationScreen({ bot, bus, tgUsers }: TgContext) {
     // this is from the get-go, @see notifications/ApplicationMessage
     bot.action(declineParser.regex, (ctx) => {
         const data = declineParser.parse(ctx.match.input)
@@ -55,6 +50,7 @@ export function initiationScreen(
 
     bot.action(acceptParser.regex, (ctx) => {
         const data = acceptParser.parse(ctx.match.input)
+        ctx.logEvent('app accepted', { questId: data.questId })
 
         ctx.tribalizm.initiation.approveByElder({
             questId: data.questId,
@@ -67,6 +63,7 @@ export function initiationScreen(
     })
     bot.action(appDeclineParser.regex, async (ctx) => {
         const data = appDeclineParser.parse(ctx.match.input)
+        ctx.logEvent('app declined', { questId: data.questId })
 
         await ctx.tribalizm.initiation.decline({
             questId: data.questId,
@@ -81,6 +78,10 @@ export function initiationScreen(
     bot.on('text', async (ctx, next) => {
         const state = ctx.user.state
         if (isDeclineState(state)) {
+            ctx.logEvent('app declined straight away', {
+                questId: state.questId,
+                reason: ctx.message.text,
+            })
             const texts = i18n(ctx).initiation
             ctx.reply(texts.declineOk())
             // TODO should use the text maybe?
@@ -90,7 +91,7 @@ export function initiationScreen(
             })
             ctx.user.setState(null)
         } else {
-            next()
+            return next()
         }
     })
 
@@ -99,7 +100,7 @@ export function initiationScreen(
     bus.subscribe<ApplicationMessage>(
         'application-message',
         async ({ payload }) => {
-            const elder = await telegramUsers.getTelegramUserForTribalism(
+            const elder = await tgUsers.getTelegramUserForTribalism(
                 payload.targetUserId
             )
 
@@ -137,7 +138,7 @@ export function initiationScreen(
     bus.subscribe<ApplicationDeclinedMessage>(
         'application-declined',
         async ({ payload }) => {
-            const user = await telegramUsers.getTelegramUserForTribalism(
+            const user = await tgUsers.getTelegramUserForTribalism(
                 payload.targetUserId
             )
             const texts = i18n(user).notifications.tribeApplication
@@ -151,7 +152,7 @@ export function initiationScreen(
     bus.subscribe<RequestApplicationFeedbackMessage>(
         'request-application-feedback',
         async ({ payload }) => {
-            const user = await telegramUsers.getTelegramUserForTribalism(
+            const user = await tgUsers.getTelegramUserForTribalism(
                 payload.targetUserId
             )
             const texts = i18n(user).initiation
@@ -185,7 +186,7 @@ export function initiationScreen(
     bus.subscribe<ApplicationApprovedMessage>(
         'application-approved',
         async ({ payload }) => {
-            const user = await telegramUsers.getTelegramUserForTribalism(
+            const user = await tgUsers.getTelegramUserForTribalism(
                 payload.targetUserId
             )
             const texts = i18n(user).initiation

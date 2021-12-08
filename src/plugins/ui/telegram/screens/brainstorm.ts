@@ -1,4 +1,4 @@
-import { Markup, Telegraf } from 'telegraf'
+import { Markup } from 'telegraf'
 import { Maybe, notEmpty } from '../../../../ts-utils'
 import { NewIdeaMessage } from '../../../../use-cases/add-idea'
 import { TimeToStormMessage } from '../../../../use-cases/admin'
@@ -9,12 +9,10 @@ import {
     StormEndedMessage,
     VotingStartedMessage,
 } from '../../../../use-cases/brainstorm-lifecycle'
-import { NotificationBus } from '../../../../use-cases/utils/notification-bus'
 import { i18n } from '../../i18n/i18n-ctx'
-import { TelegramMessageStore } from '../message-store'
 import { removeInlineKeyboard } from '../telegraf-hacks'
-import { TribeCtx } from '../tribe-ctx'
-import { TelegramUsersAdapter, UserState } from '../users-adapter'
+import { TgContext, TribeCtx } from '../tribe-ctx'
+import { UserState } from '../users-adapter'
 import { makeCallbackDataParser } from './callback-parser'
 
 const startBrainstorm = makeCallbackDataParser('storm-start', ['memberId'])
@@ -40,12 +38,12 @@ const stormConfirm = makeCallbackDataParser('storm-confirm', [
     'time',
 ])
 
-export function brainstormScreen(
-    bot: Telegraf<TribeCtx>,
-    bus: NotificationBus,
-    telegramUsers: TelegramUsersAdapter,
-    messageStore: TelegramMessageStore
-) {
+export function brainstormScreen({
+    bot,
+    bus,
+    tgUsers,
+    messageStore,
+}: TgContext) {
     bot.action(startBrainstorm.regex, async (ctx) => {
         const texts = i18n(ctx).brainstorm
         const { memberId } = startBrainstorm.parse(ctx.match[0])
@@ -75,6 +73,7 @@ export function brainstormScreen(
     bot.action(stormConfirm.regex, async (ctx) => {
         const texts = i18n(ctx).brainstorm
         const { memberId, time } = stormConfirm.parse(ctx.match[0])
+        ctx.logEvent('storm: crate', { time })
         await ctx.tribalizm.brainstormLifecycle.declare({
             memberId,
             time: Number(time),
@@ -90,18 +89,26 @@ export function brainstormScreen(
     bot.on('text', async (ctx, next) => {
         const state = ctx.user.state
         if (isBrainstormState(state)) {
+            ctx.logEvent('storm: idea', {
+                idea: ctx.message.text,
+                stormId: state.brainstormId,
+            })
             await ctx.tribalizm.addIdea.addIdea({
                 brainstormId: state.brainstormId,
                 memberId: state.memberId,
                 description: ctx.message.text,
             })
         } else {
-            next()
+            return next()
         }
     })
 
     bot.action(voteParser.regex, async (ctx) => {
         const data = voteParser.parse(ctx.match[0])
+        ctx.logEvent('storm: vote', {
+            ideaId: data.ideaId,
+            stormId: data.brainstormId,
+        })
 
         if (data.vote === 'up') {
             await ctx.tribalizm.voting.voteUp(data.ideaId, data.memberId)
@@ -114,7 +121,7 @@ export function brainstormScreen(
     // ======== Handle Notifications =========
 
     bus.subscribe<TimeToStormMessage>('time-to-storm', async ({ payload }) => {
-        const user = await telegramUsers.getTelegramUserForTribalism(
+        const user = await tgUsers.getTelegramUserForTribalism(
             payload.targetUserId
         )
         const texts = i18n(user).brainstorm
@@ -134,7 +141,7 @@ export function brainstormScreen(
     bus.subscribe<BrainstormDeclarationMessage>(
         'new-brainstorm',
         async ({ payload }) => {
-            const user = await telegramUsers.getTelegramUserForTribalism(
+            const user = await tgUsers.getTelegramUserForTribalism(
                 payload.targetUserId
             )
             const texts = i18n(user).brainstorm
@@ -147,7 +154,7 @@ export function brainstormScreen(
     bus.subscribe<BrainstormNoticeMessage>(
         'brainstorm-notice',
         async ({ payload }) => {
-            const user = await telegramUsers.getTelegramUserForTribalism(
+            const user = await tgUsers.getTelegramUserForTribalism(
                 payload.targetUserId
             )
             const texts = i18n(user).brainstorm
@@ -160,7 +167,7 @@ export function brainstormScreen(
     bus.subscribe<BrainstormStartedMessage>(
         'brainstorm-started',
         async ({ payload }) => {
-            const user = await telegramUsers.getTelegramUserForTribalism(
+            const user = await tgUsers.getTelegramUserForTribalism(
                 payload.targetUserId
             )
             const texts = i18n(user).brainstorm
@@ -173,7 +180,7 @@ export function brainstormScreen(
         }
     )
     bus.subscribe<NewIdeaMessage>('new-idea-added', async ({ payload }) => {
-        const user = await telegramUsers.getTelegramUserForTribalism(
+        const user = await tgUsers.getTelegramUserForTribalism(
             payload.targetUserId
         )
 
@@ -193,7 +200,7 @@ export function brainstormScreen(
     bus.subscribe<VotingStartedMessage>(
         'voting-started',
         async ({ payload }) => {
-            const user = await telegramUsers.getTelegramUserForTribalism(
+            const user = await tgUsers.getTelegramUserForTribalism(
                 payload.targetUserId
             )
             const messages = await messageStore.find({
@@ -242,7 +249,7 @@ export function brainstormScreen(
     bus.subscribe<StormEndedMessage>(
         'brainstorm-ended',
         async ({ payload }) => {
-            const user = await telegramUsers.getTelegramUserForTribalism(
+            const user = await tgUsers.getTelegramUserForTribalism(
                 payload.targetUserId
             )
 

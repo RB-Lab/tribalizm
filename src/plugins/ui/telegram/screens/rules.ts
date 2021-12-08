@@ -1,9 +1,10 @@
-import { Markup, Scenes, Telegraf } from 'telegraf'
+import { Markup } from 'telegraf'
 import { i18n } from '../../i18n/i18n-ctx'
-import { TribeCtx } from '../tribe-ctx'
+import { TgContext } from '../tribe-ctx'
 
-export function rulesScreen(bot: Telegraf<TribeCtx>) {
+export function rulesScreen({ bot, logger }: TgContext) {
     bot.action('rules', (ctx) => {
+        ctx.logEvent('help')
         const btns = i18n(ctx).rules.buttons
         const keyboard = Markup.inlineKeyboard(
             [
@@ -17,6 +18,7 @@ export function rulesScreen(bot: Telegraf<TribeCtx>) {
         ctx.editMessageText(i18n(ctx).rules.apply(), keyboard)
     })
     bot.action('on-chief', (ctx) => {
+        ctx.logEvent('help: on-chief')
         const btns = i18n(ctx).rules.buttons
         const keyboard = Markup.inlineKeyboard([
             Markup.button.callback(btns.back(), 'rules'),
@@ -25,6 +27,7 @@ export function rulesScreen(bot: Telegraf<TribeCtx>) {
         ctx.editMessageText(i18n(ctx).rules.onChief(), keyboard)
     })
     bot.action('on-shaman', (ctx) => {
+        ctx.logEvent('help: on-shaman')
         const btns = i18n(ctx).rules.buttons
         const keyboard = Markup.inlineKeyboard([
             Markup.button.callback(btns.back(), 'rules'),
@@ -33,6 +36,7 @@ export function rulesScreen(bot: Telegraf<TribeCtx>) {
         ctx.editMessageText(i18n(ctx).rules.onShaman(), keyboard)
     })
     bot.action('in-tribe', (ctx) => {
+        ctx.logEvent('help: in-tribe')
         const btns = i18n(ctx).rules.buttons
         const keyboard = Markup.inlineKeyboard(
             [
@@ -46,6 +50,7 @@ export function rulesScreen(bot: Telegraf<TribeCtx>) {
         ctx.editMessageText(i18n(ctx).rules.inTribe(), keyboard)
     })
     bot.action('on-brainstorm', (ctx) => {
+        ctx.logEvent('help: on-brainstorm')
         const btns = i18n(ctx).rules.buttons
         const keyboard = Markup.inlineKeyboard([
             Markup.button.callback(btns.back(), 'in-tribe'),
@@ -54,6 +59,7 @@ export function rulesScreen(bot: Telegraf<TribeCtx>) {
         ctx.editMessageText(i18n(ctx).rules.onBrainstorm(), keyboard)
     })
     bot.action('on-quest', (ctx) => {
+        ctx.logEvent('help: on-quest')
         const btns = i18n(ctx).rules.buttons
         const keyboard = Markup.inlineKeyboard([
             Markup.button.callback(btns.back(), 'in-tribe'),
@@ -62,6 +68,7 @@ export function rulesScreen(bot: Telegraf<TribeCtx>) {
         ctx.editMessageText(i18n(ctx).rules.onQuests(), keyboard)
     })
     bot.action('start', (ctx) => {
+        ctx.logEvent('help: start')
         const btns = i18n(ctx).start.buttons
 
         const keyboard = Markup.inlineKeyboard([

@@ -182,8 +182,13 @@ describe('Spawn new quest', () => {
 
 async function setUp() {
     const context = await createContext()
-    const { members, idea, upvoters, downvoters, users } =
-        await context.testing.makeIdea([1, 3, 4, 6], [2, 5])
+    const {
+        members,
+        idea,
+        upvoters,
+        downVoters: downvoters,
+        users,
+    } = await context.testing.makeIdea([1, 3, 4, 6], [2, 5])
 
     const voting = new Voting(context)
     const [member1, member2] = members

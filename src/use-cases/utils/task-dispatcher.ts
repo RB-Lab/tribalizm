@@ -1,5 +1,6 @@
 import { QuestType } from '../entities/quest'
 import { Tribalizm } from '../tribalism'
+import { ILogger } from './logger'
 import {
     Scheduler,
     isHowWasQuestTask,
@@ -14,13 +15,16 @@ import {
 export class TaskDispatcher {
     private tribalism: Tribalizm
     private scheduler: Scheduler
-    constructor(tribalism: Tribalizm, scheduler: Scheduler) {
+    private logger: ILogger
+    constructor(tribalism: Tribalizm, scheduler: Scheduler, logger: ILogger) {
+        this.logger = logger
         this.tribalism = tribalism
         this.scheduler = scheduler
     }
 
     run = async () => {
         const tasks = await this.scheduler.getTasks()
+        this.logger.trace('Dispatch tasks', { tasks: tasks.map((t) => t.type) })
         for (let task of tasks) {
             if (isHowWasQuestTask(task)) {
                 if (task.payload.questType === QuestType.initiation) {

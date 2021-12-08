@@ -17,9 +17,9 @@
     "push:push": "sh -c 'docker push \"${REGISTRY}\"/\"${0}\"'",
     "push": "egrep -v '^#' .env.build | xargs && sh -c 'yarn push:login && yarn push:tag \"${0}\" && yarn push:push \"${0}\"'",
     "deploy": "export $(egrep -v '^#' .env.build | xargs) && pushd deploy && ansible-playbook deploy.yml && popd",
-    "test": "ts-node ./node_modules/.bin/jasmine './src/**/*.spec.ts'",
-    "test:full": "FULL_TEST='true' ts-node ./node_modules/.bin/jasmine './src/**/*.spec.ts'",
-    "tdd": "tsnd --rs --respawn ./node_modules/.bin/jasmine './src/**/*.spec.ts'",
+    "test": "NODE_ENV=test ts-node ./node_modules/.bin/jasmine './src/**/*.spec.ts'",
+    "test:full": "NODE_ENV=test FULL_TEST='true' ts-node ./node_modules/.bin/jasmine './src/**/*.spec.ts'",
+    "tdd": "NODE_ENV=test tsnd --rs --respawn ./node_modules/.bin/jasmine './src/**/*.spec.ts'",
     "depcruise": "depcruise --include-only '^src' --output-type dot src | dot -T svg | depcruise-wrap-stream-in-html > docs/dependecies.html",
     "bridge": "ssh -R 5000:localhost:3000 rblab.net",
     "i18n": "typesafe-i18n"
@@ -38,7 +38,8 @@
     "telegraf-calendar-telegram": "^1.5.8",
     "ts-node": "^9.1.1",
     "typesafe-i18n": "^2.55.1",
-    "typescript": "^4.1.3"
+    "typescript": "^4.1.3",
+    "winston": "^3.3.3"
   },
   "devDependencies": {
     "@types/jasmine": "^3.6.2",

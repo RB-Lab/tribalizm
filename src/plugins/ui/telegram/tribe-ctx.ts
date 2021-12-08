@@ -1,14 +1,25 @@
-import { Scenes } from 'telegraf'
+import { Scenes, Telegraf } from 'telegraf'
 import { ExtraReplyMessage } from 'telegraf/typings/telegram-types'
 import { Tribalizm } from '../../../use-cases/tribalism'
-import { TelegramUser } from './users-adapter'
+import { ILogger } from '../../../use-cases/utils/logger'
+import { NotificationBus } from '../../../use-cases/utils/notification-bus'
+import { TelegramMessageStore } from './message-store'
+import { TelegramUser, TelegramUsersAdapter } from './users-adapter'
 
 export interface TribeCtx extends Scenes.SceneContext {
     user: TelegramUser
     tribalizm: Tribalizm
-    reportError: (err: any) => void
+    logEvent: (event: string, meta?: object) => void
     getCalendar: (
-        hanlder: (date: Date, ctx: TribeCtx) => void,
+        handler: (date: Date, ctx: TribeCtx) => void,
         locale?: string
     ) => ExtraReplyMessage
+}
+
+export interface TgContext {
+    bot: Telegraf<TribeCtx>
+    bus: NotificationBus
+    tgUsers: TelegramUsersAdapter
+    logger: ILogger
+    messageStore: TelegramMessageStore
 }

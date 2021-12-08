@@ -44,3 +44,8 @@
         # to get rid of warnings:
         container_default_behavior: no_defaults
         network_mode: tribalizm
+
+    - name: Set Cron job to check tasks queue
+      cron:
+        name: check tasks queue
+        job: curl localhost:5000/check-queue > /dev/null

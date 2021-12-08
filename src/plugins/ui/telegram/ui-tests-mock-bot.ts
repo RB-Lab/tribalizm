@@ -3,6 +3,7 @@ import { Admin } from '../../../use-cases/admin'
 import { City } from '../../../use-cases/entities/city'
 import { Tribe } from '../../../use-cases/entities/tribe'
 import { User } from '../../../use-cases/entities/user'
+import { Logger } from '../../logger'
 import { InMemoryStore } from '../../stores/in-memory-store/in-memory-store'
 import { makeBot } from './bot'
 import { TelegramMessageInMemoryStore } from './message-store'
@@ -88,6 +89,7 @@ async function run() {
     telegramUsersAdapter.user.userId = users[3].id
 
     makeBot({
+        logger: new Logger(),
         telegramUsersAdapter,
         webHook: {
             path: '/tg-hook',

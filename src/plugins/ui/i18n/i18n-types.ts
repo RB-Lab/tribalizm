@@ -100,7 +100,7 @@ export type Translation = {
 		 */
 		'count': string
 		/**
-		 * Trines in {city}: 
+		 * Tribes in {city}: 
 		 * @param {unknown} city
 		 */
 		'searchIn': RequiredParams1<'city'>
@@ -864,7 +864,7 @@ export type TranslationFunctions = {
 		 */
 		'count': () => LocalizedString
 		/**
-		 * Trines in {city}: 
+		 * Tribes in {city}: 
 		 */
 		'searchIn': (arg: { city: unknown }) => LocalizedString
 		/**

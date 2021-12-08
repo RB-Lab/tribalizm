@@ -3,10 +3,11 @@ import Calendar from 'telegraf-calendar-telegram'
 import { i18n } from '../i18n/i18n-ctx'
 import { TribeCtx } from './tribe-ctx'
 import { makeCallbackDataParser } from './screens/callback-parser'
+import { ILogger } from '../../../use-cases/utils/logger'
 
 const calendarHours = makeCallbackDataParser('date-time-picker-hours', [
     'date',
-    'hours',
+    'hour',
 ])
 const calendarMinutes = makeCallbackDataParser('date-time-picker-minutes', [
     'dateString',
@@ -20,20 +21,23 @@ export class DateTimePicker {
     private locale?: string
     private calendar: Calendar<TribeCtx>
     private handler?: SetDateHandler
+    private logger: ILogger
 
-    constructor(bot: Telegraf<TribeCtx>) {
+    constructor(bot: Telegraf<TribeCtx>, logger: ILogger) {
+        this.logger = logger
         // TODO this calendar fucks up on October 2021 (probably because of one day in last row)
         this.calendar = new Calendar(bot, {
             minDate: new Date(),
             maxDate: new Date(9635660707441),
         })
         this.calendar.setDateListener((ctx, date) => {
+            logger.trace('calendar: date set', { date })
             const texts = i18n(ctx).calendar
             const kb = Markup.inlineKeyboard(
-                hours.map((hours) =>
+                hours.map((hour) =>
                     Markup.button.callback(
-                        hours,
-                        calendarHours.serialize({ date, hours })
+                        hour,
+                        calendarHours.serialize({ date, hour })
                     )
                 ),
                 { columns: 4 }
@@ -43,12 +47,13 @@ export class DateTimePicker {
 
         bot.action(calendarHours.regex, async (ctx) => {
             const texts = i18n({ locale: this.locale }).calendar
-            const { hours, date } = calendarHours.parse(ctx.match[0])
+            const { hour, date } = calendarHours.parse(ctx.match[0])
+            logger.trace('calendar: hour set', { date: `${date} ${hour}` })
             const keys = ['00', '15', '30', '45'].map((minutes) =>
                 Markup.button.callback(
                     minutes,
                     calendarMinutes.serialize({
-                        dateString: `${date} ${hours}`,
+                        dateString: `${date} ${hour}`,
                         minutes,
                     })
                 )
@@ -63,6 +68,7 @@ export class DateTimePicker {
             const { minutes, dateString } = calendarMinutes.parse(ctx.match[0])
 
             const date = new Date(`${dateString}:${minutes}`)
+            logger.trace('calendar: minutes set', { date })
             await ctx.answerCbQuery()
             if (this.handler) {
                 this.handler(date, ctx)
@@ -70,6 +76,7 @@ export class DateTimePicker {
         })
     }
     getCalendar = (handler: SetDateHandler, locale = 'en') => {
+        this.logger.trace('calendar: requested')
         this.locale = locale
         const texts = i18n({ locale }).calendar
 

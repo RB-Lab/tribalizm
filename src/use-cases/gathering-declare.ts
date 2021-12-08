@@ -35,7 +35,9 @@ export class GatheringDeclare extends ContextUser {
             this.notify<GatheringMessage>({
                 type: 'new-gathering-message',
                 payload: {
-                    ...gathering,
+                    description: gathering.description,
+                    place: gathering.place,
+                    time: gathering.time,
                     gatheringId: gathering.id,
                     targetMemberId: targetMember.id,
                     targetUserId: targetMember.userId,

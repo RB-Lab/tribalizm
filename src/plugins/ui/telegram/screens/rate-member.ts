@@ -1,10 +1,8 @@
-import { Markup, Telegraf } from 'telegraf'
+import { Markup } from 'telegraf'
 import { RateElderMessage } from '../../../../use-cases/initiation'
 import { RateMemberMessage } from '../../../../use-cases/quest-finale'
-import { NotificationBus } from '../../../../use-cases/utils/notification-bus'
 import { i18n } from '../../i18n/i18n-ctx'
-import { TribeCtx } from '../tribe-ctx'
-import { TelegramUsersAdapter } from '../users-adapter'
+import { TgContext } from '../tribe-ctx'
 import { makeCallbackDataParser } from './callback-parser'
 
 const parser = makeCallbackDataParser('rate-member', [
@@ -15,16 +13,17 @@ const parser = makeCallbackDataParser('rate-member', [
     'charisma',
 ])
 
-export function rateMemberScreen(
-    bot: Telegraf<TribeCtx>,
-    bus: NotificationBus,
-    telegramUsers: TelegramUsersAdapter
-) {
+export function rateMemberScreen({ bot, bus, tgUsers }: TgContext) {
     bot.action(parser.regex, (ctx) => {
         const texts = i18n(ctx).rateMember
         const data = parser.parse(ctx.match[0])
 
         if (data.charisma) {
+            ctx.logEvent('rate-member', {
+                questId: data.questId,
+                charisma: data.charisma,
+                wisdom: data.score,
+            })
             ctx.tribalizm.questFinale.finalize({
                 memberId: data.memberId,
                 questId: data.questId,
@@ -63,7 +62,7 @@ export function rateMemberScreen(
     bus.subscribe<RateElderMessage>(
         'rate-elder-message',
         async ({ payload }) => {
-            const user = await telegramUsers.getTelegramUserForTribalism(
+            const user = await tgUsers.getTelegramUserForTribalism(
                 payload.targetUserId
             )
             const texts = i18n(user).rateMember
@@ -96,9 +95,10 @@ export function rateMemberScreen(
     bus.subscribe<RateMemberMessage>(
         'rate-member-message',
         async ({ payload }) => {
-            const user = await telegramUsers.getTelegramUserForTribalism(
+            const user = await tgUsers.getTelegramUserForTribalism(
                 payload.targetUserId
             )
+
             const texts = i18n(user).rateMember
             const keys = [0, 1, 2, 3, 4].map((score) => {
                 const text = (texts.charisma as any)[String(score)]()

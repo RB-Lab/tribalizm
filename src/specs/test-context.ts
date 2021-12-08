@@ -1,10 +1,11 @@
 import { MongoClient } from 'mongodb'
 import { MongoMemoryServer } from 'mongodb-memory-server'
+import { Logger } from '../plugins/logger'
 import { TestNotificationBus } from '../plugins/notification-bus'
 import { InMemoryApplicationStore } from '../plugins/stores/in-memory-store/application-store'
 import { InMemoryBrainstormStore } from '../plugins/stores/in-memory-store/brainstorm-store'
 import { InMemoryCityStore } from '../plugins/stores/in-memory-store/city-store'
-import { InMemoryGatheringStore } from '../plugins/stores/in-memory-store/gathering-stroe'
+import { InMemoryGatheringStore } from '../plugins/stores/in-memory-store/gathering-store'
 import { InMemoryIdeaStore } from '../plugins/stores/in-memory-store/idea-store'
 import { InMemoryMemberStore } from '../plugins/stores/in-memory-store/member-store'
 import { InMemoryQuestStore } from '../plugins/stores/in-memory-store/quest-store'
@@ -21,30 +22,15 @@ import { MongoQuestStore } from '../plugins/stores/mongo-store/quest-store'
 import { MongoTaskStore } from '../plugins/stores/mongo-store/task-store'
 import { MongoTribeStore } from '../plugins/stores/mongo-store/tribe-store'
 import { MongoUserStore } from '../plugins/stores/mongo-store/user-store'
-import { AddIdea } from '../use-cases/add-idea'
-import { TribeApplication } from '../use-cases/apply-tribe'
-import { BrainstormLifecycle } from '../use-cases/brainstorm-lifecycle'
 import { Brainstorm, QuestIdea } from '../use-cases/entities/brainstorm'
 import { IMember, Member } from '../use-cases/entities/member'
 import { Tribe } from '../use-cases/entities/tribe'
 import { User } from '../use-cases/entities/user'
-import { GatheringAcknowledge } from '../use-cases/gathering-acknowledge'
-import { GatheringDeclare } from '../use-cases/gathering-declare'
-import { GatheringFinale } from '../use-cases/gathering-finale'
-import { IdeasIncarnation } from '../use-cases/incarnate-ideas'
-import { Initiation } from '../use-cases/initiation'
-import { IntroductionQuests } from '../use-cases/introduction-quests'
-import { LocateUser } from '../use-cases/locate-user'
-import { QuestNegotiation } from '../use-cases/negotiate-quest'
-import { QuestFinale } from '../use-cases/quest-finale'
-import { SpawnQuest } from '../use-cases/spawn-quest'
 import { makeTribalizm } from '../use-cases/tribalism'
-import { TribeShow } from '../use-cases/tribes-show'
 import { Message } from '../use-cases/utils/message'
 import { NotificationBus } from '../use-cases/utils/notification-bus'
 import { Scheduler } from '../use-cases/utils/scheduler'
 import { TaskDispatcher } from '../use-cases/utils/task-dispatcher'
-import { Voting } from '../use-cases/vote-idea'
 
 function createInMemoryStores() {
     const ideaStore = new InMemoryIdeaStore()
@@ -118,7 +104,8 @@ async function createMongoStores() {
 }
 
 export async function createContext() {
-    const notificationBus = new TestNotificationBus()
+    const logger = new Logger()
+    const notificationBus = new TestNotificationBus(logger)
     const stores =
         process.env.FULL_TEST === 'true'
             ? await createMongoStores()
@@ -178,18 +165,18 @@ export async function createContext() {
         const idea = await stores.ideaStore.save(
             new QuestIdea({
                 brainstormId: brainstorm.id,
-                description: 'let us FOOO!',
+                description: 'let us FOO!',
                 memberId: members[ideaCreator].id,
             })
         )
         ups.forEach((i) => idea.voteUp(members[i].id))
         downs.forEach((i) => idea.voteDown(members[i].id))
         const upvoters = ups.map((i) => members[i].id)
-        const downvoters = downs.map((i) => members[i].id)
+        const downVoters = downs.map((i) => members[i].id)
         const allTribe = members.map((m) => m.id)
         await stores.ideaStore.save(idea)
 
-        return { tribe, members, users, idea, upvoters, downvoters, allTribe }
+        return { tribe, members, users, idea, upvoters, downVoters, allTribe }
     }
     const testing = {
         spyOnMessage: makeMessageSpy(notificationBus),
@@ -220,7 +207,7 @@ export async function createContext() {
 
     const tribalizm = makeTribalizm(context)
     const scheduler = new Scheduler(context.stores.taskStore)
-    const taskDispatcher = new TaskDispatcher(tribalizm, scheduler)
+    const taskDispatcher = new TaskDispatcher(tribalizm, scheduler, logger)
 
     async function requestTaskQueue() {
         if (process.env.chatDebug) {
@@ -238,6 +225,7 @@ export async function createContext() {
 
     return {
         ...context,
+        logger,
         testing,
         tribalizm,
         addVotes,

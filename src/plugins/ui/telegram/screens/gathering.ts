@@ -1,10 +1,8 @@
-import { Markup, Telegraf } from 'telegraf'
+import { Markup } from 'telegraf'
 import { GatheringMessage } from '../../../../use-cases/gathering-declare'
 import { HowWasGatheringMessage } from '../../../../use-cases/gathering-finale'
-import { NotificationBus } from '../../../../use-cases/utils/notification-bus'
 import { i18n } from '../../i18n/i18n-ctx'
-import { TribeCtx } from '../tribe-ctx'
-import { TelegramUsersAdapter } from '../users-adapter'
+import { TgContext } from '../tribe-ctx'
 import { makeCallbackDataParser } from './callback-parser'
 
 const accept = makeCallbackDataParser('gathering-ack', [
@@ -22,23 +20,25 @@ const vote = makeCallbackDataParser('rate-gathering', [
     'score',
 ])
 
-export function gatheringScreen(
-    bot: Telegraf<TribeCtx>,
-    bus: NotificationBus,
-    telegramUsers: TelegramUsersAdapter
-) {
+export function gatheringScreen({ bot, bus, tgUsers }: TgContext) {
     bot.action(accept.regex, async (ctx) => {
         const data = accept.parse(ctx.match[0])
+        ctx.logEvent('gathering: accept', { gatheringId: data.gatheringId })
         await ctx.tribalizm.gatheringAcknowledge.accept(data)
         ctx.reply(i18n(ctx).gathering.accepted())
     })
     bot.action(decline.regex, async (ctx) => {
         const data = decline.parse(ctx.match[0])
+        ctx.logEvent('gathering: decline', { gatheringId: data.gatheringId })
         await ctx.tribalizm.gatheringAcknowledge.decline(data)
         ctx.reply(i18n(ctx).gathering.declined())
     })
     bot.action(vote.regex, async (ctx) => {
         const data = vote.parse(ctx.match[0])
+        ctx.logEvent('gathering: vote', {
+            gatheringId: data.gatheringId,
+            score: data.score,
+        })
         await ctx.tribalizm.gatheringFinale.finalize(data)
         ctx.reply(i18n(ctx).gathering.rateDone())
     })
@@ -47,7 +47,7 @@ export function gatheringScreen(
     bus.subscribe<GatheringMessage>(
         'new-gathering-message',
         async ({ payload }) => {
-            const user = await telegramUsers.getTelegramUserForTribalism(
+            const user = await tgUsers.getTelegramUserForTribalism(
                 payload.targetUserId
             )
             const texts = i18n(user).gathering
@@ -79,7 +79,7 @@ export function gatheringScreen(
     bus.subscribe<HowWasGatheringMessage>(
         'how-was-gathering-message',
         async ({ payload }) => {
-            const user = await telegramUsers.getTelegramUserForTribalism(
+            const user = await tgUsers.getTelegramUserForTribalism(
                 payload.targetUserId
             )
             const texts = i18n(user).gathering

@@ -1,5 +1,6 @@
-import { Scenes, session, Telegraf } from 'telegraf'
+import { Telegraf } from 'telegraf'
 import { Tribalizm, wrapWithErrorHandler } from '../../../use-cases/tribalism'
+import { ILogger } from '../../../use-cases/utils/logger'
 import { NotificationBus } from '../../../use-cases/utils/notification-bus'
 import { i18n } from '../i18n/i18n-ctx'
 import { DateTimePicker } from './date-time-picker'
@@ -12,10 +13,10 @@ import { introQuestsScreen } from './screens/intro-quests'
 import { questNegotiationScreen } from './screens/quest-negotiation'
 import { rateMemberScreen } from './screens/rate-member'
 import { rulesScreen } from './screens/rules'
-import { startScreenActions } from './screens/start'
+import { startScreen } from './screens/start'
 import { tribesListScreen } from './screens/tribes-list'
 import { TribeCtx } from './tribe-ctx'
-import { TelegramUser, TelegramUsersAdapter } from './users-adapter'
+import { TelegramUsersAdapter } from './users-adapter'
 
 interface PublicHookConfig {
     /**
@@ -31,7 +32,7 @@ interface PublicHookConfig {
     path?: string
 }
 interface BotConfig {
-    reportError?: (err: unknown) => Promise<void> | void
+    logger: ILogger
     telegramUsersAdapter: TelegramUsersAdapter
     webHook?: PublicHookConfig
     tribalizm: Tribalizm
@@ -46,8 +47,6 @@ export async function makeBot(config: BotConfig) {
         throw new Error('BOT_TOKEN must be provided!')
     }
 
-    const reportError = config.reportError || (() => {})
-
     let bot: Telegraf<TribeCtx>
 
     if (config.telegramURL) {
@@ -58,88 +57,86 @@ export async function makeBot(config: BotConfig) {
         bot = new Telegraf<TribeCtx>(config.token)
     }
 
-    // Error handling
-    bot.use(async (ctx, next) => {
-        async function reportContextError(err: unknown) {
-            const texts = i18n(ctx).errors
-            if (typeof err == 'object' && err?.constructor?.name) {
-                const errorMessage = (texts as any)[err.constructor.name]
-                if (errorMessage) {
-                    ctx.reply(errorMessage())
-                } else {
-                    ctx.reply(texts.common())
-                }
+    bot.catch((err, ctx) => {
+        const texts = i18n(ctx).errors
+        if (typeof err == 'object' && err?.constructor?.name) {
+            const errorMessage = (texts as any)[err.constructor.name]
+            if (errorMessage) {
+                ctx.reply(errorMessage())
             } else {
                 ctx.reply(texts.common())
             }
-            await reportError(err)
+        } else {
+            ctx.reply(texts.common())
         }
-        ctx.tribalizm = wrapWithErrorHandler(
-            config.tribalizm,
-            reportContextError
-        )
+        config.logger.error(err)
+    })
 
-        ctx.reportError = reportContextError
-        next()
+    // add tribalizm
+    bot.use(async (ctx, next) => {
+        ctx.tribalizm = config.tribalizm
+        return next()
     })
 
     // Authentication kinda
     bot.use(async (ctx, next) => {
         if (!ctx.chat || !ctx.from) {
-            ctx.reportError(
-                new Error("Can't authenticate user without chat data")
-            )
-            return
+            throw new Error("Can't authenticate user without chat data")
         }
-        try {
-            let user = await config.telegramUsersAdapter.getUserByChatId(
-                ctx.chat.id
-            )
-            if (user) {
-                ctx.user = user
-            }
-            if (!user) {
-                const name =
-                    ctx.from.first_name +
-                    (ctx.from.last_name ? ` ${ctx.from.last_name}` : '')
-                ctx.user = await config.telegramUsersAdapter.createUser(name, {
-                    chatId: String(ctx.chat.id),
-                    locale: ctx.from.language_code,
-                    username: ctx.from.username,
-                })
-            }
-            next()
-        } catch (err) {
-            ctx.reportError(err)
+        let user = await config.telegramUsersAdapter.getUserByChatId(
+            ctx.chat.id
+        )
+        if (user) {
+            ctx.user = user
         }
+        if (!user) {
+            const name =
+                ctx.from.first_name +
+                (ctx.from.last_name ? ` ${ctx.from.last_name}` : '')
+            ctx.user = await config.telegramUsersAdapter.createUser(name, {
+                chatId: String(ctx.chat.id),
+                locale: ctx.from.language_code,
+                username: ctx.from.username,
+            })
+        }
+        return next()
     })
 
-    const datePicker = new DateTimePicker(bot)
+    // analytics
+    bot.use(async (ctx, next) => {
+        ctx.logEvent = (event: string, meta?: object) => {
+            config.logger.event(event, {
+                ...meta,
+                username: ctx.user.username,
+                userId: ctx.user.userId,
+            })
+        }
+        return next()
+    })
+
+    const datePicker = new DateTimePicker(bot, config.logger)
     bot.use(async (ctx, next) => {
         ctx.getCalendar = datePicker.getCalendar
-        next()
+        return next()
     })
 
-    rulesScreen(bot)
-    tribesListScreen(bot)
-    startScreenActions(bot)
-
-    questNegotiationScreen(
+    const tgContext = {
         bot,
-        config.notificationBus,
-        config.telegramUsersAdapter
-    )
-    initiationScreen(bot, config.notificationBus, config.telegramUsersAdapter)
-    rateMemberScreen(bot, config.notificationBus, config.telegramUsersAdapter)
-    introQuestsScreen(bot, config.notificationBus, config.telegramUsersAdapter)
-    brainstormScreen(
-        bot,
-        config.notificationBus,
-        config.telegramUsersAdapter,
-        config.messageStore
-    )
-    coordinationScreen(bot, config.notificationBus, config.telegramUsersAdapter)
-    gatheringScreen(bot, config.notificationBus, config.telegramUsersAdapter)
+        bus: config.notificationBus,
+        tgUsers: config.telegramUsersAdapter,
+        logger: config.logger,
+        messageStore: config.messageStore,
+    }
+    startScreen(tgContext)
+    rulesScreen(tgContext)
+    tribesListScreen(tgContext)
+    initiationScreen(tgContext)
+    questNegotiationScreen(tgContext)
+    rateMemberScreen(tgContext)
+    introQuestsScreen(tgContext)
+    brainstormScreen(tgContext)
+    coordinationScreen(tgContext)
+    gatheringScreen(tgContext)
 
     if (config.webHook) {
         await bot.launch({

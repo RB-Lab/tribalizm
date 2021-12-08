@@ -1,10 +1,9 @@
-import { Markup, Telegraf } from 'telegraf'
-import { text } from 'telegraf/typings/button'
+import { Markup } from 'telegraf'
 import { Maybe, notEmpty } from '../../../../ts-utils'
 import { TribeInfo } from '../../../../use-cases/tribes-show'
 import { i18n } from '../../i18n/i18n-ctx'
 import { removeInlineKeyboard } from '../telegraf-hacks'
-import { TribeCtx } from '../tribe-ctx'
+import { TgContext, TribeCtx } from '../tribe-ctx'
 import { UserState } from '../users-adapter'
 import { makeCallbackDataParser } from './callback-parser'
 
@@ -22,8 +21,9 @@ function isApplyState(state: Maybe<UserState>): state is ApplyState {
     return notEmpty(state) && state.type === 'apply-state'
 }
 
-export function tribesListScreen(bot: Telegraf<TribeCtx>) {
+export function tribesListScreen({ bot }: TgContext) {
     bot.action('list-tribes', async (ctx) => {
+        ctx.logEvent('list tribes')
         const texts = i18n(ctx).tribesList
         // TODO check if city already set
         await ctx.user.setState<LocateState>({ type: 'locate-state' })
@@ -49,13 +49,22 @@ export function tribesListScreen(bot: Telegraf<TribeCtx>) {
                 }
             )
             if (!city) {
+                ctx.logEvent('No city found', {
+                    via: 'location',
+                    location: ctx.message.location,
+                })
                 ctx.reply(texts.cantFindCity())
                 return
             }
-            await ctx.reply(texts.searchIn({ city }), Markup.removeKeyboard())
             const tribes = await ctx.tribalizm.tribesShow.getLocalTribes({
                 limit: 3,
                 userId: ctx.user.userId,
+            })
+            await ctx.reply(texts.searchIn({ city }), Markup.removeKeyboard())
+            ctx.logEvent('Tribes list', {
+                city,
+                tribes: tribes.length,
+                via: 'location',
             })
             if (tribes.length) {
                 showTribesList(ctx, tribes)
@@ -64,7 +73,7 @@ export function tribesListScreen(bot: Telegraf<TribeCtx>) {
             }
             ctx.user.setState(null)
         } else {
-            next()
+            return next()
         }
     })
 
@@ -77,6 +86,10 @@ export function tribesListScreen(bot: Telegraf<TribeCtx>) {
                 userId: ctx.user.userId,
             })
             if (!city) {
+                ctx.logEvent('No city found', {
+                    via: 'text',
+                    location: ctx.message.text,
+                })
                 ctx.reply(texts.unknownCity())
             }
             // remove "share location" button
@@ -87,6 +100,11 @@ export function tribesListScreen(bot: Telegraf<TribeCtx>) {
             const tribes = await ctx.tribalizm.tribesShow.getLocalTribes({
                 limit: 3,
                 userId: ctx.user.userId,
+            })
+            ctx.logEvent('Tribes list', {
+                city,
+                tribes: tribes.length,
+                via: 'text',
             })
             if (tribes.length) {
                 showTribesList(ctx, tribes)
@@ -100,6 +118,7 @@ export function tribesListScreen(bot: Telegraf<TribeCtx>) {
             ctx.user.setState(null)
         } else if (isApplyState(state)) {
             const texts = i18n(ctx).tribesList
+            ctx.logEvent('application', { tribeId: state.tribeId })
             await ctx.tribalizm.tribeApplication.applyToTribe({
                 coverLetter: ctx.message.text,
                 tribeId: state.tribeId,
@@ -109,7 +128,7 @@ export function tribesListScreen(bot: Telegraf<TribeCtx>) {
             ctx.reply(texts.applicationSent())
             ctx.user.setState(null)
         } else {
-            next()
+            return next()
         }
     })
 
@@ -135,7 +154,7 @@ export function tribesListScreen(bot: Telegraf<TribeCtx>) {
     bot.action(applyTribe.regex, async (ctx) => {
         const { tribeId } = applyTribe.parse(ctx.match.input)
         const texts = i18n(ctx).tribesList
-
+        ctx.logEvent('apply tribe', { tribeId })
         ctx.user.setState<ApplyState>({ type: 'apply-state', tribeId })
         const tribe = await ctx.tribalizm.tribesShow.getTribeInfo({
             tribeId,

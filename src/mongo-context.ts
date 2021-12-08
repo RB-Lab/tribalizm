@@ -18,6 +18,7 @@ import {
 } from './plugins/ui/telegram/users-adapter'
 import { UserStore } from './use-cases/entities/user'
 import { TelegramMessageMongoStore } from './plugins/ui/telegram/message-store'
+import { ILogger } from './use-cases/utils/logger'
 
 export function createMongoContext(db: Db) {
     const ideasCollection = db.collection('idea')
@@ -40,22 +41,17 @@ export function createMongoContext(db: Db) {
     const gatheringStore = new MongoGatheringStore(gatheringsCollection)
     const citiesCollection = db.collection('cities')
     const cityStore = new MongoCityStore(citiesCollection)
-    const context: Context = {
-        async: {
-            notificationBus: new TestNotificationBus(),
-        },
-        stores: {
-            applicationStore,
-            brainstormStore,
-            cityStore,
-            gatheringStore,
-            ideaStore,
-            memberStore,
-            questStore,
-            taskStore,
-            tribeStore,
-            userStore,
-        },
+    const context: Context['stores'] = {
+        applicationStore,
+        brainstormStore,
+        cityStore,
+        gatheringStore,
+        ideaStore,
+        memberStore,
+        questStore,
+        taskStore,
+        tribeStore,
+        userStore,
     }
     return context
 }
