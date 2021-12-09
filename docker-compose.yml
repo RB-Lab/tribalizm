@@ -2,33 +2,33 @@ version: '3.9'
 services:
   mongodb:
     image: mongo:5.0.4-focal
-    # TODO expose ports only for local profile
     ports:
       - 27017:27017
     restart: always
     environment:
-      MONGO_INITDB_ROOT_USERNAME: "${DB_USER}"
-      MONGO_INITDB_ROOT_PASSWORD: "${DB_PASS}"
+      MONGO_INITDB_ROOT_USERNAME: '${DB_USER}'
+      MONGO_INITDB_ROOT_PASSWORD: '${DB_PASS}'
     volumes:
       - mongo-data:/data/db
     networks:
       - tribalizm
   tribalizm-bot:
-    image: tribalizm-bot:1.0
-    build: 
+    # NOTE: for tags to work build must be run as yarn script
+    image: 'tribalizm-bot:${npm_package_version}'
+    build:
       context: .
       dockerfile: ./Dockerfile.bot
     restart: always
     environment:
-      DB_HOST: "${DB_HOST}"
-      DB_USER: "${DB_USER}"
-      DB_PASS: "${DB_PASS}"
-      BOT_TOKEN: "${BOT_TOKEN}"
+      DB_HOST: '${DB_HOST}'
+      DB_USER: '${DB_USER}'
+      DB_PASS: '${DB_PASS}'
+      BOT_TOKEN: '${BOT_TOKEN}'
     networks:
       - tribalizm
   admin:
-    image: tribalizm-admin:1.0
-    build: 
+    image: 'tribalizm-admin:${npm_package_version}'
+    build:
       context: .
       dockerfile: ./Dockerfile.admin
 networks:
@@ -37,4 +37,3 @@ networks:
 volumes:
   mongo-data:
     driver: local
-      

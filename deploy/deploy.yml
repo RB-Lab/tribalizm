@@ -2,6 +2,7 @@
 - hosts: bot
   vars:
     registry: '{{ lookup("env", "REGISTRY") }}'
+    version: '{{ lookup("env", "npm_package_version") }}'
 
   tasks:
     - name: Establish network
@@ -30,7 +31,7 @@
     - name: Deploy Tribalizm bot
       docker_container:
         name: tribalizm-bot
-        image: '{{ registry | string }}/tribalizm-bot:1.0'
+        image: '{{ registry | string }}/tribalizm-bot:{{ version | string }}'
         networks:
           - name: tribalizm
         ports:
