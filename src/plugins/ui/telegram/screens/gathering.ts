@@ -73,7 +73,7 @@ export function gatheringScreen({ bot, bus, tgUsers }: TgContext) {
                 proposal,
                 reason: payload.description,
             })
-            bot.telegram.sendMessage(user.chatId, text, kb)
+            await bot.telegram.sendMessage(user.chatId, text, kb)
         }
     )
     bus.subscribe<HowWasGatheringMessage>(
@@ -95,7 +95,7 @@ export function gatheringScreen({ bot, bus, tgUsers }: TgContext) {
                     })
                 )
             })
-            bot.telegram.sendMessage(
+            await bot.telegram.sendMessage(
                 user.chatId,
                 texts.ratePrompt(),
                 Markup.inlineKeyboard([...keys])

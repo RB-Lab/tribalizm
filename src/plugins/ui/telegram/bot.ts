@@ -1,5 +1,5 @@
 import { Telegraf } from 'telegraf'
-import { Tribalizm, wrapWithErrorHandler } from '../../../use-cases/tribalism'
+import { Tribalizm } from '../../../use-cases/tribalism'
 import { ILogger } from '../../../use-cases/utils/logger'
 import { NotificationBus } from '../../../use-cases/utils/notification-bus'
 import { i18n } from '../i18n/i18n-ctx'
@@ -31,8 +31,12 @@ interface PublicHookConfig {
     port?: number
     path?: string
 }
+interface Metrics {
+    countErrors: (error: unknown) => void
+}
 interface BotConfig {
     logger: ILogger
+    metrics: Metrics
     telegramUsersAdapter: TelegramUsersAdapter
     webHook?: PublicHookConfig
     tribalizm: Tribalizm
@@ -58,18 +62,23 @@ export async function makeBot(config: BotConfig) {
     }
 
     bot.catch((err, ctx) => {
+        config.logger.error(err)
+        config.metrics.countErrors(err)
         const texts = i18n(ctx).errors
         if (typeof err == 'object' && err?.constructor?.name) {
-            const errorMessage = (texts as any)[err.constructor.name]
-            if (errorMessage) {
+            if (err.constructor.name in texts) {
+                const errorMessage = (texts as any)[err.constructor.name]
                 ctx.reply(errorMessage())
             } else {
-                ctx.reply(texts.common())
+                if (typeof err == 'object' && 'message' in err) {
+                    ctx.reply(texts.commonWithText({ message: String(err) }))
+                } else {
+                    ctx.reply(texts.common())
+                }
             }
         } else {
             ctx.reply(texts.common())
         }
-        config.logger.error(err)
     })
 
     // add tribalizm
@@ -137,6 +146,11 @@ export async function makeBot(config: BotConfig) {
     brainstormScreen(tgContext)
     coordinationScreen(tgContext)
     gatheringScreen(tgContext)
+    bot.on('text', async (ctx) => {
+        config.logger.event('unhandled text', { text: ctx.message.text })
+        return ctx.reply('')
+        // return ctx.reply(i18n(ctx).unhandledText())
+    })
 
     if (config.webHook) {
         await bot.launch({

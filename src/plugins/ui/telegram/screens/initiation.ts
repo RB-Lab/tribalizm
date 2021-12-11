@@ -124,7 +124,7 @@ export function initiationScreen({ bot, bus, tgUsers }: TgContext) {
                 ),
             ])
 
-            bot.telegram.sendMessage(
+            await bot.telegram.sendMessage(
                 elder.chatId,
                 `<b>${texts.title({
                     tribe: payload.tribeName,
@@ -143,7 +143,7 @@ export function initiationScreen({ bot, bus, tgUsers }: TgContext) {
             )
             const texts = i18n(user).notifications.tribeApplication
 
-            bot.telegram.sendMessage(
+            await bot.telegram.sendMessage(
                 user.chatId,
                 texts.applicationDeclined({ tribe: payload.tribeName })
             )
@@ -179,7 +179,7 @@ export function initiationScreen({ bot, bus, tgUsers }: TgContext) {
                 tribe: payload.tribe,
             })
 
-            bot.telegram.sendMessage(user.chatId, text, kb)
+            await bot.telegram.sendMessage(user.chatId, text, kb)
         }
     )
 
@@ -191,7 +191,7 @@ export function initiationScreen({ bot, bus, tgUsers }: TgContext) {
             )
             const texts = i18n(user).initiation
 
-            bot.telegram.sendMessage(
+            await bot.telegram.sendMessage(
                 user.chatId,
                 texts.applicationApproved({ tribe: payload.tribe })
             )

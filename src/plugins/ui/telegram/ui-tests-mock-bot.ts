@@ -1,4 +1,5 @@
 import { createContext } from '../../../specs/test-context'
+import { noop } from '../../../ts-utils'
 import { Admin } from '../../../use-cases/admin'
 import { City } from '../../../use-cases/entities/city'
 import { Tribe } from '../../../use-cases/entities/tribe'
@@ -94,6 +95,9 @@ async function run() {
 
     makeBot({
         logger,
+        metrics: {
+            countErrors: noop,
+        },
         telegramUsersAdapter,
         webHook: {
             path: '/tg-hook',

@@ -8,7 +8,7 @@ import {
     ITelegramUser,
     StoreTelegramUsersAdapter,
 } from '../../plugins/ui/telegram/users-adapter'
-import { Awaited, notEmpty } from '../../ts-utils'
+import { Awaited, noop, notEmpty } from '../../ts-utils'
 import { Member } from '../../use-cases/entities/member'
 import { createContext } from '../test-context'
 
@@ -182,6 +182,9 @@ export async function createTelegramContext(
     }
     const bot = await makeBot({
         notificationBus: context.async.notificationBus,
+        metrics: {
+            countErrors: noop,
+        },
         token,
         tribalizm: context.tribalizm,
         webHook: {

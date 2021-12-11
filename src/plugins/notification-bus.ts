@@ -7,8 +7,10 @@ type Subscriber = <T extends Message>(message: T) => void | Promise<void>
 export class TestNotificationBus implements NotificationBus {
     private _subscribers: Map<Message['type'], Subscriber[]> = new Map()
     private logger: ILogger
-    constructor(logger: ILogger) {
+    private countErrors: (e: unknown) => void
+    constructor(logger: ILogger, countErrors: (e: unknown) => void) {
         this.logger = logger
+        this.countErrors = countErrors
     }
     notify = async <T extends Message>(message: T) => {
         const subscribers = this._subscribers.get(message.type)
@@ -19,8 +21,13 @@ export class TestNotificationBus implements NotificationBus {
             ...message.payload,
         })
         if (subscribers) {
-            for (let s of subscribers) {
-                await s(message)
+            for (let handle of subscribers) {
+                try {
+                    await handle(message)
+                } catch (e) {
+                    this.logger.error(e)
+                    this.countErrors(e)
+                }
             }
         }
     }

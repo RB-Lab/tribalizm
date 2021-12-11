@@ -10,6 +10,10 @@ export type Locales =
 	| 'ru'
 
 export type Translation = {
+	/**
+	 * 🗿 Spirits may hear you...
+	 */
+	'unhandledText': string
 	'start': {	
 		/**
 		 * Join tribes of likely-minded people nearby!
@@ -763,17 +767,26 @@ export type Translation = {
 		 */
 		'StormNotStarted': string
 		/**
-		 * 😩 Oops! Something awfully happened.
-		 */
-		'common': string
-		/**
 		 * 🚫 This quest is already over
 		 */
 		'QuestFinishedError': string
+		/**
+		 * ☠️ Oops! Something awfully happened.
+		 */
+		'common': string
+		/**
+		 * ☠️ Oops! {message}
+		 * @param {string} message
+		 */
+		'commonWithText': RequiredParams1<'message'>
 	}
 }
 
 export type TranslationFunctions = {
+	/**
+	 * 🗿 Spirits may hear you...
+	 */
+	'unhandledText': () => LocalizedString
 	'start': {	
 		/**
 		 * Join tribes of likely-minded people nearby!
@@ -1474,13 +1487,17 @@ export type TranslationFunctions = {
 		 */
 		'StormNotStarted': () => LocalizedString
 		/**
-		 * 😩 Oops! Something awfully happened.
-		 */
-		'common': () => LocalizedString
-		/**
 		 * 🚫 This quest is already over
 		 */
 		'QuestFinishedError': () => LocalizedString
+		/**
+		 * ☠️ Oops! Something awfully happened.
+		 */
+		'common': () => LocalizedString
+		/**
+		 * ☠️ Oops! {message}
+		 */
+		'commonWithText': (arg: { message: string }) => LocalizedString
 	}
 }
 

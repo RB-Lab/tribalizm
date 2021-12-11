@@ -229,7 +229,7 @@ export function questNegotiationScreen({ bot, bus, tgUsers }: TgContext) {
                 ),
             ])
 
-            bot.telegram.sendMessage(user.chatId, text, kb)
+            await bot.telegram.sendMessage(user.chatId, text, kb)
         }
     )
 

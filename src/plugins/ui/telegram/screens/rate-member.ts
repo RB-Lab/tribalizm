@@ -79,7 +79,7 @@ export function rateMemberScreen({ bot, bus, tgUsers }: TgContext) {
                     })
                 )
             })
-            bot.telegram.sendMessage(
+            await bot.telegram.sendMessage(
                 user.chatId,
                 texts.elderCharismaPrompt({
                     elder: i18n(user).elders[payload.elder](),
@@ -113,7 +113,7 @@ export function rateMemberScreen({ bot, bus, tgUsers }: TgContext) {
                     })
                 )
             })
-            bot.telegram.sendMessage(
+            await bot.telegram.sendMessage(
                 user.chatId,
                 texts.charismaPrompt({ name: payload.memberName }),
                 Markup.inlineKeyboard([

@@ -3,6 +3,8 @@
   vars:
     registry: '{{ lookup("env", "REGISTRY") }}'
     version: '{{ lookup("env", "npm_package_version") }}'
+    # 5000 - dev, 5100 - beta, 5200 - stag, 5555 - prod
+    tribalizm_port: '5200'
 
   tasks:
     - name: Establish network
@@ -21,9 +23,22 @@
         env:
           MONGO_INITDB_ROOT_USERNAME: '{{ db_user | string}}'
           MONGO_INITDB_ROOT_PASSWORD: '{{ db_pass | string}}'
+        log_driver: loki
+        log_options:
+          loki-url: 'http://localhost:3100/loki/api/v1/push'
+          loki-retries: '5'
+          loki-batch-size: '400'
         # to get rid of warnings:
         container_default_behavior: no_defaults
         network_mode: tribalizm
+
+    - name: install AWS ECR credentials helper
+      become: yes
+      apt:
+        name:
+          - amazon-ecr-credential-helper
+          - awscli
+        update_cache: yes
 
     - name: Log in to AWS ECR
       shell: aws ecr get-login-password --region eu-central-1 | docker login --username AWS --password-stdin '{{ registry | string }}'
@@ -35,13 +50,19 @@
         networks:
           - name: tribalizm
         ports:
-          - 5000:3000
+          - '{{ tribalizm_port | string }}:3000'
         restart_policy: always
         env:
           DB_HOST: mongodb # name of container from 'Deploy MongoDB' task
           DB_USER: '{{ db_user | string}}'
           DB_PASS: '{{ db_pass | string}}'
           BOT_TOKEN: '{{ bot_token | string}}'
+          LOG_LEVEL: 'trace'
+        log_driver: loki
+        log_options:
+          loki-url: 'http://localhost:3100/loki/api/v1/push'
+          loki-retries: '5'
+          loki-batch-size: '400'
         # to get rid of warnings:
         container_default_behavior: no_defaults
         network_mode: tribalizm
@@ -49,4 +70,4 @@
     - name: Set Cron job to check tasks queue
       cron:
         name: check tasks queue
-        job: curl localhost:5000/check-queue > /dev/null
+        job: 'curl localhost:{{ tribalizm_port | string }}/check-queue > /dev/null'

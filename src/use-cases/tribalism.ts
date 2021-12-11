@@ -53,34 +53,3 @@ export function makeTribalizm(context: Context) {
         locateUser: new LocateUser(context),
     }
 }
-
-export function wrapWithErrorHandler(
-    tribalism: Tribalizm,
-    handler: (error: Error) => void
-) {
-    return Object.entries(tribalism).reduce((tr, [key, useCase]) => {
-        return { ...tr, [key]: proxy(useCase) }
-    }, {}) as Tribalizm
-    function proxy(obj: any) {
-        return new Proxy(obj, {
-            get(obj, name) {
-                if (typeof obj[name] === 'function') {
-                    const fn = function (...args: any[]) {
-                        const value = obj[name].apply(obj, args)
-                        if (
-                            'catch' in value &&
-                            typeof value.catch === 'function'
-                        ) {
-                            return new Promise((resolve, reject) =>
-                                value.then(resolve).catch(reject)
-                            ).catch(handler)
-                        }
-                        return value
-                    }
-                    return fn
-                }
-                return obj[name]
-            },
-        })
-    }
-}

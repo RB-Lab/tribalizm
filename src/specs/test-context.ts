@@ -22,6 +22,7 @@ import { MongoQuestStore } from '../plugins/stores/mongo-store/quest-store'
 import { MongoTaskStore } from '../plugins/stores/mongo-store/task-store'
 import { MongoTribeStore } from '../plugins/stores/mongo-store/tribe-store'
 import { MongoUserStore } from '../plugins/stores/mongo-store/user-store'
+import { noop } from '../ts-utils'
 import { Brainstorm, QuestIdea } from '../use-cases/entities/brainstorm'
 import { IMember, Member } from '../use-cases/entities/member'
 import { Tribe } from '../use-cases/entities/tribe'
@@ -105,7 +106,7 @@ async function createMongoStores() {
 
 export async function createContext() {
     const logger = new Logger()
-    const notificationBus = new TestNotificationBus(logger)
+    const notificationBus = new TestNotificationBus(logger, noop)
     const stores =
         process.env.FULL_TEST === 'true'
             ? await createMongoStores()

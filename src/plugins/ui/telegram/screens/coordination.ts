@@ -188,7 +188,7 @@ export function coordinationScreen({ bot, bus, tgUsers }: TgContext) {
             )
             const texts = i18n(user).coordination
 
-            bot.telegram.sendMessage(
+            await bot.telegram.sendMessage(
                 user.chatId,
                 texts.coordinateOwnIdea({
                     name: payload.partner,
@@ -250,7 +250,7 @@ export function coordinationScreen({ bot, bus, tgUsers }: TgContext) {
                 ],
                 { columns: 2 }
             )
-            bot.telegram.sendMessage(
+            await bot.telegram.sendMessage(
                 user.chatId,
                 questManage({ name: partner.name }),
                 kb
@@ -269,7 +269,7 @@ export function coordinationScreen({ bot, bus, tgUsers }: TgContext) {
 
             const texts = i18n(user).coordination
 
-            bot.telegram.sendMessage(
+            await bot.telegram.sendMessage(
                 user.chatId,
                 texts.coordinateSpawned({
                     name: partner.name,

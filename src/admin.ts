@@ -3,6 +3,7 @@ import { createMongoStores } from './mongo-context'
 import { Logger } from './plugins/logger'
 import { TestNotificationBus } from './plugins/notification-bus'
 import { runAdmin } from './plugins/ui/admin/run-admin'
+import { noop } from './ts-utils'
 
 async function main() {
     const { DB_USER, DB_HOST, DB_PASS } = process.env
@@ -16,7 +17,7 @@ async function main() {
 
         const stores = createMongoStores(db)
 
-        const notificationBus = new TestNotificationBus(new Logger())
+        const notificationBus = new TestNotificationBus(new Logger(), noop)
 
         await runAdmin(
             { stores, async: { notificationBus } },

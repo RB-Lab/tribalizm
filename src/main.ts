@@ -8,6 +8,7 @@ import { StoreTelegramUsersAdapter } from './plugins/ui/telegram/users-adapter'
 import { makeTribalizm } from './use-cases/tribalism'
 import { Scheduler } from './use-cases/utils/scheduler'
 import { TaskDispatcher } from './use-cases/utils/task-dispatcher'
+import promClient from 'prom-client'
 
 async function getDb() {
     const { DB_USER, DB_HOST, DB_PASS } = process.env
@@ -27,11 +28,25 @@ async function getDb() {
 
 async function main() {
     const logger = new Logger()
+    const metricsRgistry = new promClient.Registry()
+    metricsRgistry.setDefaultLabels({
+        app: 'tribalzm-bot',
+    })
+    promClient.collectDefaultMetrics({ register: metricsRgistry })
     try {
         const { db, client } = await getDb()
 
         const stores = createMongoStores(db)
-        const notificationBus = new TestNotificationBus(logger)
+
+        const busErrorCounter = new promClient.Counter({
+            name: 'tribalizm_notification_bus_errors_total',
+            help: 'Caught errors, that happens when notifications were handled',
+            labelNames: ['error'],
+        })
+        metricsRgistry.registerMetric(busErrorCounter)
+        const notificationBus = new TestNotificationBus(logger, (err) => {
+            busErrorCounter.inc({ error: String(err) })
+        })
 
         const tribalizm = makeTribalizm({ stores, async: { notificationBus } })
 
@@ -40,8 +55,19 @@ async function main() {
             stores.tgUserStore,
             logger
         )
+
+        const botErrorCounter = new promClient.Counter({
+            name: 'tribalizm_bot_errors_total',
+            help: 'Caught errors, reported by bot',
+            labelNames: ['error'],
+        })
+        metricsRgistry.registerMetric(botErrorCounter)
+        function countErrors(error: unknown) {
+            botErrorCounter.inc({ error: String(error) })
+        }
         const bot = await makeBot({
             logger,
+            metrics: { countErrors },
             telegramUsersAdapter: tgUsersAdapter,
             messageStore: stores.messageStore,
             tribalizm: tribalizm,
@@ -62,11 +88,62 @@ async function main() {
             console.log('ping received')
             res.end('pong')
         })
-        app.use(bot.webhookCallback('/tg-hook'))
+
+        const httpRequestDurationMicroseconds = new promClient.Histogram({
+            name: 'hook_handling_duration_seconds',
+            help: 'Telegram hook handling duration (μs)',
+            labelNames: ['type'],
+            buckets: [0.1, 0.3, 0.5, 0.7, 1, 3, 5, 7, 10],
+        })
+        metricsRgistry.registerMetric(httpRequestDurationMicroseconds)
+
+        app.use(async (req, res, next) => {
+            const end = httpRequestDurationMicroseconds.startTimer()
+
+            await bot.webhookCallback('/tg-hook')(req, res, next)
+
+            // set labels for metric
+            const message = req.body.message?.text
+            if (message && String(message).startsWith('/')) {
+                return end({ type: `command: ${message}` })
+            }
+            if (req.body.message && 'location' in req.body.message) {
+                return end({ type: 'location' })
+            }
+            if (req.body.callback_query) {
+                const callback = String(req.body.callback_query.data).split(
+                    ':'
+                )[0]
+                return end({ type: `callback: ${callback}` })
+            }
+            end({ type: 'text or unknown' })
+        })
+
+        const queueCheckDurationMicroseconds = new promClient.Histogram({
+            name: 'queue_check_duration_seconds',
+            help: 'Handling of tasks queue duration (μs)',
+            labelNames: ['tasks'],
+            buckets: [0.1, 0.3, 0.5, 0.7, 1, 3, 5, 7, 10],
+        })
+        metricsRgistry.registerMetric(queueCheckDurationMicroseconds)
+
         app.get('/check-queue', async (req, res) => {
-            await taskDispatcher.run()
+            const end = queueCheckDurationMicroseconds.startTimer()
+            const tasks = await taskDispatcher.run()
+            end({ tasks })
             res.send('ok')
         })
+        app.get('/metrics', async (req, res) => {
+            res.setHeader('Content-Type', metricsRgistry.contentType)
+            res.end(await metricsRgistry.metrics())
+        })
+
+        const globalErrorCounter = new promClient.Counter({
+            name: 'tribalizm_express_errors_total',
+            help: 'Caught errors, reported by express',
+            labelNames: ['error'],
+        })
+        metricsRgistry.registerMetric(globalErrorCounter)
 
         const globalErrorHandler: ErrorRequestHandler = (
             error,
@@ -75,6 +152,7 @@ async function main() {
             _next
         ) => {
             logger.error(error)
+            globalErrorCounter.inc({ error: String(error) })
             res.status(500).send({
                 code: 500,
                 error: true,
@@ -82,6 +160,7 @@ async function main() {
             })
         }
         app.use(globalErrorHandler)
+
         logger.enableUnhandledRejectionsHandler()
 
         const server = app.listen(3000, () => {

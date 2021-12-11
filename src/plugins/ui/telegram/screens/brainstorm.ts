@@ -126,7 +126,7 @@ export function brainstormScreen({
             payload.targetUserId
         )
         const texts = i18n(user).brainstorm
-        bot.telegram.sendMessage(
+        await bot.telegram.sendMessage(
             user.chatId,
             texts.timeToStorm(),
             Markup.inlineKeyboard([
@@ -146,7 +146,7 @@ export function brainstormScreen({
                 payload.targetUserId
             )
             const texts = i18n(user).brainstorm
-            bot.telegram.sendMessage(
+            await bot.telegram.sendMessage(
                 user.chatId,
                 texts.brainstormDeclared({ date: new Date(payload.time) })
             )
@@ -159,7 +159,7 @@ export function brainstormScreen({
                 payload.targetUserId
             )
             const texts = i18n(user).brainstorm
-            bot.telegram.sendMessage(
+            await bot.telegram.sendMessage(
                 user.chatId,
                 texts.brainstormNotice({ date: new Date(payload.time) })
             )
@@ -177,7 +177,7 @@ export function brainstormScreen({
                 brainstormId: payload.brainstormId,
                 memberId: payload.targetMemberId,
             })
-            bot.telegram.sendMessage(user.chatId, texts.started())
+            await bot.telegram.sendMessage(user.chatId, texts.started())
         }
     )
     bus.subscribe<NewIdeaMessage>('new-idea-added', async ({ payload }) => {
@@ -240,7 +240,7 @@ export function brainstormScreen({
                     kb
                 )
             }
-            bot.telegram.sendMessage(
+            await bot.telegram.sendMessage(
                 user.chatId,
                 i18n(user).brainstorm.toVote()
             )

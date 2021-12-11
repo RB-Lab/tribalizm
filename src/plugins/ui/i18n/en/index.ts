@@ -1,6 +1,7 @@
 import type { BaseTranslation } from '../i18n-types'
 
 const en: BaseTranslation = {
+    unhandledText: '🗿 Spirits may hear you...',
     start: {
         text: 'Join tribes of likely-minded people nearby!',
         buttons: {
@@ -219,8 +220,9 @@ const en: BaseTranslation = {
             '🤬 System error! Cannot finalize storm before voting',
         StormNotStarted:
             '🤬 System error! Cannot add idea: brainstorm is not raging',
-        common: '😩 Oops! Something awfully happened.',
         QuestFinishedError: '🚫 This quest is already over',
+        common: '☠️ Oops! Something awfully happened.',
+        commonWithText: '☠️ Oops! {message:string}',
     },
 }
 

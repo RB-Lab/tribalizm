@@ -13,7 +13,7 @@ export function introQuestsScreen({ bot, bus, tgUsers }: TgContext) {
             )
             const texts = i18n(user).introduction
 
-            bot.telegram.sendMessage(
+            await bot.telegram.sendMessage(
                 user.chatId,
                 texts.newMemberNotice({
                     name: payload.newMemberName,

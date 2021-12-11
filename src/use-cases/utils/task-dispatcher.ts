@@ -28,30 +28,31 @@ export class TaskDispatcher {
         for (let task of tasks) {
             if (isHowWasQuestTask(task)) {
                 if (task.payload.questType === QuestType.initiation) {
-                    this.tribalism.initiation.howWasIt(task)
+                    await this.tribalism.initiation.howWasIt(task)
                 } else {
-                    this.tribalism.questFinale.howWasIt(task)
+                    await this.tribalism.questFinale.howWasIt(task)
                 }
             }
             if (isHowWasGatheringTask(task)) {
-                this.tribalism.gatheringFinale.notifyMembers(task)
+                await this.tribalism.gatheringFinale.notifyMembers(task)
             }
             if (isIntroductionTask(task)) {
-                this.tribalism.introductionQuests.notifyOldMember(task)
+                await this.tribalism.introductionQuests.notifyOldMember(task)
             }
             if (isStormNotify(task)) {
-                this.tribalism.brainstormLifecycle.notifyMembers(task)
+                await this.tribalism.brainstormLifecycle.notifyMembers(task)
             }
             if (isStormStart(task)) {
-                this.tribalism.brainstormLifecycle.startStorm(task)
+                await this.tribalism.brainstormLifecycle.startStorm(task)
             }
             if (isStormToVoting(task)) {
-                this.tribalism.brainstormLifecycle.toVoting(task)
+                await this.tribalism.brainstormLifecycle.toVoting(task)
             }
             if (isStormFinalize(task)) {
-                this.tribalism.brainstormLifecycle.finalyze(task)
-                this.tribalism.ideasIncarnation.incarnateIdeas(task)
+                await this.tribalism.brainstormLifecycle.finalyze(task)
+                await this.tribalism.ideasIncarnation.incarnateIdeas(task)
             }
         }
+        return tasks.length
     }
 }
