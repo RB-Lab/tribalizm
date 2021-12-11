@@ -5,11 +5,13 @@
     version: '{{ lookup("env", "npm_package_version") }}'
     # 5000 - dev, 5100 - beta, 5200 - stag, 5555 - prod
     tribalizm_port: '5200'
+    network: 'rb-lab'
 
   tasks:
-    - name: Establish network
-      docker_network:
-        name: tribalizm
+    # - name: '--- Debug ---'
+    #   tags: [debug]
+    #   debug:
+    #     msg: 'Vars: registry: {{ registry }}; version: {{ version }}; tribalizm_port: {{ tribalizm_port }};  network: {{ network }};'
 
     - name: Deploy MongoDB
       docker_container:
@@ -18,7 +20,7 @@
         volumes:
           - mongo-data:/data/db
         networks:
-          - name: tribalizm
+          - name: '{{ network }}'
         restart_policy: always
         env:
           MONGO_INITDB_ROOT_USERNAME: '{{ db_user | string}}'
@@ -30,7 +32,7 @@
           loki-batch-size: '400'
         # to get rid of warnings:
         container_default_behavior: no_defaults
-        network_mode: tribalizm
+        network_mode: '{{ network }}'
 
     - name: install AWS ECR credentials helper
       become: yes
@@ -48,7 +50,7 @@
         name: tribalizm-bot
         image: '{{ registry | string }}/tribalizm-bot:{{ version | string }}'
         networks:
-          - name: tribalizm
+          - name: '{{ network }}'
         ports:
           - '{{ tribalizm_port | string }}:3000'
         restart_policy: always
@@ -65,9 +67,14 @@
           loki-batch-size: '400'
         # to get rid of warnings:
         container_default_behavior: no_defaults
-        network_mode: tribalizm
+        network_mode: '{{ network }}'
 
     - name: Set Cron job to check tasks queue
       cron:
         name: check tasks queue
         job: 'curl localhost:{{ tribalizm_port | string }}/check-queue > /dev/null'
+
+    - name: Pull Tribalizm Admin image
+      docker_image:
+        name: '{{ registry | string }}/tribalizm-admin:{{ version | string }}'
+        source: pull

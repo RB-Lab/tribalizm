@@ -97,7 +97,7 @@ async function main() {
         })
         metricsRgistry.registerMetric(httpRequestDurationMicroseconds)
 
-        app.use(async (req, res, next) => {
+        app.post('/tg-hook', async (req, res, next) => {
             const end = httpRequestDurationMicroseconds.startTimer()
 
             await bot.webhookCallback('/tg-hook')(req, res, next)
