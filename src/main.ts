@@ -17,7 +17,7 @@ async function getDb() {
     try {
         await client.connect()
 
-        const db = client.db('tribalizm')
+        const db = client.db(process.env.DB)
         await db.command({ ping: 1 })
         return { db, client }
     } catch (e) {
@@ -165,7 +165,7 @@ async function main() {
 
         const server = app.listen(3000, () => {
             logger.trace('server started', { port: 3000 })
-            bot.telegram.setWebhook('https://tribalizm-1.rblab.net/tg-hook')
+            bot.telegram.setWebhook(`https://${process.env.DOMAIN}/tg-hook`)
         })
 
         process.once('SIGINT', stop)

@@ -12,7 +12,7 @@ async function main() {
     try {
         await client.connect()
 
-        const db = client.db('tribalizm')
+        const db = client.db(process.env.DB)
         await db.command({ ping: 1 })
 
         const stores = createMongoStores(db)

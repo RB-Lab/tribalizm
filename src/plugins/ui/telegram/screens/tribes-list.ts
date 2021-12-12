@@ -25,7 +25,29 @@ export function tribesListScreen({ bot }: TgContext) {
     bot.action('list-tribes', async (ctx) => {
         ctx.logEvent('list tribes')
         const texts = i18n(ctx).tribesList
-        // TODO check if city already set
+        const city =
+            ctx.user.cityId &&
+            (await ctx.tribalizm.tribesShow.getCityInfo(ctx.user.cityId))
+        if (city) {
+            const tribes = await ctx.tribalizm.tribesShow.getLocalTribes({
+                limit: 3,
+                userId: ctx.user.userId,
+            })
+            await ctx.reply(
+                texts.searchIn({ city: city.name }),
+                Markup.removeKeyboard()
+            )
+            ctx.logEvent('Tribes list', {
+                city,
+                tribes: tribes.length,
+                via: 'location',
+            })
+            if (tribes.length) {
+                return showTribesList(ctx, tribes)
+            } else {
+                return ctx.reply(texts.nothingFound({ city: city.name }))
+            }
+        }
         await ctx.user.setState<LocateState>({ type: 'locate-state' })
 
         const keyboard = Markup.keyboard([
@@ -40,6 +62,7 @@ export function tribesListScreen({ bot }: TgContext) {
 
     bot.on('location', async (ctx, next) => {
         if (isLocateState(ctx.user.state)) {
+            await ctx.user.setState(null)
             const texts = i18n(ctx).tribesList
             const city = await ctx.tribalizm.locateUser.locateUserByCoordinates(
                 {
@@ -75,7 +98,6 @@ export function tribesListScreen({ bot }: TgContext) {
             } else {
                 ctx.reply(texts.nothingFound({ city: city.name }))
             }
-            ctx.user.setState(null)
         } else {
             return next()
         }
@@ -97,6 +119,7 @@ export function tribesListScreen({ bot }: TgContext) {
                 ctx.reply(texts.unknownCity())
                 return
             }
+            await ctx.user.setState(null)
             ctx.user.locate(city.id, city.timeZone)
             // remove "share location" button
             await ctx.reply(
@@ -121,10 +144,10 @@ export function tribesListScreen({ bot }: TgContext) {
                     })
                 )
             }
-            ctx.user.setState(null)
         } else if (isApplyState(state)) {
             const texts = i18n(ctx).tribesList
             ctx.logEvent('application', { tribeId: state.tribeId })
+            await ctx.user.setState(null)
             await ctx.tribalizm.tribeApplication.applyToTribe({
                 coverLetter: ctx.message.text,
                 tribeId: state.tribeId,
@@ -132,7 +155,6 @@ export function tribesListScreen({ bot }: TgContext) {
             })
 
             ctx.reply(texts.applicationSent())
-            ctx.user.setState(null)
         } else {
             return next()
         }

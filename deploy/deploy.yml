@@ -1,19 +1,29 @@
 ---
 - hosts: bot
   vars:
-    registry: '{{ lookup("env", "REGISTRY") }}'
     version: '{{ lookup("env", "npm_package_version") }}'
-    # 5000 - dev, 5100 - beta, 5200 - stag, 5555 - prod
-    tribalizm_port: '5200'
-    network: 'rb-lab'
+    registry: '{{ lookup("env", "REGISTRY") }}'
+    db_user: '{{ lookup("env", "DB_USER") }}'
+    db_pass: '{{ lookup("env", "DB_PASS") }}'
+    db_host: '{{ lookup("env", "DB_HOST") }}'
+    db: '{{ lookup("env", "DB") }}'
+    bot_token: '{{ lookup("env", "BOT_TOKEN") }}'
+    domain: '{{ lookup("env", "DOMAIN") }}'
+    port: '{{ lookup("env", "PORT") }}'
+    network: '{{ lookup("env", "NETWORK") }}'
+    log_level: trace
 
   tasks:
-    # - name: '--- Debug ---'
-    #   tags: [debug]
-    #   debug:
-    #     msg: 'Vars: registry: {{ registry }}; version: {{ version }}; tribalizm_port: {{ tribalizm_port }};  network: {{ network }};'
+    - name: '--- Debug ---'
+      tags: [debug]
+      debug:
+        msg:
+          'Vars: registry: {{ registry }}; version: {{ version }}; port: {{ port }};
+          db_user: {{ db_user }}; db_pass: {{ db_pass }}; db_host: {{ db_host }}; db: {{ db }};
+          bot_token: {{ bot_token }}; domain: {{ domain }};  network: {{ network }}; '
 
     - name: Deploy MongoDB
+      tags: [mongo]
       docker_container:
         name: mongodb
         image: mongo:5.0.4-focal
@@ -22,6 +32,8 @@
         networks:
           - name: '{{ network }}'
         restart_policy: always
+        ports:
+          - '2323:27017'
         env:
           MONGO_INITDB_ROOT_USERNAME: '{{ db_user | string}}'
           MONGO_INITDB_ROOT_PASSWORD: '{{ db_pass | string}}'
@@ -52,14 +64,16 @@
         networks:
           - name: '{{ network }}'
         ports:
-          - '{{ tribalizm_port | string }}:3000'
+          - '{{ port | string }}:3000'
         restart_policy: always
         env:
-          DB_HOST: mongodb # name of container from 'Deploy MongoDB' task
           DB_USER: '{{ db_user | string}}'
           DB_PASS: '{{ db_pass | string}}'
+          DB_HOST: '{{ db_host | string}}'
+          DB: '{{ db | string}}'
+          DOMAIN: '{{ domain | string}}'
           BOT_TOKEN: '{{ bot_token | string}}'
-          LOG_LEVEL: 'trace'
+          LOG_LEVEL: '{{ log_level | string}}'
         log_driver: loki
         log_options:
           loki-url: 'http://localhost:3100/loki/api/v1/push'
@@ -72,9 +86,10 @@
     - name: Set Cron job to check tasks queue
       cron:
         name: check tasks queue
-        job: 'curl localhost:{{ tribalizm_port | string }}/check-queue > /dev/null'
+        job: 'curl localhost:{{ port | string }}/check-queue > /dev/null'
 
     - name: Pull Tribalizm Admin image
+      tags: ['pull']
       docker_image:
         name: '{{ registry | string }}/tribalizm-admin:{{ version | string }}'
         source: pull

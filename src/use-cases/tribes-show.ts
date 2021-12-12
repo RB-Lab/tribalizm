@@ -45,16 +45,27 @@ export class TribeShow extends ContextUser {
             cityId: user.cityId,
         })
 
+        const userMembers = await this.stores.memberStore.find({
+            userId: user.id,
+        })
         const counts = await this.stores.memberStore.countTribeMembers(
             tribes.map((t) => t.id)
         )
 
-        return tribes.map((t) => ({
-            id: t.id,
-            name: t.name,
-            description: t.description,
-            type: t.vocabulary,
-            membersCount: counts[t.id],
-        }))
+        return tribes
+            .filter((t) => !userMembers.some((m) => m.tribeId === t.id))
+            .map((t) => ({
+                id: t.id,
+                name: t.name,
+                description: t.description,
+                type: t.vocabulary,
+                membersCount: counts[t.id],
+            }))
+    }
+
+    getCityInfo = async (cityId: string) => {
+        const city = await this.stores.cityStore.getById(cityId)
+        if (!city) return null
+        return { name: city.name, id: city.id, timeZone: city.timeZone }
     }
 }

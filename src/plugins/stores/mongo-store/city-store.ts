@@ -33,6 +33,8 @@ export class MongoCityStore extends MongoStore<ICity> implements CityStore {
     }
 
     prune = async () => {
-        await this._collection.drop()
+        try {
+            await this._collection.drop()
+        } catch (ignore) {}
     }
 }

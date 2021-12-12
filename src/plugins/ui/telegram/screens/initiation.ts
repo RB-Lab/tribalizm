@@ -78,6 +78,7 @@ export function initiationScreen({ bot, bus, tgUsers }: TgContext) {
     bot.on('text', async (ctx, next) => {
         const state = ctx.user.state
         if (isDeclineState(state)) {
+            await ctx.user.setState(null)
             ctx.logEvent('app declined straight away', {
                 questId: state.questId,
                 reason: ctx.message.text,
@@ -89,7 +90,6 @@ export function initiationScreen({ bot, bus, tgUsers }: TgContext) {
                 questId: state.questId,
                 elderId: state.memberId,
             })
-            ctx.user.setState(null)
         } else {
             return next()
         }
@@ -104,7 +104,7 @@ export function initiationScreen({ bot, bus, tgUsers }: TgContext) {
                 payload.targetUserId
             )
 
-            const texts = i18n(elder).notifications.tribeApplication
+            const texts = i18n(elder).tribeApplication
 
             const keyboard = Markup.inlineKeyboard([
                 Markup.button.callback(
@@ -141,7 +141,7 @@ export function initiationScreen({ bot, bus, tgUsers }: TgContext) {
             const user = await tgUsers.getTelegramUserForTribalism(
                 payload.targetUserId
             )
-            const texts = i18n(user).notifications.tribeApplication
+            const texts = i18n(user).tribeApplication
 
             await bot.telegram.sendMessage(
                 user.chatId,

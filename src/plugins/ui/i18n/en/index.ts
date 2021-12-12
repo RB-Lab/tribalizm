@@ -43,10 +43,10 @@ const en: BaseTranslation = {
             'Please, write tribe\'s chief and shaman about yourself and why do you want to join "{tribe}" tribe?',
         applicationSent:
             '📨 Your application has been sent. Tribe chief will propose a meeting soon.',
-        applicationSentShort: '☑️ Applied!',
-        cantFindCity: "Can't find your city, please type it's name.",
-        unknownCity: 'Cannot find such a city',
-        nothingFound: 'No tribes in {city} so far...',
+        applicationSentShort: '☑️ Ok!',
+        cantFindCity: "🤔 Can't find your city, please type it's name.",
+        unknownCity: '🤔 Cannot find such a city',
+        nothingFound: '💨 No tribes in {city} so far...',
     },
     elders: {
         chief: 'chief',
@@ -61,8 +61,6 @@ const en: BaseTranslation = {
             '{name:string}, {elder:string} of the {tribe:string} proposes to meet: \n {proposal:string}',
         questNotificationForElder:
             'Candidate for {tribe:string} tribe {name:string} proposes to meet: \n {proposal:string}',
-        candidate: 'candidate',
-        questDescription: 'initiation',
         feedbackRequest:
             "You've just met with {name:string}. Do you accept them in the tribe {tribe:string}?",
         accept: '👍 Yes, accept!',
@@ -74,22 +72,27 @@ const en: BaseTranslation = {
         newMemberNotice:
             "🎉 New member {name:string} in {tribe:string}! Let's arrange an introduction meeting!",
         okay: "🤗 Yes, let's meet!",
-        questDescription: 'introduction meeting',
         questNotification:
             '{name} of the {tribe:string} proposes to meet to introduce themselves: \n {proposal:string}',
     },
     coordination: {
-        okay: "💪 Yay! Le'ts do it!",
         coordinateOwnIdea: `You're going to coordinate efforts to incarnate your idea "{description:string}" with {name:string}. We need to arrange first meeting.`,
+        okay: "💪 Yay! Le'ts do it!",
         questNotification:
             '{name} of the {tribe:string} proposes to meet to coordinate efforts for "{description:string}": \n {proposal:string}',
         coordinateSpawned: `New quest "{description:string}" assigned to you and {name:string}. Let's arrange a meeting!`,
         questManage: 'When discuss with {name: string}, you can:',
+        buttons: {
+            spawn: 'Create a sub-quest',
+            gatherUpwoters: 'Gather idea supporters',
+            gatherTribe: 'Gather whole tribe',
+            reQuest: 'Meet one more time',
+        },
         spawnDescribe: 'Describe the quest, please',
+        questAssigned: '👌 Ok, quest assigned',
         gatheringDescribe: 'Describe the reason for gathering',
         gatheringWhen: 'When do you want to gather?',
         gatheringSetPlace: "Where you'd like to met?",
-        questAssigned: '👌 Ok, quest assigned',
         what: {
             all: 'tribe',
             upvoters: 'all interested members',
@@ -100,12 +103,6 @@ const en: BaseTranslation = {
         confirm: '✅ Yes',
         edit: '🤔 Change',
         gatheringDone: 'Ok, I proclaim the gathering!',
-        buttons: {
-            spawn: 'Create a sub-quest',
-            gatherUpwoters: 'Gather idea supporters',
-            gatherTribe: 'Gather whole tribe',
-            reQuest: 'Meet one more time',
-        },
     },
     gathering: {
         declared: `New gathering for "{reason:string}": \n {proposal:string}`,
@@ -143,16 +140,14 @@ const en: BaseTranslation = {
         questAcceptedPersonal:
             '{who:string} agreed to meet at: \n {proposal:string}',
     },
-    notifications: {
-        tribeApplication: {
-            title: 'A new member application for tribe {tribe}!',
-            applicant: 'From user {username}.',
-            coverLetter: 'Cover letter:',
-            assignInitiation: '👍 Propose a meeting',
-            decline: '⛔️ Decline',
-            applicationDeclined:
-                'Your application to the tribe "{tribe}" has been declined',
-        },
+    tribeApplication: {
+        title: 'A new member application for tribe {tribe}!',
+        applicant: 'From user {username}.',
+        coverLetter: 'Cover letter:',
+        assignInitiation: '👍 Propose a meeting',
+        decline: '⛔️ Decline',
+        applicationDeclined:
+            'Your application to the tribe "{tribe}" has been declined',
     },
     rateMember: {
         elderCharismaPrompt:
@@ -197,7 +192,7 @@ const en: BaseTranslation = {
         QuestIncompleteError:
             'Cannot agree on quest with incomplete information.',
         NotParticipated: "🚫 Nope. You cannot vote for gathering you' declined",
-        VoteRangeError: 'This vot is out of available range.',
+        VoteRangeError: 'This vote is out of available range.',
         SelfVotingError: '🚫 Nope. You cannot rate yourself',
         ApplicationTransitionError: '🤬  ApplicationTransitionError? 🤨',
         NoChiefTribeError: '🤨 Hmm... this tribe has no chief.',

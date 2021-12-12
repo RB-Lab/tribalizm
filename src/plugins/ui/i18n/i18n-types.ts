@@ -118,19 +118,19 @@ export type Translation = {
 		 */
 		'applicationSent': string
 		/**
-		 * ☑️ Applied!
+		 * ☑️ Ok!
 		 */
 		'applicationSentShort': string
 		/**
-		 * Can't find your city, please type it's name.
+		 * 🤔 Can't find your city, please type it's name.
 		 */
 		'cantFindCity': string
 		/**
-		 * Cannot find such a city
+		 * 🤔 Cannot find such a city
 		 */
 		'unknownCity': string
 		/**
-		 * No tribes in {city} so far...
+		 * 💨 No tribes in {city} so far...
 		 * @param {unknown} city
 		 */
 		'nothingFound': RequiredParams1<'city'>
@@ -176,14 +176,6 @@ export type Translation = {
 		 */
 		'questNotificationForElder': RequiredParams3<'name', 'proposal', 'tribe'>
 		/**
-		 * candidate
-		 */
-		'candidate': string
-		/**
-		 * initiation
-		 */
-		'questDescription': string
-		/**
 		 * You've just met with {name}. Do you accept them in the tribe {tribe}?
 		 * @param {string} name
 		 * @param {string} tribe
@@ -215,10 +207,6 @@ export type Translation = {
 		 */
 		'okay': string
 		/**
-		 * introduction meeting
-		 */
-		'questDescription': string
-		/**
 		 * {name} of the {tribe} proposes to meet to introduce themselves: 
 	 {proposal}
 		 * @param {unknown} name
@@ -229,15 +217,15 @@ export type Translation = {
 	}
 	'coordination': {	
 		/**
-		 * 💪 Yay! Le'ts do it!
-		 */
-		'okay': string
-		/**
 		 * You're going to coordinate efforts to incarnate your idea "{description}" with {name}. We need to arrange first meeting.
 		 * @param {string} description
 		 * @param {string} name
 		 */
 		'coordinateOwnIdea': RequiredParams2<'description', 'name'>
+		/**
+		 * 💪 Yay! Le'ts do it!
+		 */
+		'okay': string
 		/**
 		 * {name} of the {tribe} proposes to meet to coordinate efforts for "{description}": 
 	 {proposal}
@@ -258,10 +246,32 @@ export type Translation = {
 		 * @param {string} name
 		 */
 		'questManage': RequiredParams1<'name'>
+		'buttons': {	
+			/**
+			 * Create a sub-quest
+			 */
+			'spawn': string
+			/**
+			 * Gather idea supporters
+			 */
+			'gatherUpwoters': string
+			/**
+			 * Gather whole tribe
+			 */
+			'gatherTribe': string
+			/**
+			 * Meet one more time
+			 */
+			'reQuest': string
+		}
 		/**
 		 * Describe the quest, please
 		 */
 		'spawnDescribe': string
+		/**
+		 * 👌 Ok, quest assigned
+		 */
+		'questAssigned': string
 		/**
 		 * Describe the reason for gathering
 		 */
@@ -274,10 +284,6 @@ export type Translation = {
 		 * Where you'd like to met?
 		 */
 		'gatheringSetPlace': string
-		/**
-		 * 👌 Ok, quest assigned
-		 */
-		'questAssigned': string
 		'what': {	
 			/**
 			 * tribe
@@ -315,24 +321,6 @@ export type Translation = {
 		 * Ok, I proclaim the gathering!
 		 */
 		'gatheringDone': string
-		'buttons': {	
-			/**
-			 * Create a sub-quest
-			 */
-			'spawn': string
-			/**
-			 * Gather idea supporters
-			 */
-			'gatherUpwoters': string
-			/**
-			 * Gather whole tribe
-			 */
-			'gatherTribe': string
-			/**
-			 * Meet one more time
-			 */
-			'reQuest': string
-		}
 	}
 	'gathering': {	
 		/**
@@ -488,36 +476,34 @@ export type Translation = {
 		 */
 		'questAcceptedPersonal': RequiredParams2<'proposal', 'who'>
 	}
-	'notifications': {	
-		'tribeApplication': {	
-			/**
-			 * A new member application for tribe {tribe}!
-			 * @param {unknown} tribe
-			 */
-			'title': RequiredParams1<'tribe'>
-			/**
-			 * From user {username}.
-			 * @param {unknown} username
-			 */
-			'applicant': RequiredParams1<'username'>
-			/**
-			 * Cover letter:
-			 */
-			'coverLetter': string
-			/**
-			 * 👍 Propose a meeting
-			 */
-			'assignInitiation': string
-			/**
-			 * ⛔️ Decline
-			 */
-			'decline': string
-			/**
-			 * Your application to the tribe "{tribe}" has been declined
-			 * @param {unknown} tribe
-			 */
-			'applicationDeclined': RequiredParams1<'tribe'>
-		}
+	'tribeApplication': {	
+		/**
+		 * A new member application for tribe {tribe}!
+		 * @param {unknown} tribe
+		 */
+		'title': RequiredParams1<'tribe'>
+		/**
+		 * From user {username}.
+		 * @param {unknown} username
+		 */
+		'applicant': RequiredParams1<'username'>
+		/**
+		 * Cover letter:
+		 */
+		'coverLetter': string
+		/**
+		 * 👍 Propose a meeting
+		 */
+		'assignInitiation': string
+		/**
+		 * ⛔️ Decline
+		 */
+		'decline': string
+		/**
+		 * Your application to the tribe "{tribe}" has been declined
+		 * @param {unknown} tribe
+		 */
+		'applicationDeclined': RequiredParams1<'tribe'>
 	}
 	'rateMember': {	
 		/**
@@ -691,7 +677,7 @@ export type Translation = {
 		 */
 		'NotParticipated': string
 		/**
-		 * This vot is out of available range.
+		 * This vote is out of available range.
 		 */
 		'VoteRangeError': string
 		/**
@@ -889,19 +875,19 @@ export type TranslationFunctions = {
 		 */
 		'applicationSent': () => LocalizedString
 		/**
-		 * ☑️ Applied!
+		 * ☑️ Ok!
 		 */
 		'applicationSentShort': () => LocalizedString
 		/**
-		 * Can't find your city, please type it's name.
+		 * 🤔 Can't find your city, please type it's name.
 		 */
 		'cantFindCity': () => LocalizedString
 		/**
-		 * Cannot find such a city
+		 * 🤔 Cannot find such a city
 		 */
 		'unknownCity': () => LocalizedString
 		/**
-		 * No tribes in {city} so far...
+		 * 💨 No tribes in {city} so far...
 		 */
 		'nothingFound': (arg: { city: unknown }) => LocalizedString
 	}
@@ -939,14 +925,6 @@ export type TranslationFunctions = {
 		 */
 		'questNotificationForElder': (arg: { name: string, proposal: string, tribe: string }) => LocalizedString
 		/**
-		 * candidate
-		 */
-		'candidate': () => LocalizedString
-		/**
-		 * initiation
-		 */
-		'questDescription': () => LocalizedString
-		/**
 		 * You've just met with {name}. Do you accept them in the tribe {tribe}?
 		 */
 		'feedbackRequest': (arg: { name: string, tribe: string }) => LocalizedString
@@ -973,10 +951,6 @@ export type TranslationFunctions = {
 		 */
 		'okay': () => LocalizedString
 		/**
-		 * introduction meeting
-		 */
-		'questDescription': () => LocalizedString
-		/**
 		 * {name} of the {tribe} proposes to meet to introduce themselves: 
 	 {proposal}
 		 */
@@ -984,13 +958,13 @@ export type TranslationFunctions = {
 	}
 	'coordination': {	
 		/**
-		 * 💪 Yay! Le'ts do it!
-		 */
-		'okay': () => LocalizedString
-		/**
 		 * You're going to coordinate efforts to incarnate your idea "{description}" with {name}. We need to arrange first meeting.
 		 */
 		'coordinateOwnIdea': (arg: { description: string, name: string }) => LocalizedString
+		/**
+		 * 💪 Yay! Le'ts do it!
+		 */
+		'okay': () => LocalizedString
 		/**
 		 * {name} of the {tribe} proposes to meet to coordinate efforts for "{description}": 
 	 {proposal}
@@ -1004,10 +978,32 @@ export type TranslationFunctions = {
 		 * When discuss with {name}, you can:
 		 */
 		'questManage': (arg: { name: string }) => LocalizedString
+		'buttons': {	
+			/**
+			 * Create a sub-quest
+			 */
+			'spawn': () => LocalizedString
+			/**
+			 * Gather idea supporters
+			 */
+			'gatherUpwoters': () => LocalizedString
+			/**
+			 * Gather whole tribe
+			 */
+			'gatherTribe': () => LocalizedString
+			/**
+			 * Meet one more time
+			 */
+			'reQuest': () => LocalizedString
+		}
 		/**
 		 * Describe the quest, please
 		 */
 		'spawnDescribe': () => LocalizedString
+		/**
+		 * 👌 Ok, quest assigned
+		 */
+		'questAssigned': () => LocalizedString
 		/**
 		 * Describe the reason for gathering
 		 */
@@ -1020,10 +1016,6 @@ export type TranslationFunctions = {
 		 * Where you'd like to met?
 		 */
 		'gatheringSetPlace': () => LocalizedString
-		/**
-		 * 👌 Ok, quest assigned
-		 */
-		'questAssigned': () => LocalizedString
 		'what': {	
 			/**
 			 * tribe
@@ -1056,24 +1048,6 @@ export type TranslationFunctions = {
 		 * Ok, I proclaim the gathering!
 		 */
 		'gatheringDone': () => LocalizedString
-		'buttons': {	
-			/**
-			 * Create a sub-quest
-			 */
-			'spawn': () => LocalizedString
-			/**
-			 * Gather idea supporters
-			 */
-			'gatherUpwoters': () => LocalizedString
-			/**
-			 * Gather whole tribe
-			 */
-			'gatherTribe': () => LocalizedString
-			/**
-			 * Meet one more time
-			 */
-			'reQuest': () => LocalizedString
-		}
 	}
 	'gathering': {	
 		/**
@@ -1217,33 +1191,31 @@ export type TranslationFunctions = {
 		 */
 		'questAcceptedPersonal': (arg: { proposal: string, who: string }) => LocalizedString
 	}
-	'notifications': {	
-		'tribeApplication': {	
-			/**
-			 * A new member application for tribe {tribe}!
-			 */
-			'title': (arg: { tribe: unknown }) => LocalizedString
-			/**
-			 * From user {username}.
-			 */
-			'applicant': (arg: { username: unknown }) => LocalizedString
-			/**
-			 * Cover letter:
-			 */
-			'coverLetter': () => LocalizedString
-			/**
-			 * 👍 Propose a meeting
-			 */
-			'assignInitiation': () => LocalizedString
-			/**
-			 * ⛔️ Decline
-			 */
-			'decline': () => LocalizedString
-			/**
-			 * Your application to the tribe "{tribe}" has been declined
-			 */
-			'applicationDeclined': (arg: { tribe: unknown }) => LocalizedString
-		}
+	'tribeApplication': {	
+		/**
+		 * A new member application for tribe {tribe}!
+		 */
+		'title': (arg: { tribe: unknown }) => LocalizedString
+		/**
+		 * From user {username}.
+		 */
+		'applicant': (arg: { username: unknown }) => LocalizedString
+		/**
+		 * Cover letter:
+		 */
+		'coverLetter': () => LocalizedString
+		/**
+		 * 👍 Propose a meeting
+		 */
+		'assignInitiation': () => LocalizedString
+		/**
+		 * ⛔️ Decline
+		 */
+		'decline': () => LocalizedString
+		/**
+		 * Your application to the tribe "{tribe}" has been declined
+		 */
+		'applicationDeclined': (arg: { tribe: unknown }) => LocalizedString
 	}
 	'rateMember': {	
 		/**
@@ -1411,7 +1383,7 @@ export type TranslationFunctions = {
 		 */
 		'NotParticipated': () => LocalizedString
 		/**
-		 * This vot is out of available range.
+		 * This vote is out of available range.
 		 */
 		'VoteRangeError': () => LocalizedString
 		/**

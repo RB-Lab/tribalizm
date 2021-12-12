@@ -148,6 +148,7 @@ export function coordinationScreen({ bot, bus, tgUsers }: TgContext) {
         const state = ctx.user.state
         const texts = i18n(ctx).coordination
         if (isSpawnState(state)) {
+            await ctx.user.setState(null)
             ctx.logEvent('quest: spawn', { parentQuestId: state.parentQuestId })
 
             await ctx.tribalizm.spawnQuest.spawnQuest({
@@ -156,7 +157,6 @@ export function coordinationScreen({ bot, bus, tgUsers }: TgContext) {
                 parentQuestId: state.parentQuestId,
             })
             await ctx.reply(texts.questAssigned())
-            ctx.user.setState(null)
         } else if (isGatherState(state)) {
             if (!state.description) {
                 state.description = ctx.message.text

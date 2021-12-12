@@ -7,7 +7,7 @@ import { TribeShow } from '../use-cases/tribes-show'
 import { createContext } from './test-context'
 
 describe('Show tribe(s)', () => {
-    it('list tribes for coordinates', async () => {
+    it('list tribes for user', async () => {
         const world = await setUp()
         const tribes = await world.tribeShow.getLocalTribes({
             userId: world.user.id,
@@ -31,6 +31,9 @@ describe('Show tribe(s)', () => {
                 },
             ])
         )
+    })
+    it('does NOT show tribes user already in', async () => {
+        pending('add test implementation')
     })
     it('shows tribes info', async () => {
         const world = await setUp()

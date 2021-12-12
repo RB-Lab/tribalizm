@@ -66,15 +66,16 @@ export async function makeBot(config: BotConfig) {
         config.metrics.countErrors(err)
         const texts = i18n(ctx).errors
         if (typeof err == 'object' && err?.constructor?.name) {
-            if (err.constructor.name in texts) {
-                const errorMessage = (texts as any)[err.constructor.name]
-                ctx.reply(errorMessage())
-            } else {
-                if (typeof err == 'object' && 'message' in err) {
+            const text = (texts as any)[err.constructor.name]()
+            // this means there's no translation for this
+            if (text === `errors.${err.constructor.name}`) {
+                if ('message' in err) {
                     ctx.reply(texts.commonWithText({ message: String(err) }))
                 } else {
                     ctx.reply(texts.common())
                 }
+            } else {
+                ctx.reply(text)
             }
         } else {
             ctx.reply(texts.common())
@@ -148,8 +149,7 @@ export async function makeBot(config: BotConfig) {
     gatheringScreen(tgContext)
     bot.on('text', async (ctx) => {
         config.logger.event('unhandled text', { text: ctx.message.text })
-        return ctx.reply('')
-        // return ctx.reply(i18n(ctx).unhandledText())
+        return ctx.reply(i18n(ctx).unhandledText())
     })
 
     if (config.webHook) {

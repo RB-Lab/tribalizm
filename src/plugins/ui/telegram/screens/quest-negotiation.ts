@@ -81,6 +81,7 @@ export function questNegotiationScreen({ bot, bus, tgUsers }: TgContext) {
             ctx.editMessageText(texts.proposePlace(), Markup.inlineKeyboard([]))
             return
         }
+        await ctx.user.setState(null)
         if (state.elder === 'chief') {
             await ctx.tribalizm.initiation.startInitiation({
                 questId: state.questId,
@@ -100,7 +101,6 @@ export function questNegotiationScreen({ bot, bus, tgUsers }: TgContext) {
             questId: state.questId,
         })
         removeInlineKeyboard(ctx, `\n${texts.proposalDone()}`)
-        ctx.user.setState(null)
     })
 
     bot.on('text', async (ctx, next) => {
