@@ -264,13 +264,13 @@ describe('Brainstorm lifecycle', () => {
         expect(tasks[0].time).toBeLessThan(Date.now() + 5 * 60_000 + 1000)
     })
 
-    it('finalises the storm', async () => {
+    it('finalizes the storm', async () => {
         const world = await setUp()
         const { brainstorm } = await world.stormToVoting()
         const task = await world.taskStore._last()
 
         if (isStormFinalize(task)) {
-            await world.stromCycle.finalyze(task)
+            await world.stromCycle.finalize(task)
         }
         const storm = await world.brainstormStore.getById(brainstorm.id)
 
@@ -284,7 +284,7 @@ describe('Brainstorm lifecycle', () => {
         const task = await world.taskStore._last()
 
         if (isStormFinalize(task)) {
-            await world.stromCycle.finalyze(task)
+            await world.stromCycle.finalize(task)
         }
         expect(onEnded).toHaveBeenCalledTimes(world.members.length - 1)
         expect(onEnded).toHaveBeenCalledWith(
@@ -299,11 +299,11 @@ describe('Brainstorm lifecycle', () => {
         )
     })
 
-    it('FAILs to finalyze a strom not in voting phase', async () => {
+    it('FAILs to finalize a strom not in voting phase', async () => {
         const world = await setUp()
         const { brainstorm } = await world.startStorm()
         return expectAsync(
-            world.stromCycle.finalyze({
+            world.stromCycle.finalize({
                 type: 'brainstorm-to-finalize',
                 time: Date.now(),
                 done: false,

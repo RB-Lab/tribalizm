@@ -61,7 +61,7 @@ export async function makeBot(config: BotConfig) {
         bot = new Telegraf<TribeCtx>(config.token)
     }
 
-    bot.catch((err, ctx) => {
+    bot.catch(async (err, ctx) => {
         config.logger.error(err)
         config.metrics.countErrors(err)
         const texts = i18n(ctx).errors
@@ -70,15 +70,17 @@ export async function makeBot(config: BotConfig) {
             // this means there's no translation for this
             if (text === `errors.${err.constructor.name}`) {
                 if ('message' in err) {
-                    ctx.reply(texts.commonWithText({ message: String(err) }))
+                    await ctx.reply(
+                        texts.commonWithText({ message: String(err) })
+                    )
                 } else {
-                    ctx.reply(texts.common())
+                    await ctx.reply(texts.common())
                 }
             } else {
-                ctx.reply(text)
+                await ctx.reply(text)
             }
         } else {
-            ctx.reply(texts.common())
+            await ctx.reply(texts.common())
         }
     })
 
@@ -156,9 +158,6 @@ export async function makeBot(config: BotConfig) {
         await bot.launch({
             webhook: { ...config.webHook, hookPath: config.webHook.path },
         })
-        // Enable graceful stop
-        process.once('SIGINT', () => bot.stop('SIGINT'))
-        process.once('SIGTERM', () => bot.stop('SIGTERM'))
     }
     return bot
 }

@@ -4,7 +4,6 @@ import { Collection, ObjectId } from 'mongodb'
 interface Storable {
     id: string
 }
-const defaultPage = { fields: 'id', limit: 100, order: 'asc' as 'asc' | 'desc' }
 
 export class MongoStore<T extends { id?: string | null }> implements Store<T> {
     protected _class?: new (record: any) => T
@@ -83,7 +82,7 @@ export class MongoStore<T extends { id?: string | null }> implements Store<T> {
     find: Store<T>['find'] = async (query, { limit = 100, cursor } = {}) => {
         let q: any = query
         if (cursor) {
-            q = { ...query, $gt: { _id: new ObjectId(cursor) } }
+            q = { ...query, _id: { $gt: new ObjectId(cursor) } }
         }
         q = Object.entries(q).reduce((res, [key, value]) => {
             if (key === 'id') {

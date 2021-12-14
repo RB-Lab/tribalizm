@@ -6,10 +6,10 @@ export function testLauncher(
     bot: Telegraf<TribeCtx>,
     telegramUsers: TelegramUsersAdapter
 ) {
-    bot.command('/test', (ctx) => {
+    bot.command('/test', async (ctx) => {
         const scene = ctx.update.message.text.replace('/test ', '')
 
-        ctx.reply(
+        await ctx.reply(
             `Testing scene ${scene}`,
             Markup.inlineKeyboard([
                 Markup.button.callback('Start test', `test-scene:${scene}`),

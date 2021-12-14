@@ -13,16 +13,22 @@ const en: BaseTranslation = {
         buttons: {
             back: '← Back',
             start: "🚀 Let's start!",
-            onBrainstorm: 'What is brainstorm?',
-            onQuests: 'Who are quests?',
-            onShaman: 'Who is shaman?',
-            onChief: 'Who is chief?',
+            onBrainstorm: "What's brainstorm?",
+            onQuests: "What's quest?",
+            onAstral: "Whats's Astral",
+            onShaman: "Who's shaman?",
+            onChief: "Who's chief?",
             next: "What's next?",
         },
         apply:
-            'To join a tribe you like you must send application. ' +
+            'To join a tribe you like you must send an application. ' +
             "Tribe's chief and shaman will consider it and invite you to have a conversation with them. " +
-            'If they decide that you align with the tribe spirit well, they will let you join',
+            'If they decide that you align with the tribe spirit well, they will let you join.' +
+            "If you didn't find tribe you'd like, try to search in Astral",
+        onAstral:
+            'Astral is the place for "virtual" tribes. You can still meet likely-minded people ' +
+            "via video chats in case your city doesn't have enough of them. As soon as there's enough people in your" +
+            'tribe is incarnated in real world.',
         onChief:
             "Chief is the most charismatic person in the tribe. Their duties is to maintain tribe's integrity.",
         onShaman:
@@ -39,6 +45,7 @@ const en: BaseTranslation = {
         apply: '🚀 Send application',
         count: 'Members count:',
         searchIn: 'Tribes in {city}: ',
+        searchInAstral: 'Tribes in Astral',
         applyText:
             'Please, write tribe\'s chief and shaman about yourself and why do you want to join "{tribe}" tribe?',
         applicationSent:
@@ -47,6 +54,15 @@ const en: BaseTranslation = {
         cantFindCity: "🤔 Can't find your city, please type it's name.",
         unknownCity: '🤔 Cannot find such a city',
         nothingFound: '💨 No tribes in {city} so far...',
+        createTribe: '🪄 Create a new tribe',
+        searchAstral: '✨ Look in Astral',
+        noTribesInAstral: '💨 No tribes in Astral yet',
+        tribeNamePrompt: "What is tribe's name?",
+        tribeDescriptionPrompt: 'What does this tribe do?',
+        tribeCreated: "🌅 A new tribe created. You're it's chief now.",
+        thereMore: "There's more tribes...",
+        loadMore: 'Next',
+        tribeListEnd: "That's all.",
     },
     elders: {
         chief: 'chief',

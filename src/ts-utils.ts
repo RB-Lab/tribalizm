@@ -20,3 +20,17 @@ export function mapify<T extends { id: string }>(arr: T[]) {
 }
 
 export const noop = () => {}
+
+export function objectHasProp<X extends {}, Y extends PropertyKey>(
+    obj: X,
+    prop: Y
+): obj is X & Record<Y, unknown> {
+    return obj.hasOwnProperty(prop)
+}
+export function hasPropertyValue<T extends {}>(
+    obj: Maybe<T>,
+    prop: PropertyKey,
+    value: any
+) {
+    return notEmpty(obj) && objectHasProp(obj, prop) && obj[prop] === value
+}

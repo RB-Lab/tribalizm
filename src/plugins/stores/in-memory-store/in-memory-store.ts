@@ -48,10 +48,15 @@ export class InMemoryStore<T> implements Store<T> {
         const res = this._store[id]
         return Promise.resolve(res ? this._instantiate(res) : null)
     }
-    find: Store<T>['find'] = (query) => {
-        const results = Object.values(this._store).filter((doc) => {
-            return check(query, doc)
-        })
+    find: Store<T>['find'] = (query, { limit = 100, cursor } = {}) => {
+        const store = Object.values(this._store)
+        const index = cursor ? store.findIndex((o) => o.id === cursor) : 0
+
+        const results = store
+            .filter((doc) => {
+                return check(query, doc)
+            })
+            .slice(index, index + limit)
         return Promise.resolve(results.map(this._instantiate))
     }
     _last = async () => {

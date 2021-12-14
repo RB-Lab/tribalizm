@@ -1,5 +1,6 @@
 import { Markup } from 'telegraf'
-import { Maybe, notEmpty } from '../../../../ts-utils'
+import e from 'telegram-test-api/node_modules/@types/express'
+import { hasPropertyValue, Maybe, notEmpty } from '../../../../ts-utils'
 import { TribeInfo } from '../../../../use-cases/tribes-show'
 import { i18n } from '../../i18n/i18n-ctx'
 import { removeInlineKeyboard } from '../telegraf-hacks'
@@ -29,24 +30,7 @@ export function tribesListScreen({ bot }: TgContext) {
             ctx.user.cityId &&
             (await ctx.tribalizm.tribesShow.getCityInfo(ctx.user.cityId))
         if (city) {
-            const tribes = await ctx.tribalizm.tribesShow.getLocalTribes({
-                limit: 3,
-                userId: ctx.user.userId,
-            })
-            await ctx.reply(
-                texts.searchIn({ city: city.name }),
-                Markup.removeKeyboard()
-            )
-            ctx.logEvent('Tribes list', {
-                city,
-                tribes: tribes.length,
-                via: 'location',
-            })
-            if (tribes.length) {
-                return showTribesList(ctx, tribes)
-            } else {
-                return ctx.reply(texts.nothingFound({ city: city.name }))
-            }
+            return showCityTribesList(ctx, city, 'saved city')
         }
         await ctx.user.setState<LocateState>({ type: 'locate-state' })
 
@@ -56,122 +40,101 @@ export function tribesListScreen({ bot }: TgContext) {
             .oneTime()
             .resize()
 
-        ctx.deleteMessage()
-        ctx.reply(texts.requestLocationText(), keyboard)
+        await ctx.deleteMessage()
+        await ctx.reply(texts.requestLocationText(), keyboard)
     })
 
     bot.on('location', async (ctx, next) => {
-        if (isLocateState(ctx.user.state)) {
-            await ctx.user.setState(null)
-            const texts = i18n(ctx).tribesList
-            const city = await ctx.tribalizm.locateUser.locateUserByCoordinates(
-                {
-                    latitude: ctx.message.location.latitude,
-                    longitude: ctx.message.location.longitude,
-                    userId: ctx.user.userId,
-                }
-            )
-            if (!city) {
-                ctx.logEvent('No city found', {
-                    via: 'location',
-                    location: ctx.message.location,
-                })
-                ctx.reply(texts.cantFindCity())
-                return
-            }
-            ctx.user.locate(city.id, city.timeZone)
-            const tribes = await ctx.tribalizm.tribesShow.getLocalTribes({
-                limit: 3,
-                userId: ctx.user.userId,
-            })
-            await ctx.reply(
-                texts.searchIn({ city: city.name }),
-                Markup.removeKeyboard()
-            )
-            ctx.logEvent('Tribes list', {
-                city,
-                tribes: tribes.length,
-                via: 'location',
-            })
-            if (tribes.length) {
-                showTribesList(ctx, tribes)
-            } else {
-                ctx.reply(texts.nothingFound({ city: city.name }))
-            }
-        } else {
+        if (!isLocateState(ctx.user.state)) {
             return next()
         }
+        await ctx.user.setState(null)
+        const texts = i18n(ctx).tribesList
+        const city = await ctx.tribalizm.locateUser.locateUserByCoordinates({
+            latitude: ctx.message.location.latitude,
+            longitude: ctx.message.location.longitude,
+            userId: ctx.user.userId,
+        })
+        if (!city) {
+            ctx.logEvent('No city found', {
+                via: 'location',
+                location: ctx.message.location,
+            })
+            await ctx.reply(texts.cantFindCity())
+            return
+        }
+        await ctx.user.locate(city.id, city.timeZone)
+        await showCityTribesList(ctx, city, 'location')
     })
 
     bot.on('text', async (ctx, next) => {
         const state = ctx.user.state
-        if (isLocateState(state)) {
-            const texts = i18n(ctx).tribesList
-            const city = await ctx.tribalizm.locateUser.locateUserByCityName({
-                cityName: ctx.message.text,
-                userId: ctx.user.userId,
-            })
-            if (!city) {
-                ctx.logEvent('No city found', {
-                    via: 'text',
-                    location: ctx.message.text,
-                })
-                ctx.reply(texts.unknownCity())
-                return
-            }
-            await ctx.user.setState(null)
-            ctx.user.locate(city.id, city.timeZone)
-            // remove "share location" button
-            await ctx.reply(
-                texts.searchIn({ city: ctx.message.text }),
-                Markup.removeKeyboard()
-            )
-            const tribes = await ctx.tribalizm.tribesShow.getLocalTribes({
-                limit: 3,
-                userId: ctx.user.userId,
-            })
-            ctx.logEvent('Tribes list', {
-                city,
-                tribes: tribes.length,
-                via: 'text',
-            })
-            if (tribes.length) {
-                showTribesList(ctx, tribes)
-            } else {
-                ctx.reply(
-                    texts.nothingFound({
-                        city: ctx.message.text,
-                    })
-                )
-            }
-        } else if (isApplyState(state)) {
-            const texts = i18n(ctx).tribesList
-            ctx.logEvent('application', { tribeId: state.tribeId })
-            await ctx.user.setState(null)
-            await ctx.tribalizm.tribeApplication.applyToTribe({
-                coverLetter: ctx.message.text,
-                tribeId: state.tribeId,
-                userId: ctx.user.userId,
-            })
-
-            ctx.reply(texts.applicationSent())
-        } else {
+        if (!isLocateState(state)) {
             return next()
         }
+        const texts = i18n(ctx).tribesList
+        const city = await ctx.tribalizm.locateUser.locateUserByCityName({
+            cityName: ctx.message.text,
+            userId: ctx.user.userId,
+        })
+        if (!city) {
+            ctx.logEvent('No city found', {
+                via: 'text',
+                location: ctx.message.text,
+            })
+            await ctx.reply(texts.unknownCity())
+            return
+        }
+        await ctx.user.setState(null)
+        await ctx.user.locate(city.id, city.timeZone)
+        await showCityTribesList(ctx, city, 'city name')
     })
 
     const applyTribe = makeCallbackDataParser('apply-tribe', ['tribeId'])
-    function showTribesList(ctx: TribeCtx, tribes: TribeInfo[]) {
+    const searchAstral = makeCallbackDataParser('search-astral', ['after'])
+    async function showCityTribesList(
+        ctx: TribeCtx,
+        city: { name: string },
+        via: string
+    ) {
         const texts = i18n(ctx).tribesList
 
-        tribes.forEach((tribe) => {
+        const tribes = await ctx.tribalizm.tribesShow.getLocalTribes({
+            limit: 3,
+            userId: ctx.user.userId,
+        })
+        await ctx.reply(
+            texts.searchIn({ city: city.name }),
+            Markup.removeKeyboard()
+        )
+        ctx.logEvent('Tribes list', {
+            city,
+            tribes: tribes.length,
+            via,
+        })
+        if (!tribes.length) {
+            const keyboard = Markup.inlineKeyboard([
+                Markup.button.callback(
+                    texts.searchAstral(),
+                    searchAstral.serialize()
+                ),
+            ])
+            return ctx.reply(texts.nothingFound({ city: city.name }), keyboard)
+        }
+        return showTribes(ctx, tribes)
+    }
+
+    async function showTribes(ctx: TribeCtx, tribes: TribeInfo[]) {
+        const texts = i18n(ctx).tribesList
+
+        tribes.forEach(async (tribe) => {
             const keyboard = Markup.inlineKeyboard([
                 Markup.button.callback(
                     texts.apply(),
                     applyTribe.serialize({ tribeId: tribe.id })
                 ),
             ])
-            ctx.replyWithHTML(
+            await ctx.replyWithHTML(
                 `<b>${tribe.name}</b> \n \n${
                     tribe.description
                 }\n ${texts.count()} ${tribe.membersCount}`,
@@ -179,15 +142,119 @@ export function tribesListScreen({ bot }: TgContext) {
             )
         })
     }
+
     bot.action(applyTribe.regex, async (ctx) => {
         const { tribeId } = applyTribe.parse(ctx.match.input)
         const texts = i18n(ctx).tribesList
         ctx.logEvent('apply tribe', { tribeId })
-        ctx.user.setState<ApplyState>({ type: 'apply-state', tribeId })
+        await ctx.user.setState<ApplyState>({ type: 'apply-state', tribeId })
         const tribe = await ctx.tribalizm.tribesShow.getTribeInfo({
             tribeId,
         })
-        removeInlineKeyboard(ctx, texts.applicationSentShort())
-        ctx.reply(texts.applyText({ tribe: tribe.name }))
+        await removeInlineKeyboard(ctx, texts.applicationSentShort())
+        await ctx.reply(texts.applyText({ tribe: tribe.name }))
+    })
+
+    bot.on('text', async (ctx, next) => {
+        const state = ctx.user.state
+
+        if (!isApplyState(state)) {
+            return next()
+        }
+        const texts = i18n(ctx).tribesList
+        ctx.logEvent('application', { tribeId: state.tribeId })
+        await ctx.user.setState(null)
+        await ctx.tribalizm.tribeApplication.applyToTribe({
+            coverLetter: ctx.message.text,
+            tribeId: state.tribeId,
+            userId: ctx.user.userId,
+        })
+
+        await ctx.reply(texts.applicationSent())
+    })
+
+    interface CreateTribeState {
+        type: 'create-tribe-state'
+        name?: string
+    }
+    function isCreateTribeState(
+        state: Maybe<UserState>
+    ): state is CreateTribeState {
+        return hasPropertyValue(state, 'type', 'create-tribe-state')
+    }
+    const createTribe = makeCallbackDataParser('create-new-tribe', [])
+    bot.action(searchAstral.regex, async (ctx) => {
+        const texts = i18n(ctx).tribesList
+        const after = searchAstral.parse(ctx.match.input)
+        ctx.logEvent('search astral', after)
+
+        const tribes = await ctx.tribalizm.tribesShow.getAstralTribes({
+            limit: 3,
+            after: after.after,
+            userId: ctx.user.userId,
+        })
+        ctx.logEvent('Tribes list', {
+            city: 'Astral',
+            tribes: tribes.length,
+            via: 'Astral',
+        })
+        const createKb = Markup.inlineKeyboard([
+            Markup.button.callback(
+                texts.createTribe(),
+                createTribe.serialize()
+            ),
+        ])
+        if (!tribes.length) {
+            return ctx.reply(texts.noTribesInAstral(), createKb)
+        }
+        if (!after.after) {
+            await ctx.reply(texts.searchInAstral())
+        } else {
+            await ctx.deleteMessage()
+        }
+        await showTribes(ctx, tribes)
+        // TODO make proper pagination with `hasNext` property
+        //      and `loadMore` button rendered with `apply`
+        if (tribes.length === 3) {
+            const kb = Markup.inlineKeyboard([
+                Markup.button.callback(
+                    texts.loadMore(),
+                    searchAstral.serialize({ after: tribes[2].id })
+                ),
+            ])
+            return ctx.reply(texts.thereMore(), kb)
+        }
+        return ctx.reply(texts.tribeListEnd(), createKb)
+    })
+    bot.action(createTribe.regex, async (ctx) => {
+        await ctx.user.setState<CreateTribeState>({
+            type: 'create-tribe-state',
+        })
+        return ctx.reply(i18n(ctx).tribesList.tribeNamePrompt())
+    })
+
+    bot.on('text', async (ctx, next) => {
+        const state = ctx.user.state
+
+        if (!isCreateTribeState(state)) {
+            return next()
+        }
+        const texts = i18n(ctx).tribesList
+        if (!state.name) {
+            await ctx.user.setState<CreateTribeState>({
+                ...state,
+                name: ctx.message.text,
+            })
+            return ctx.reply(texts.tribeDescriptionPrompt())
+        }
+        const description = ctx.message.text
+        ctx.logEvent('create tribe', { name: state.name, description })
+        await ctx.user.setState(null)
+        await ctx.tribalizm.tribeCreation.createTribe({
+            userId: ctx.user.userId,
+            name: state.name,
+            description,
+        })
+        return ctx.reply(texts.tribeCreated())
     })
 }

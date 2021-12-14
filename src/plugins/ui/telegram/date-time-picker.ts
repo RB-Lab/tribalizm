@@ -59,7 +59,7 @@ export class DateTimePicker {
                 )
             )
             await ctx.answerCbQuery()
-            ctx.editMessageText(
+            await ctx.editMessageText(
                 texts.proposeTimeMinutes(),
                 Markup.inlineKeyboard(keys)
             )

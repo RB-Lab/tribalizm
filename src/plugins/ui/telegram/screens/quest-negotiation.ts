@@ -38,28 +38,31 @@ function isNegotiationState(
 }
 
 export function questNegotiationScreen({ bot, bus, tgUsers }: TgContext) {
-    bot.action(negotiate.regex, (ctx) => {
+    bot.action(negotiate.regex, async (ctx) => {
         const { memberId, questId, elder } = negotiate.parse(ctx.match[0])
         const texts = i18n(ctx).questNegotiation
-        ctx.user.setState({
+        await ctx.user.setState({
             type: 'negotiation-state',
             memberId,
             questId,
             elder,
         })
-        ctx.reply(
+        await ctx.reply(
             texts.proposeDate(),
             ctx.getCalendar(onDateSet, ctx.from?.language_code)
         )
     })
 
-    function onDateSet(date: Date, ctx: TribeCtx) {
+    async function onDateSet(date: Date, ctx: TribeCtx) {
         const state = ctx.user.state
         if (isNegotiationState(state)) {
             state.date = date
-            ctx.user.setState(state)
+            await ctx.user.setState(state)
             const texts = i18n(ctx).questNegotiation
-            ctx.editMessageText(texts.proposePlace(), Markup.inlineKeyboard([]))
+            await ctx.editMessageText(
+                texts.proposePlace(),
+                Markup.inlineKeyboard([])
+            )
         }
     }
 
@@ -71,14 +74,17 @@ export function questNegotiationScreen({ bot, bus, tgUsers }: TgContext) {
         ctx.logEvent('quest: proposal', { questId: state.questId })
         const texts = i18n(ctx).questNegotiation
         if (!state.date) {
-            ctx.reply(
+            await ctx.reply(
                 texts.proposeDate(),
                 ctx.getCalendar(onDateSet, ctx.from?.language_code)
             )
             return
         }
         if (!state.place) {
-            ctx.editMessageText(texts.proposePlace(), Markup.inlineKeyboard([]))
+            return ctx.editMessageText(
+                texts.proposePlace(),
+                Markup.inlineKeyboard([])
+            )
             return
         }
         await ctx.user.setState(null)
@@ -100,7 +106,7 @@ export function questNegotiationScreen({ bot, bus, tgUsers }: TgContext) {
             memberId: state.memberId,
             questId: state.questId,
         })
-        removeInlineKeyboard(ctx, `\n${texts.proposalDone()}`)
+        await removeInlineKeyboard(ctx, `\n${texts.proposalDone()}`)
     })
 
     bot.on('text', async (ctx, next) => {
@@ -108,7 +114,7 @@ export function questNegotiationScreen({ bot, bus, tgUsers }: TgContext) {
         if (isNegotiationState(state)) {
             const texts = i18n(ctx).questNegotiation
             if (!state.date) {
-                ctx.reply(
+                await ctx.reply(
                     texts.proposeDate(),
                     ctx.getCalendar(onDateSet, ctx.from?.language_code)
                 )
@@ -133,7 +139,7 @@ export function questNegotiationScreen({ bot, bus, tgUsers }: TgContext) {
             ])
 
             const proposal = texts.proposal({ date: state.date, place })
-            ctx.reply(texts.proposalConfirmPrompt({ proposal }), kb)
+            await ctx.reply(texts.proposalConfirmPrompt({ proposal }), kb)
         } else {
             return next()
         }
@@ -157,7 +163,7 @@ export function questNegotiationScreen({ bot, bus, tgUsers }: TgContext) {
             }
             text = texts.proposalAgreedPersonal({ who: other.name })
         }
-        ctx.reply(text)
+        await ctx.reply(text)
     })
 
     // ========= Handle Notifications ============

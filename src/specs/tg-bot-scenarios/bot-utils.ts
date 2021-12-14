@@ -1,6 +1,5 @@
 import Transport from 'winston-transport'
 import TelegramServer from 'telegram-test-api'
-import { Logger } from '../../plugins/logger'
 import { InMemoryStore } from '../../plugins/stores/in-memory-store/in-memory-store'
 import { makeBot } from '../../plugins/ui/telegram/bot'
 import { TelegramMessageInMemoryStore } from '../../plugins/ui/telegram/message-store'
@@ -201,6 +200,8 @@ export async function createTelegramContext(
         logger: context.logger,
     })
     bot.telegram.setWebhook('http://localhost:9002/tg-hook')
+    // TODO get rid of this use  --seed=66348
+    await new Promise((r) => setTimeout(r, 10))
 
     function makeClient(user: string, chat: string) {
         makeClient.counter++

@@ -49,7 +49,7 @@ export class TaskDispatcher {
                 await this.tribalism.brainstormLifecycle.toVoting(task)
             }
             if (isStormFinalize(task)) {
-                await this.tribalism.brainstormLifecycle.finalyze(task)
+                await this.tribalism.brainstormLifecycle.finalize(task)
                 await this.tribalism.ideasIncarnation.incarnateIdeas(task)
             }
         }

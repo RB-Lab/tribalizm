@@ -12,7 +12,7 @@ export class Voting extends ContextUser {
         }
         if (brainstorm.state !== 'voting') {
             throw new VotingNotStartedError(
-                "Cannot vote when voting hasn't beens started"
+                "Cannot vote when voting hasn't been started"
             )
         }
         const member = await this.getMember(memberId)

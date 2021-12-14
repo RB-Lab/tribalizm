@@ -3,7 +3,7 @@ import { i18n } from '../../i18n/i18n-ctx'
 import { TgContext } from '../tribe-ctx'
 
 export function rulesScreen({ bot, logger }: TgContext) {
-    bot.action('rules', (ctx) => {
+    bot.action('rules', async (ctx) => {
         ctx.logEvent('help')
         const btns = i18n(ctx).rules.buttons
         const keyboard = Markup.inlineKeyboard(
@@ -11,31 +11,41 @@ export function rulesScreen({ bot, logger }: TgContext) {
                 Markup.button.callback(btns.onChief(), 'on-chief'),
                 Markup.button.callback(btns.onShaman(), 'on-shaman'),
                 Markup.button.callback(btns.next(), 'in-tribe'),
+                Markup.button.callback(btns.onAstral(), 'on-astral'),
                 Markup.button.callback(btns.start(), 'start'),
             ],
             { columns: 2 }
         )
-        ctx.editMessageText(i18n(ctx).rules.apply(), keyboard)
+        await ctx.editMessageText(i18n(ctx).rules.apply(), keyboard)
     })
-    bot.action('on-chief', (ctx) => {
+    bot.action('on-chief', async (ctx) => {
         ctx.logEvent('help: on-chief')
         const btns = i18n(ctx).rules.buttons
         const keyboard = Markup.inlineKeyboard([
             Markup.button.callback(btns.back(), 'rules'),
             Markup.button.callback(btns.start(), 'start'),
         ])
-        ctx.editMessageText(i18n(ctx).rules.onChief(), keyboard)
+        await ctx.editMessageText(i18n(ctx).rules.onChief(), keyboard)
     })
-    bot.action('on-shaman', (ctx) => {
+    bot.action('on-shaman', async (ctx) => {
         ctx.logEvent('help: on-shaman')
         const btns = i18n(ctx).rules.buttons
         const keyboard = Markup.inlineKeyboard([
             Markup.button.callback(btns.back(), 'rules'),
             Markup.button.callback(btns.start(), 'start'),
         ])
-        ctx.editMessageText(i18n(ctx).rules.onShaman(), keyboard)
+        await ctx.editMessageText(i18n(ctx).rules.onShaman(), keyboard)
     })
-    bot.action('in-tribe', (ctx) => {
+    bot.action('on-astral', async (ctx) => {
+        ctx.logEvent('help: on-astral')
+        const btns = i18n(ctx).rules.buttons
+        const keyboard = Markup.inlineKeyboard([
+            Markup.button.callback(btns.back(), 'rules'),
+            Markup.button.callback(btns.start(), 'start'),
+        ])
+        await ctx.editMessageText(i18n(ctx).rules.onAstral(), keyboard)
+    })
+    bot.action('in-tribe', async (ctx) => {
         ctx.logEvent('help: in-tribe')
         const btns = i18n(ctx).rules.buttons
         const keyboard = Markup.inlineKeyboard(
@@ -47,27 +57,27 @@ export function rulesScreen({ bot, logger }: TgContext) {
             ],
             { columns: 2 }
         )
-        ctx.editMessageText(i18n(ctx).rules.inTribe(), keyboard)
+        await ctx.editMessageText(i18n(ctx).rules.inTribe(), keyboard)
     })
-    bot.action('on-brainstorm', (ctx) => {
+    bot.action('on-brainstorm', async (ctx) => {
         ctx.logEvent('help: on-brainstorm')
         const btns = i18n(ctx).rules.buttons
         const keyboard = Markup.inlineKeyboard([
             Markup.button.callback(btns.back(), 'in-tribe'),
             Markup.button.callback(btns.start(), 'start'),
         ])
-        ctx.editMessageText(i18n(ctx).rules.onBrainstorm(), keyboard)
+        await ctx.editMessageText(i18n(ctx).rules.onBrainstorm(), keyboard)
     })
-    bot.action('on-quest', (ctx) => {
+    bot.action('on-quest', async (ctx) => {
         ctx.logEvent('help: on-quest')
         const btns = i18n(ctx).rules.buttons
         const keyboard = Markup.inlineKeyboard([
             Markup.button.callback(btns.back(), 'in-tribe'),
             Markup.button.callback(btns.start(), 'start'),
         ])
-        ctx.editMessageText(i18n(ctx).rules.onQuests(), keyboard)
+        await ctx.editMessageText(i18n(ctx).rules.onQuests(), keyboard)
     })
-    bot.action('start', (ctx) => {
+    bot.action('start', async (ctx) => {
         ctx.logEvent('help: start')
         const btns = i18n(ctx).start.buttons
 
@@ -75,7 +85,7 @@ export function rulesScreen({ bot, logger }: TgContext) {
             Markup.button.callback(btns.list(), 'list-tribes'),
             Markup.button.callback(btns.rules(), 'rules'),
         ])
-        ctx.editMessageText(i18n(ctx).start.text(), keyboard)
+        await ctx.editMessageText(i18n(ctx).start.text(), keyboard)
     })
 
     return [bot]

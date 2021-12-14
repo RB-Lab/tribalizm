@@ -66,7 +66,7 @@ export function brainstormScreen({
                 ])
             )
         }
-        ctx.reply(
+        await ctx.reply(
             texts.proposeDate(),
             ctx.getCalendar(onDateSet, ctx.from?.language_code)
         )
@@ -80,11 +80,11 @@ export function brainstormScreen({
             time: Number(time),
         })
         // remove buttons
-        ctx.editMessageText(
+        await ctx.editMessageText(
             texts.confirmPrompt({ date: new Date(Number(time)) }),
             Markup.inlineKeyboard([])
         )
-        ctx.reply(texts.done())
+        await ctx.reply(texts.done())
     })
 
     bot.on('text', async (ctx, next) => {

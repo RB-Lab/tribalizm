@@ -44,29 +44,29 @@ const reQuest = makeCallbackDataParser('re-quest', ['questId', 'memberId'])
 export function coordinationScreen({ bot, bus, tgUsers }: TgContext) {
     bot.action(spawn.regex, async (ctx) => {
         const { questId, memberId } = spawn.parse(ctx.match[0])
-        ctx.user.setState<SpawnState>({
+        await ctx.user.setState<SpawnState>({
             type: 'spawn-quest-state',
             memberId,
             parentQuestId: questId,
         })
-        ctx.reply(i18n(ctx).coordination.spawnDescribe())
+        await ctx.reply(i18n(ctx).coordination.spawnDescribe())
     })
     bot.action(gathering.regex, async (ctx) => {
         const { questId, memberId, type } = gathering.parse(ctx.match[0])
-        ctx.user.setState<GatherState>({
+        await ctx.user.setState<GatherState>({
             type: 'gather-state',
             gatheringType: type,
             memberId,
             parentQuestId: questId,
         })
-        ctx.reply(i18n(ctx).coordination.gatheringDescribe())
+        await ctx.reply(i18n(ctx).coordination.gatheringDescribe())
     })
     async function onDateSet(date: Date, ctx: TribeCtx) {
         const texts = i18n(ctx).coordination
         const state = ctx.user.state
         if (isGatherState(state)) {
             state.date = date
-            ctx.user.setState(state)
+            await ctx.user.setState(state)
 
             if (state.description && state.place) {
                 showConfirm(ctx)
@@ -74,7 +74,7 @@ export function coordinationScreen({ bot, bus, tgUsers }: TgContext) {
                 const text = state.description
                     ? texts.gatheringSetPlace()
                     : texts.gatheringDescribe()
-                ctx.reply(text)
+                await ctx.reply(text)
             }
         }
     }
@@ -98,7 +98,7 @@ export function coordinationScreen({ bot, bus, tgUsers }: TgContext) {
             date: state.date,
             place: state.place,
         })
-        ctx.reply(
+        await ctx.reply(
             texts.confirmPrompt({
                 description: state.description,
                 what,
@@ -131,7 +131,7 @@ export function coordinationScreen({ bot, bus, tgUsers }: TgContext) {
         }
         await ctx.user.setState(null)
         removeInlineKeyboard(ctx)
-        ctx.reply(i18n(ctx).coordination.gatheringDone())
+        await ctx.reply(i18n(ctx).coordination.gatheringDone())
         ctx.logEvent('gathering: propose', {
             parentQuestId: state.parentQuestId,
         })
@@ -163,10 +163,10 @@ export function coordinationScreen({ bot, bus, tgUsers }: TgContext) {
                 await ctx.user.setState(state)
             } else {
                 state.place = ctx.message.text
-                ctx.user.setState(state)
+                await ctx.user.setState(state)
             }
             if (!state.date) {
-                ctx.reply(
+                await ctx.reply(
                     texts.gatheringWhen(),
                     ctx.getCalendar(onDateSet, ctx.from?.language_code)
                 )

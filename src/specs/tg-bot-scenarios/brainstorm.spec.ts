@@ -11,9 +11,9 @@ describe('Brainstorm [integration]', () => {
     let world: Awaited<ReturnType<typeof setup>>
     beforeEach(async () => {
         jasmine.DEFAULT_TIMEOUT_INTERVAL = 10000
+        world = await setup()
         jasmine.clock().install()
         jasmine.clock().mockDate(new Date('2021-11-02'))
-        world = await setup()
         // process.env.chatDebug = 'true'
     })
     afterEach(async () => {

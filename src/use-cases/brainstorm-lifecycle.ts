@@ -148,7 +148,7 @@ export class BrainstormLifecycle extends ContextUser {
         await this.stores.brainstormStore.save(storm)
         await this.scheduler.markDone(task.id)
     }
-    finalyze = async (task: StormFinalize) => {
+    finalize = async (task: StormFinalize) => {
         const brainstorm = await this.getBrainstorm(task.payload.brainstormId)
         brainstorm.finish()
         await this.stores.brainstormStore.save(brainstorm)

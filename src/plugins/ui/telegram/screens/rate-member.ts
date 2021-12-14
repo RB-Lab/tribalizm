@@ -14,7 +14,7 @@ const parser = makeCallbackDataParser('rate-member', [
 ])
 
 export function rateMemberScreen({ bot, bus, tgUsers }: TgContext) {
-    bot.action(parser.regex, (ctx) => {
+    bot.action(parser.regex, async (ctx) => {
         const texts = i18n(ctx).rateMember
         const data = parser.parse(ctx.match[0])
 
@@ -24,7 +24,7 @@ export function rateMemberScreen({ bot, bus, tgUsers }: TgContext) {
                 charisma: data.charisma,
                 wisdom: data.score,
             })
-            ctx.tribalizm.questFinale.finalize({
+            await ctx.tribalizm.questFinale.finalize({
                 memberId: data.memberId,
                 questId: data.questId,
                 votes: [
@@ -35,7 +35,7 @@ export function rateMemberScreen({ bot, bus, tgUsers }: TgContext) {
                     },
                 ],
             })
-            ctx.reply(texts.done())
+            await ctx.reply(texts.done())
         } else {
             const keys = [0, 1, 2, 3, 4].map((score) => {
                 const text = (texts.wisdom as any)[String(score)]()
@@ -48,7 +48,7 @@ export function rateMemberScreen({ bot, bus, tgUsers }: TgContext) {
                     })
                 )
             })
-            ctx.editMessageText(
+            await ctx.editMessageText(
                 texts.wisdomPrompt(),
                 Markup.inlineKeyboard([
                     Markup.button.callback(texts.help(), 'help-topic:wisdom'),

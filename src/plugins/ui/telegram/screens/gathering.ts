@@ -25,13 +25,13 @@ export function gatheringScreen({ bot, bus, tgUsers }: TgContext) {
         const data = accept.parse(ctx.match[0])
         ctx.logEvent('gathering: accept', { gatheringId: data.gatheringId })
         await ctx.tribalizm.gatheringAcknowledge.accept(data)
-        ctx.reply(i18n(ctx).gathering.accepted())
+        await ctx.reply(i18n(ctx).gathering.accepted())
     })
     bot.action(decline.regex, async (ctx) => {
         const data = decline.parse(ctx.match[0])
         ctx.logEvent('gathering: decline', { gatheringId: data.gatheringId })
         await ctx.tribalizm.gatheringAcknowledge.decline(data)
-        ctx.reply(i18n(ctx).gathering.declined())
+        await ctx.reply(i18n(ctx).gathering.declined())
     })
     bot.action(vote.regex, async (ctx) => {
         const data = vote.parse(ctx.match[0])
@@ -40,7 +40,7 @@ export function gatheringScreen({ bot, bus, tgUsers }: TgContext) {
             score: data.score,
         })
         await ctx.tribalizm.gatheringFinale.finalize(data)
-        ctx.reply(i18n(ctx).gathering.rateDone())
+        await ctx.reply(i18n(ctx).gathering.rateDone())
     })
 
     // =============== Handle Notification ===============

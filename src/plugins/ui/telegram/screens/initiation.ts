@@ -37,26 +37,26 @@ const appDeclineParser = makeCallbackDataParser('application-decline', [
 
 export function initiationScreen({ bot, bus, tgUsers }: TgContext) {
     // this is from the get-go, @see notifications/ApplicationMessage
-    bot.action(declineParser.regex, (ctx) => {
+    bot.action(declineParser.regex, async (ctx) => {
         const data = declineParser.parse(ctx.match.input)
-        ctx.user.setState<DeclineState>({
+        await ctx.user.setState<DeclineState>({
             type: 'decline-state',
             memberId: data.memberId,
             questId: data.questId,
         })
         const texts = i18n(ctx).initiation
-        ctx.reply(texts.declinePrompt())
+        await ctx.reply(texts.declinePrompt())
     })
 
-    bot.action(acceptParser.regex, (ctx) => {
+    bot.action(acceptParser.regex, async (ctx) => {
         const data = acceptParser.parse(ctx.match.input)
         ctx.logEvent('app accepted', { questId: data.questId })
 
-        ctx.tribalizm.initiation.approveByElder({
+        await ctx.tribalizm.initiation.approveByElder({
             questId: data.questId,
             elderId: data.memberId,
         })
-        ctx.editMessageText(
+        await ctx.editMessageText(
             i18n(ctx).initiation.approvedOk(),
             Markup.inlineKeyboard([])
         )
@@ -69,7 +69,7 @@ export function initiationScreen({ bot, bus, tgUsers }: TgContext) {
             questId: data.questId,
             elderId: data.memberId,
         })
-        ctx.editMessageText(
+        await ctx.editMessageText(
             i18n(ctx).initiation.declineOk(),
             Markup.inlineKeyboard([])
         )
@@ -84,9 +84,9 @@ export function initiationScreen({ bot, bus, tgUsers }: TgContext) {
                 reason: ctx.message.text,
             })
             const texts = i18n(ctx).initiation
-            ctx.reply(texts.declineOk())
+            await ctx.reply(texts.declineOk())
             // TODO should use the text maybe?
-            ctx.tribalizm.initiation.decline({
+            await ctx.tribalizm.initiation.decline({
                 questId: state.questId,
                 elderId: state.memberId,
             })

@@ -7,7 +7,7 @@ export interface ITribeData {
     name: string
     description: string
     logo: string
-    cityId: string
+    cityId: string | null
     vocabulary: TribeType
     chiefId: string | null
     shamanId: string | null
@@ -15,7 +15,7 @@ export interface ITribeData {
 
 export interface ITribe extends ITribeData {}
 
-export type RequiredParams = Pick<ITribe, 'name' | 'cityId'>
+export type RequiredParams = Pick<ITribe, 'name'>
 export type SavedTribe = ITribeData & Storable
 
 export class Tribe implements ITribe {
@@ -23,7 +23,7 @@ export class Tribe implements ITribe {
     name: string
     description: string
     logo: string
-    cityId: string
+    cityId: string | null
     vocabulary: TribeType
     chiefId: string | null
     shamanId: string | null
@@ -32,7 +32,7 @@ export class Tribe implements ITribe {
         this.chiefId = params.chiefId || null
         this.shamanId = params.shamanId || null
         this.name = params.name
-        this.cityId = params.cityId
+        this.cityId = params.cityId || null
         this.description = params.description || ''
         this.logo = params.logo || ''
         this.vocabulary = params.vocabulary || TribeType.tribe

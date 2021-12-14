@@ -11,6 +11,7 @@ import { LocateUser } from './locate-user'
 import { QuestNegotiation } from './negotiate-quest'
 import { QuestFinale } from './quest-finale'
 import { SpawnQuest } from './spawn-quest'
+import { TribeCreation } from './tribe-creationt'
 import { TribeShow } from './tribes-show'
 import { Context } from './utils/context'
 import { ContextUser } from './utils/context-user'
@@ -26,6 +27,7 @@ export interface Tribalizm {
     introductionQuests: Omit<IntroductionQuests, keyof ContextUser>
     ideasIncarnation: Omit<IdeasIncarnation, keyof ContextUser>
     tribeApplication: Omit<TribeApplication, keyof ContextUser>
+    tribeCreation: Omit<TribeCreation, keyof ContextUser>
     tribesShow: Omit<TribeShow, keyof ContextUser>
     questNegotiation: Omit<QuestNegotiation, keyof ContextUser>
     questFinale: Omit<QuestFinale, keyof ContextUser>
@@ -34,7 +36,7 @@ export interface Tribalizm {
     locateUser: Omit<LocateUser, keyof ContextUser>
 }
 
-export function makeTribalizm(context: Context) {
+export function makeTribalizm(context: Context): Tribalizm {
     return {
         addIdea: new AddIdea(context),
         brainstormLifecycle: new BrainstormLifecycle(context),
@@ -45,6 +47,7 @@ export function makeTribalizm(context: Context) {
         introductionQuests: new IntroductionQuests(context),
         ideasIncarnation: new IdeasIncarnation(context),
         tribeApplication: new TribeApplication(context),
+        tribeCreation: new TribeCreation(context),
         tribesShow: new TribeShow(context),
         questNegotiation: new QuestNegotiation(context),
         questFinale: new QuestFinale(context),

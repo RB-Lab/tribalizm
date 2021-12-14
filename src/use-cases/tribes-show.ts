@@ -38,16 +38,34 @@ export class TribeShow extends ContextUser {
         }
         return response
     }
+    getAstralTribes = async (req: TribesRequest) => {
+        return this.listTribes(req.userId, null, req.limit, req.after)
+    }
     getLocalTribes = async (req: TribesRequest) => {
         const user = await this.getUser(req.userId)
         if (!user.cityId) return []
-        const tribes = await this.stores.tribeStore.find({
-            cityId: user.cityId,
-        })
+        return await this.listTribes(user.id, user.cityId, req.limit, req.after)
+    }
 
-        const userMembers = await this.stores.memberStore.find({
-            userId: user.id,
-        })
+    getCityInfo = async (cityId: string) => {
+        const city = await this.stores.cityStore.getById(cityId)
+        if (!city) return null
+        return { name: city.name, id: city.id, timeZone: city.timeZone }
+    }
+
+    private async listTribes(
+        userId: string,
+        cityId: string | null,
+        limit?: number,
+        cursor?: string
+    ) {
+        const tribes = await this.stores.tribeStore.find(
+            { cityId },
+            { limit, cursor }
+        )
+
+        const userMembers = await this.stores.memberStore.find({ userId })
+
         const counts = await this.stores.memberStore.countTribeMembers(
             tribes.map((t) => t.id)
         )
@@ -61,11 +79,5 @@ export class TribeShow extends ContextUser {
                 type: t.vocabulary,
                 membersCount: counts[t.id],
             }))
-    }
-
-    getCityInfo = async (cityId: string) => {
-        const city = await this.stores.cityStore.getById(cityId)
-        if (!city) return null
-        return { name: city.name, id: city.id, timeZone: city.timeZone }
     }
 }

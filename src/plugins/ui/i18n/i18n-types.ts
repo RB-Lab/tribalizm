@@ -41,19 +41,23 @@ export type Translation = {
 			 */
 			'start': string
 			/**
-			 * What is brainstorm?
+			 * What's brainstorm?
 			 */
 			'onBrainstorm': string
 			/**
-			 * Who are quests?
+			 * What's quest?
 			 */
 			'onQuests': string
 			/**
-			 * Who is shaman?
+			 * Whats's Astral
+			 */
+			'onAstral': string
+			/**
+			 * Who's shaman?
 			 */
 			'onShaman': string
 			/**
-			 * Who is chief?
+			 * Who's chief?
 			 */
 			'onChief': string
 			/**
@@ -62,9 +66,13 @@ export type Translation = {
 			'next': string
 		}
 		/**
-		 * To join a tribe you like you must send application. Tribe's chief and shaman will consider it and invite you to have a conversation with them. If they decide that you align with the tribe spirit well, they will let you join
+		 * To join a tribe you like you must send an application. Tribe's chief and shaman will consider it and invite you to have a conversation with them. If they decide that you align with the tribe spirit well, they will let you join.If you didn't find tribe you'd like, try to search in Astral
 		 */
 		'apply': string
+		/**
+		 * Astral is the place for "virtual" tribes. You can still meet likely-minded people via video chats in case your city doesn't have enough of them. As soon as there's enough people in yourtribe is incarnated in real world.
+		 */
+		'onAstral': string
 		/**
 		 * Chief is the most charismatic person in the tribe. Their duties is to maintain tribe's integrity.
 		 */
@@ -109,6 +117,10 @@ export type Translation = {
 		 */
 		'searchIn': RequiredParams1<'city'>
 		/**
+		 * Tribes in Astral
+		 */
+		'searchInAstral': string
+		/**
 		 * Please, write tribe's chief and shaman about yourself and why do you want to join "{tribe}" tribe?
 		 * @param {unknown} tribe
 		 */
@@ -134,6 +146,42 @@ export type Translation = {
 		 * @param {unknown} city
 		 */
 		'nothingFound': RequiredParams1<'city'>
+		/**
+		 * 🪄 Create a new tribe
+		 */
+		'createTribe': string
+		/**
+		 * ✨ Look in Astral
+		 */
+		'searchAstral': string
+		/**
+		 * 💨 No tribes in Astral yet
+		 */
+		'noTribesInAstral': string
+		/**
+		 * What is tribe's name?
+		 */
+		'tribeNamePrompt': string
+		/**
+		 * What does this tribe do?
+		 */
+		'tribeDescriptionPrompt': string
+		/**
+		 * 🌅 A new tribe created. You're it's chief now.
+		 */
+		'tribeCreated': string
+		/**
+		 * There's more tribes...
+		 */
+		'thereMore': string
+		/**
+		 * Next
+		 */
+		'loadMore': string
+		/**
+		 * That's all.
+		 */
+		'tribeListEnd': string
 	}
 	'elders': {	
 		/**
@@ -800,19 +848,23 @@ export type TranslationFunctions = {
 			 */
 			'start': () => LocalizedString
 			/**
-			 * What is brainstorm?
+			 * What's brainstorm?
 			 */
 			'onBrainstorm': () => LocalizedString
 			/**
-			 * Who are quests?
+			 * What's quest?
 			 */
 			'onQuests': () => LocalizedString
 			/**
-			 * Who is shaman?
+			 * Whats's Astral
+			 */
+			'onAstral': () => LocalizedString
+			/**
+			 * Who's shaman?
 			 */
 			'onShaman': () => LocalizedString
 			/**
-			 * Who is chief?
+			 * Who's chief?
 			 */
 			'onChief': () => LocalizedString
 			/**
@@ -821,9 +873,13 @@ export type TranslationFunctions = {
 			'next': () => LocalizedString
 		}
 		/**
-		 * To join a tribe you like you must send application. Tribe's chief and shaman will consider it and invite you to have a conversation with them. If they decide that you align with the tribe spirit well, they will let you join
+		 * To join a tribe you like you must send an application. Tribe's chief and shaman will consider it and invite you to have a conversation with them. If they decide that you align with the tribe spirit well, they will let you join.If you didn't find tribe you'd like, try to search in Astral
 		 */
 		'apply': () => LocalizedString
+		/**
+		 * Astral is the place for "virtual" tribes. You can still meet likely-minded people via video chats in case your city doesn't have enough of them. As soon as there's enough people in yourtribe is incarnated in real world.
+		 */
+		'onAstral': () => LocalizedString
 		/**
 		 * Chief is the most charismatic person in the tribe. Their duties is to maintain tribe's integrity.
 		 */
@@ -867,6 +923,10 @@ export type TranslationFunctions = {
 		 */
 		'searchIn': (arg: { city: unknown }) => LocalizedString
 		/**
+		 * Tribes in Astral
+		 */
+		'searchInAstral': () => LocalizedString
+		/**
 		 * Please, write tribe's chief and shaman about yourself and why do you want to join "{tribe}" tribe?
 		 */
 		'applyText': (arg: { tribe: unknown }) => LocalizedString
@@ -890,6 +950,42 @@ export type TranslationFunctions = {
 		 * 💨 No tribes in {city} so far...
 		 */
 		'nothingFound': (arg: { city: unknown }) => LocalizedString
+		/**
+		 * 🪄 Create a new tribe
+		 */
+		'createTribe': () => LocalizedString
+		/**
+		 * ✨ Look in Astral
+		 */
+		'searchAstral': () => LocalizedString
+		/**
+		 * 💨 No tribes in Astral yet
+		 */
+		'noTribesInAstral': () => LocalizedString
+		/**
+		 * What is tribe's name?
+		 */
+		'tribeNamePrompt': () => LocalizedString
+		/**
+		 * What does this tribe do?
+		 */
+		'tribeDescriptionPrompt': () => LocalizedString
+		/**
+		 * 🌅 A new tribe created. You're it's chief now.
+		 */
+		'tribeCreated': () => LocalizedString
+		/**
+		 * There's more tribes...
+		 */
+		'thereMore': () => LocalizedString
+		/**
+		 * Next
+		 */
+		'loadMore': () => LocalizedString
+		/**
+		 * That's all.
+		 */
+		'tribeListEnd': () => LocalizedString
 	}
 	'elders': {	
 		/**
