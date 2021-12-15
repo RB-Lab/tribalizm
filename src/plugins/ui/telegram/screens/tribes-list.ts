@@ -29,6 +29,17 @@ export function tribesListScreen({ bot }: TgContext) {
         const city =
             ctx.user.cityId &&
             (await ctx.tribalizm.tribesShow.getCityInfo(ctx.user.cityId))
+
+        removeInlineKeyboard(
+            ctx,
+            Markup.inlineKeyboard([
+                Markup.button.callback(
+                    i18n(ctx).start.buttons.rules(),
+                    'rules'
+                ),
+            ])
+        )
+
         if (city) {
             return showCityTribesList(ctx, city, 'saved city')
         }
@@ -40,7 +51,6 @@ export function tribesListScreen({ bot }: TgContext) {
             .oneTime()
             .resize()
 
-        await ctx.deleteMessage()
         await ctx.reply(texts.requestLocationText(), keyboard)
     })
 
@@ -127,7 +137,7 @@ export function tribesListScreen({ bot }: TgContext) {
     async function showTribes(ctx: TribeCtx, tribes: TribeInfo[]) {
         const texts = i18n(ctx).tribesList
 
-        tribes.forEach(async (tribe) => {
+        for (let tribe of tribes) {
             const keyboard = Markup.inlineKeyboard([
                 Markup.button.callback(
                     texts.apply(),
@@ -135,12 +145,12 @@ export function tribesListScreen({ bot }: TgContext) {
                 ),
             ])
             await ctx.replyWithHTML(
-                `<b>${tribe.name}</b> \n \n${
+                `<b>${tribe.name}</b>\n${
                     tribe.description
-                }\n ${texts.count()} ${tribe.membersCount}`,
+                }\n <i>${texts.count()} ${tribe.membersCount}</i>`,
                 keyboard
             )
-        })
+        }
     }
 
     bot.action(applyTribe.regex, async (ctx) => {
@@ -188,6 +198,7 @@ export function tribesListScreen({ bot }: TgContext) {
         const after = searchAstral.parse(ctx.match.input)
         ctx.logEvent('search astral', after)
 
+        await removeInlineKeyboard(ctx)
         const tribes = await ctx.tribalizm.tribesShow.getAstralTribes({
             limit: 3,
             after: after.after,
@@ -230,6 +241,7 @@ export function tribesListScreen({ bot }: TgContext) {
         await ctx.user.setState<CreateTribeState>({
             type: 'create-tribe-state',
         })
+        removeInlineKeyboard(ctx)
         return ctx.reply(i18n(ctx).tribesList.tribeNamePrompt())
     })
 

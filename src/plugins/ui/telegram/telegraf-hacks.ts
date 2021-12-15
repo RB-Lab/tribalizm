@@ -1,22 +1,20 @@
 import { Markup } from 'telegraf'
+import { InlineKeyboardMarkup } from 'typegram'
+import { TribeCtx } from './tribe-ctx'
 
-export class SceneState<S extends object> {
-    get<K extends keyof S>(ctx: { scene: { state: any } }, key: K) {
-        return ctx.scene.state[key] as S[K]
+export async function removeInlineKeyboard(
+    ctx: TribeCtx,
+    replacement?: string | Markup.Markup<InlineKeyboardMarkup>
+) {
+    let text = (ctx.update as any).callback_query.message.text
+    let kb = Markup.inlineKeyboard([])
+    if (replacement) {
+        if (typeof replacement === 'string') {
+            text += `\n${replacement}`
+        } else {
+            kb = replacement
+        }
     }
-    set<K extends keyof S>(
-        ctx: { scene: { state: any } },
-        key: K,
-        value: S[K]
-    ) {
-        ctx.scene.state[key] = value
-    }
-}
 
-export async function removeInlineKeyboard(ctx: any, replaceText?: string) {
-    let text = ctx.update.callback_query.message.text
-    if (replaceText) {
-        text += `\n${replaceText}`
-    }
-    await ctx.editMessageText(text, Markup.inlineKeyboard([]))
+    await ctx.editMessageText(text, kb)
 }

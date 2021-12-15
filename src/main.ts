@@ -163,9 +163,11 @@ async function main() {
 
         logger.enableUnhandledRejectionsHandler()
 
-        const server = app.listen(3000, () => {
+        const server = app.listen(3000, async () => {
+            await bot.telegram.setWebhook(
+                `https://${process.env.DOMAIN}/tg-hook`
+            )
             logger.trace('server started', { port: 3000 })
-            bot.telegram.setWebhook(`https://${process.env.DOMAIN}/tg-hook`)
         })
 
         process.once('SIGINT', stop)

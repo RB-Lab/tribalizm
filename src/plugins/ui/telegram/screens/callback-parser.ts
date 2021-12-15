@@ -28,5 +28,6 @@ export function makeCallbackDataParser<T>(
             return keys.reduce<T>((r, k, i) => ({ ...r, [k]: arr[i] }), {} as T)
         },
         regex: new RegExp(`${cbName}:(.+)|${cbName}`),
+        toString: () => cbName,
     }
 }
