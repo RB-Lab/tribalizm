@@ -1,3 +1,4 @@
+import { mapify } from '../ts-utils'
 import { TribeApplication } from '../use-cases/apply-tribe'
 import { QuestStatus, QuestType } from '../use-cases/entities/quest'
 import { Storable } from '../use-cases/entities/store'
@@ -39,7 +40,7 @@ describe('Introduction quests', () => {
     it('does NOT allocate intro if only shaman & chief in tribe', async () => {
         const world = await setUp(2)
         await world.getApproval()
-        const tasks = await world.taskStore.find({ type: 'intorduction-quest' })
+        const tasks = await world.taskStore.find({ type: 'introduction-quest' })
         expect(tasks.length).toBe(0)
     })
     // FLICK??
@@ -67,7 +68,6 @@ describe('Introduction quests', () => {
                     targetUserId: oldMember.userId,
                     tribe: world.tribe.name,
                     questId: quest!.id,
-                    targetMemberId: oldMember!.id,
                     newMemberName: world.user.name,
                 },
             })
@@ -86,7 +86,7 @@ describe('Introduction quests', () => {
         expect(quests[0].memberIds).toEqual([oldMember!.id, newMember.id])
         expect(quests[0].status).toEqual(QuestStatus.proposed)
     })
-    it('alocates next intro when "how was it" done', async () => {
+    it('allocates next intro when "how was it" done', async () => {
         const world = await setUp()
         const newMember = await world.getApproval()
         const { next } = await world.makeIntroTask()
@@ -171,7 +171,7 @@ async function setUp(size?: number) {
         const shaman = members[1]
         const initReq = {
             questId: initQuest.id,
-            elderId: chief.id,
+            userId: chief.userId,
             place: 'The Foo Bar',
             time: 1_700_100_500_000,
         }
@@ -180,7 +180,7 @@ async function setUp(size?: number) {
         const newInitQuest = await context.stores.questStore._last()
         const shamanReq = {
             ...initReq,
-            elderId: shaman.id,
+            userId: shaman.userId,
             questId: newInitQuest.id,
         }
         await initiation.startShamanInitiation(shamanReq)
@@ -203,11 +203,13 @@ async function setUp(size?: number) {
     const makeIntroTask = async () => {
         let task = (await getNewItroTask())!
         const next = async () => {
+            const membersMap = mapify(await context.stores.memberStore.find({}))
             await introQuests.notifyOldMember(task)
             const quest = await context.stores.questStore._last()
-            for (let id of quest!.memberIds) {
+
+            for (let id of quest.memberIds) {
                 await questFinale.finalize({
-                    memberId: id,
+                    userId: membersMap[id].userId,
                     questId: quest!.id,
                     votes: [],
                 })

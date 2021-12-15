@@ -32,7 +32,6 @@ describe('Stranger application', () => {
             jasmine.objectContaining<ApplicationMessage>({
                 type: 'application-message',
                 payload: {
-                    targetMemberId: world.chief.id,
                     targetUserId: world.chief.userId,
                     tribeName: world.tribe.name,
                     coverLetter: world.defReq.coverLetter,

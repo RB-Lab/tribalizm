@@ -23,7 +23,6 @@ export function introQuestsScreen({ bot, bus, tgUsers }: TgContext) {
                     Markup.button.callback(
                         texts.okay(),
                         negotiate.serialize({
-                            memberId: payload.targetMemberId,
                             questId: payload.questId,
                             elder: null,
                         })

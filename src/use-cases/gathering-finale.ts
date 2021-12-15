@@ -19,7 +19,6 @@ export class GatheringFinale extends ContextUser {
                 payload: {
                     gatheringId: gathering.id,
                     gatheringName: gathering.description,
-                    targetMemberId: m.id,
                     targetUserId: m.userId,
                 },
             })
@@ -28,7 +27,11 @@ export class GatheringFinale extends ContextUser {
     }
     finalize = async (req: FinalizeGatheringRequest) => {
         const gathering = await this.getGathering(req.gatheringId)
-        gathering.imDone(req.memberId)
+        const member = await this.getTribeMemberByUserId(
+            gathering.tribeId,
+            req.userId
+        )
+        gathering.imDone(member.id)
         const coordinators = new Set<string>()
         const addCoordinators = async (parentQuestId: string | null) => {
             if (parentQuestId) {
@@ -46,13 +49,13 @@ export class GatheringFinale extends ContextUser {
         const members = await this.stores.memberStore.find({
             id: [...coordinators],
         })
-        members.forEach((member) => {
-            if (member.id !== req.memberId) {
-                member.castVote({
+        members.forEach((m) => {
+            if (m.id !== member.id) {
+                m.castVote({
                     type: 'gathering-vote',
                     casted: Date.now(),
                     gatheringId: gathering.id,
-                    memberId: req.memberId,
+                    memberId: member.id,
                     score: req.score,
                 })
             }
@@ -74,7 +77,7 @@ export class GatheringFinale extends ContextUser {
 }
 
 interface FinalizeGatheringRequest {
-    memberId: string
+    userId: string
     gatheringId: string
     score: number
 }
@@ -83,7 +86,6 @@ export interface HowWasGatheringMessage extends Message {
     type: 'how-was-gathering-message'
     payload: {
         targetUserId: string
-        targetMemberId: string
         gatheringId: string
         gatheringName: string
     }

@@ -11,7 +11,7 @@ import { HowWasGatheringTask } from '../use-cases/utils/scheduler'
 import { QuestFinishedError } from '../use-cases/utils/errors'
 
 describe('Gathering declaration', () => {
-    it('notifies all tribe memebers', async () => {
+    it('notifies all tribe members', async () => {
         const world = await setUp()
         const onGathering = world.spyOnMessage<GatheringMessage>(
             'new-gathering-message'
@@ -20,10 +20,10 @@ describe('Gathering declaration', () => {
         expect(onGathering).toHaveBeenCalledTimes(world.members.length)
         const actualMembers = onGathering.calls
             .all()
-            .map((c) => c.args[0].payload.targetMemberId)
+            .map((c) => c.args[0].payload.targetUserId)
 
         expect(actualMembers).toEqual(
-            jasmine.arrayWithExactContents(world.members.map((m) => m.id))
+            jasmine.arrayWithExactContents(world.members.map((m) => m.userId))
         )
     })
     it('notifies all upvoters', async () => {
@@ -38,9 +38,10 @@ describe('Gathering declaration', () => {
         expect(onGathering).toHaveBeenCalledTimes(world.upvoters.length)
         const actualMembers = onGathering.calls
             .all()
-            .map((c) => c.args[0].payload.targetMemberId)
+            .map((c) => c.args[0].payload.targetUserId)
+        const upvoters = await world.memberStore.find({ id: world.upvoters })
         expect(actualMembers).toEqual(
-            jasmine.arrayWithExactContents(world.upvoters)
+            jasmine.arrayWithExactContents(upvoters.map((m) => m.userId))
         )
     })
     it('allocates "how was it" task next morning', async () => {
@@ -126,9 +127,8 @@ async function setUp() {
         memberId: member1.id,
         parentQuestId: quest.id,
     })
-    const memberId = members[1].id
     const defaultDeclare = {
-        memberId,
+        userId: member1.userId,
         description: 'lets OLOLO!!!',
         parentQuestId: quest2.id,
         place: 'The Foo Bar',

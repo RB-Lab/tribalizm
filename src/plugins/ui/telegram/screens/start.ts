@@ -1,5 +1,5 @@
 import { Markup } from 'telegraf'
-import { toLocale } from '../../i18n/i18n-ctx'
+import { i18n, toLocale } from '../../i18n/i18n-ctx'
 import L from '../../i18n/i18n-node'
 import { TgContext } from '../tribe-ctx'
 
@@ -11,8 +11,9 @@ import { TgContext } from '../tribe-ctx'
 export function startScreen({ bot, logger }: TgContext) {
     bot.start(async (ctx) => {
         ctx.logEvent('/start')
-        const l = toLocale(ctx.message.from.language_code)
-        const texts = L[l].start
+        const texts = i18n(ctx).start
+        // always reset state when user re-starts bot
+        await ctx.user.setState(null)
 
         const keyboard = Markup.inlineKeyboard([
             Markup.button.callback(texts.buttons.list(), 'list-tribes'),

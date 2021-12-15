@@ -13,7 +13,6 @@ import { makeCallbackDataParser } from './callback-parser'
 
 export const negotiate = makeCallbackDataParser('negotiate-quest', [
     'questId',
-    'memberId',
     'elder',
 ])
 
@@ -25,7 +24,6 @@ const confirmProposal = makeCallbackDataParser('confirm-proposal', [])
 
 interface NegotiationState extends UserState {
     type: 'negotiation-state'
-    memberId: string
     questId: string
     date?: Date
     place?: string
@@ -39,11 +37,10 @@ function isNegotiationState(
 
 export function questNegotiationScreen({ bot, bus, tgUsers }: TgContext) {
     bot.action(negotiate.regex, async (ctx) => {
-        const { memberId, questId, elder } = negotiate.parse(ctx.match[0])
+        const { questId, elder } = negotiate.parse(ctx.match[0])
         const texts = i18n(ctx).questNegotiation
-        await ctx.user.setState({
+        await ctx.user.setState<NegotiationState>({
             type: 'negotiation-state',
-            memberId,
             questId,
             elder,
         })
@@ -91,19 +88,19 @@ export function questNegotiationScreen({ bot, bus, tgUsers }: TgContext) {
         if (state.elder === 'chief') {
             await ctx.tribalizm.initiation.startInitiation({
                 questId: state.questId,
-                elderId: state.memberId,
+                userId: ctx.user.userId,
             })
         }
         if (state.elder === 'shaman') {
             await ctx.tribalizm.initiation.startShamanInitiation({
                 questId: state.questId,
-                elderId: state.memberId,
+                userId: ctx.user.userId,
             })
         }
         await ctx.tribalizm.questNegotiation.proposeChange({
             place: state.place,
             time: ctx.user.convertTime(state.date).getTime(),
-            memberId: state.memberId,
+            userId: ctx.user.userId,
             questId: state.questId,
         })
         await removeInlineKeyboard(ctx, `\n${texts.proposalDone()}`)
@@ -132,7 +129,6 @@ export function questNegotiationScreen({ bot, bus, tgUsers }: TgContext) {
                     texts.edit(),
                     negotiate.serialize({
                         questId: state.questId,
-                        memberId: state.memberId,
                         elder: state.elder,
                     })
                 ),
@@ -148,7 +144,10 @@ export function questNegotiationScreen({ bot, bus, tgUsers }: TgContext) {
     bot.action(agreeQuest.regex, async (ctx) => {
         const { memberId, questId } = agreeQuest.parse(ctx.match[0])
         ctx.logEvent('quest: agree', { questId })
-        await ctx.tribalizm.questNegotiation.acceptQuest({ memberId, questId })
+        await ctx.tribalizm.questNegotiation.acceptQuest({
+            userId: ctx.user.userId,
+            questId,
+        })
         const quest = await ctx.tribalizm.questNegotiation.questDetails({
             questId,
         })
@@ -159,7 +158,7 @@ export function questNegotiationScreen({ bot, bus, tgUsers }: TgContext) {
         } else {
             const other = quest.participants.find((p) => p.id !== memberId)
             if (!other) {
-                throw new Error('Cant agree on quest with no patricipants')
+                throw new Error('Cant agree on quest with no participants')
             }
             text = texts.proposalAgreedPersonal({ who: other.name })
         }
@@ -229,7 +228,6 @@ export function questNegotiationScreen({ bot, bus, tgUsers }: TgContext) {
                     qnTexts.proposeOther(),
                     negotiate.serialize({
                         elder: null,
-                        memberId: payload.targetMemberId,
                         questId: payload.questId,
                     })
                 ),

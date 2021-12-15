@@ -1,4 +1,3 @@
-import { ContextUser } from './utils/context-user'
 import {
     IndeclinableError,
     isCoordinationQuest,
@@ -6,19 +5,20 @@ import {
     QuestStatus,
     QuestType,
 } from './entities/quest'
-import { getBestFreeMember } from './utils/members-utils'
-import { getRootIdea, NoIdeaError } from './utils/get-root-idea'
-import { Message } from './utils/message'
 import { NewCoordinationQuestMessage } from './spawn-quest'
+import { ContextUser } from './utils/context-user'
+import { getRootIdea, NoIdeaError } from './utils/get-root-idea'
+import { getBestFreeMember } from './utils/members-utils'
+import { Message } from './utils/message'
 import { HowWasQuestTask } from './utils/scheduler'
 
 export class QuestNegotiation extends ContextUser {
     proposeChange = async (req: QuestChangeRequest) => {
         const quest = await this.getQuest(req.questId)
-        const member = await this.getMember(req.memberId)
+        const member = await this.getQuestMemberByUserId(quest, req.userId)
         const user = await this.getUser(member.userId)
         const tribe = await this.getTribe(member.tribeId)
-        const targetMembers = quest.propose(req.time, req.place, req.memberId)
+        const targetMembers = quest.propose(req.time, req.place, member.id)
         await this.stores.questStore.save(quest)
         const elderPatch =
             tribe.shamanId === member.id
@@ -40,7 +40,7 @@ export class QuestNegotiation extends ContextUser {
                         : undefined,
                     time: req.time,
                     place: req.place,
-                    proposingMemberId: req.memberId,
+                    proposingMemberId: member.id,
                     proposingMemberName: user.name,
                     tribe: tribe.name,
                     ...elderPatch,
@@ -50,7 +50,8 @@ export class QuestNegotiation extends ContextUser {
     }
     acceptQuest = async (req: QuestAcceptRequest) => {
         const quest = await this.getQuest(req.questId)
-        const targetMemberIds = quest.accept(req.memberId)
+        const member = await this.getQuestMemberByUserId(quest, req.userId)
+        const targetMemberIds = quest.accept(member.id)
         await this.stores.questStore.save(quest)
         if (!quest.place || !quest.time) {
             throw new QuestIncompleteError(
@@ -106,7 +107,8 @@ export class QuestNegotiation extends ContextUser {
      */
     declineQuest = async (req: QuestDeclineRequest) => {
         const quest = await this.getQuest(req.questId)
-        quest.decline(req.memberId)
+        const member = await this.getQuestMemberByUserId(quest, req.userId)
+        quest.decline(member.id)
         // TODO should be possible also decline introduction quests
         if (!isCoordinationQuest(quest)) {
             throw new IndeclinableError(
@@ -127,15 +129,15 @@ export class QuestNegotiation extends ContextUser {
             )
         }
         const idea = await this.getIdea(ideaId)
-        if (idea.memberId === req.memberId && !quest.parentQuestId) {
+        if (idea.memberId === member.id && !quest.parentQuestId) {
             throw new IndeclinableError(
                 'You cannot decline quest created from your own idea'
             )
         }
-        const upvoterIds = idea.votes
+        const upVoterIds = idea.votes
             .filter((v) => v.vote === 'up')
             .map((v) => v.memberId)
-        const memberIds = [...upvoterIds, idea.memberId]
+        const memberIds = [...upVoterIds, idea.memberId]
         const activeQuests = await this.stores.questStore.getActiveQuestsCount(
             memberIds
         )
@@ -143,7 +145,7 @@ export class QuestNegotiation extends ContextUser {
             id: memberIds,
         })
         const first = members.find(
-            (m) => m.id != req.memberId && quest.memberIds.includes(m.id)
+            (m) => m.id != member.id && quest.memberIds.includes(m.id)
         )
         if (!first) {
             throw new Error('Cannot find other members among upvoters')
@@ -153,7 +155,7 @@ export class QuestNegotiation extends ContextUser {
             members,
             first.charisma > first.wisdom ? 'wisdom' : 'charisma',
             activeQuests,
-            [first.id, req.memberId]
+            [first.id, member.id]
         )
         quest.addAssignee(nextMember.id)
         await this.stores.questStore.save(quest)
@@ -234,7 +236,7 @@ export interface QuestChangeRequest extends QuestNegotiationRequest {
 }
 export interface QuestNegotiationRequest {
     questId: string
-    memberId: string
+    userId: string
 }
 
 export interface QuestAcceptRequest extends QuestNegotiationRequest {}

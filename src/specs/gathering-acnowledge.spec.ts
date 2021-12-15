@@ -21,7 +21,7 @@ describe('Gathering acknowledgement', () => {
         )
         await expectAsync(
             world.gatheringAck.accept({
-                memberId: anotherMember.id,
+                userId: anotherMember.userId,
                 gatheringId: world.gathering.id,
             })
         ).toBeRejectedWithError(NotYourTribe)
@@ -66,7 +66,7 @@ async function setUp() {
         })
     )
     const defaultReq = {
-        memberId: members[0].id,
+        userId: members[0].userId,
         gatheringId: gathering.id,
     }
 

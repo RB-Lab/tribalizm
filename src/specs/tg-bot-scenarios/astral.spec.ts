@@ -1,3 +1,4 @@
+import { purgeGlobalCallbackRegistry } from '../../plugins/ui/telegram/screens/callback-parser'
 import { Awaited } from '../../ts-utils'
 import { City } from '../../use-cases/entities/city'
 import { SavedTribe, Tribe } from '../../use-cases/entities/tribe'
@@ -13,6 +14,7 @@ describe('Astral tribes [scenario]:', () => {
     afterEach(async () => {
         await world.tearDown()
         process.env.chatDebug = ''
+        purgeGlobalCallbackRegistry()
     })
     it('Create tribe', async () => {
         const update = await world.newUser.chatLast('/start')

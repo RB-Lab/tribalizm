@@ -5,11 +5,17 @@ import { Message } from './utils/message'
 import { HowWasGatheringTask } from './utils/scheduler'
 import { QuestStatus } from './entities/quest'
 import { QuestFinishedError } from './utils/errors'
+import { IMember } from './entities/member'
 
 export class GatheringDeclare extends ContextUser {
     declare = async (req: DeclarationRequest) => {
-        const member = await this.getMember(req.memberId)
         const parentQuest = await this.getQuest(req.parentQuestId)
+        const parentQuestMember = await this.getMember(parentQuest.memberIds[0])
+
+        const member = await this.getTribeMemberByUserId(
+            parentQuestMember.tribeId,
+            req.userId
+        )
 
         if (parentQuest.status === QuestStatus.done) {
             throw new QuestFinishedError(
@@ -27,7 +33,11 @@ export class GatheringDeclare extends ContextUser {
             })
         )
 
-        const targetMembersIds = await this.getTargetMembers(req)
+        const targetMembersIds = await this.getTargetMembers(
+            req.type,
+            member,
+            req.parentQuestId
+        )
         const targetMembers = await this.stores.memberStore.find({
             id: targetMembersIds,
         })
@@ -39,7 +49,6 @@ export class GatheringDeclare extends ContextUser {
                     place: gathering.place,
                     time: gathering.time,
                     gatheringId: gathering.id,
-                    targetMemberId: targetMember.id,
                     targetUserId: targetMember.userId,
                 },
             })
@@ -56,9 +65,12 @@ export class GatheringDeclare extends ContextUser {
         })
     }
 
-    private getTargetMembers = async (req: DeclarationRequest) => {
-        const member = await this.getMember(req.memberId)
-        if (req.type === 'all') {
+    private getTargetMembers = async (
+        type: string,
+        member: IMember,
+        parentQuestId: string
+    ) => {
+        if (type === 'all') {
             return (
                 await this.stores.memberStore.find({
                     tribeId: member.tribeId,
@@ -66,20 +78,17 @@ export class GatheringDeclare extends ContextUser {
             ).map((m) => m.id)
         }
 
-        const ideaId = await getRootIdea(
-            this.stores.questStore,
-            req.parentQuestId
-        )
+        const ideaId = await getRootIdea(this.stores.questStore, parentQuestId)
         const idea = await this.getIdea(ideaId)
-        const upvoterIds = idea.votes
+        const upVoterIds = idea.votes
             .filter((v) => v.vote === 'up')
             .map((v) => v.memberId)
-        return [...upvoterIds, idea.memberId]
+        return [...upVoterIds, idea.memberId]
     }
 }
 
 interface DeclarationRequest {
-    memberId: string
+    userId: string
     type: GatheringType
     parentQuestId: string
     description: string
@@ -90,7 +99,6 @@ interface DeclarationRequest {
 export interface GatheringMessage extends Message {
     type: 'new-gathering-message'
     payload: {
-        targetMemberId: string
         targetUserId: string
         gatheringId: string
         description: string

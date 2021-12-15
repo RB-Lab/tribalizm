@@ -35,35 +35,33 @@ describe('Gathering finale', () => {
                 gatheringName: world.gathering.description,
             }),
         })
-        const memberMap = mapify(world.members)
         for (let call of onHowWasIt.calls.all()) {
-            const memberId = call.args[0].payload.targetMemberId
-            expect(world.gathering.accepted).toContain(memberId)
-            expect(memberMap[memberId].userId).toBe(
-                call.args[0].payload.targetUserId
-            )
+            const userId = call.args[0].payload.targetUserId
+            const member = world.members.find((m) => m.userId === userId)
+            expect(member).toBeTruthy()
+            expect(world.gathering.accepted).toContain(member!.id)
         }
     })
     it('marks member as done', async () => {
         const world = await setUp()
-        await world.gatheringFinale.finalize(world.defautlRequest)
+        await world.gatheringFinale.finalize(world.defaultRequest)
         const gathering = await world.gatheringStore.getById(world.gathering.id)
         expect(gathering!.done.length).toEqual(1)
-        expect(gathering!.done[0]).toEqual(world.defautlRequest.memberId)
+        expect(gathering!.done[0]).toEqual(world.defaultMember.id)
     })
-    it('FAILs to vote from not-a-member', async () => {
+    it('FAILs to vote from not participated member', async () => {
         const world = await setUp()
         await expectAsync(
             world.gatheringFinale.finalize({
-                ...world.defautlRequest,
-                memberId: 'not-a-member',
+                ...world.defaultRequest,
+                userId: world.declined[1].userId,
             })
         ).toBeRejectedWithError(NotParticipated)
 
         await expectAsync(
             world.gatheringFinale.finalize({
-                ...world.defautlRequest,
-                memberId: world.members[3].id,
+                ...world.defaultRequest,
+                userId: world.members[3].userId,
             })
         ).toBeRejectedWithError(NotParticipated)
     })
@@ -71,7 +69,7 @@ describe('Gathering finale', () => {
         const world = await setUp()
         await expectAsync(
             world.gatheringFinale.finalize({
-                ...world.defautlRequest,
+                ...world.defaultRequest,
                 score: -4,
             })
         ).toBeRejectedWithError(VoteRangeError)
@@ -80,7 +78,7 @@ describe('Gathering finale', () => {
         const world = await setUp()
         await expectAsync(
             world.gatheringFinale.finalize({
-                ...world.defautlRequest,
+                ...world.defaultRequest,
                 score: 14,
             })
         ).toBeRejectedWithError(VoteRangeError)
@@ -88,11 +86,12 @@ describe('Gathering finale', () => {
     describe('score casting', () => {
         it('affects all involved in gathering coordination', async () => {
             const world = await setUp()
-            await world.gatheringFinale.finalize(world.defautlRequest)
+            await world.gatheringFinale.finalize(world.defaultRequest)
             const affectedMembers = await world.memberStore.find({
                 id: world.affectedMembers,
             })
             expect(affectedMembers.length).toBeGreaterThan(0)
+
             affectedMembers.forEach((m) => {
                 expect(m.votes.length)
                     .withContext(`member ${m.id} votes`)
@@ -107,21 +106,18 @@ describe('Gathering finale', () => {
         })
         it('does NOT affect voting member', async () => {
             const world = await setUp()
-            await world.gatheringFinale.finalize(world.defautlRequest)
-            const votingMember = await world.memberStore.getById(
-                world.defautlRequest.memberId
-            )
-            expect(votingMember!.votes.length).toEqual(0)
+            await world.gatheringFinale.finalize(world.defaultRequest)
+            expect(world.defaultMember.votes.length).toEqual(0)
         })
         it('stores vote', async () => {
             const world = await setUp()
-            await world.gatheringFinale.finalize(world.defautlRequest)
+            await world.gatheringFinale.finalize(world.defaultRequest)
             const member = await world.memberStore.getById(world.members[2].id)
 
             expect(member!.votes[0]).toEqual(
                 jasmine.objectContaining<GatheringVote>({
-                    gatheringId: world.defautlRequest.gatheringId,
-                    memberId: world.defautlRequest.memberId,
+                    gatheringId: world.defaultRequest.gatheringId,
+                    memberId: world.members[6].id,
                 })
             )
         })
@@ -129,12 +125,12 @@ describe('Gathering finale', () => {
             const world = await setUp()
             await world.gatheringFinale.finalize({
                 gatheringId: world.gathering.id,
-                memberId: world.members[6].id,
+                userId: world.members[6].userId,
                 score: 4,
             })
             await world.gatheringFinale.finalize({
                 gatheringId: world.gathering.id,
-                memberId: world.members[5].id,
+                userId: world.members[5].userId,
                 score: 2,
             })
             const member = await world.memberStore.getById(world.members[2].id)
@@ -150,12 +146,12 @@ describe('Gathering finale', () => {
         const gathering2 = await world.makeGathering()
         await world.gatheringFinale.finalize({
             gatheringId: gathering1.id,
-            memberId: world.members[5].id,
+            userId: world.members[5].userId,
             score: 3,
         })
         await world.gatheringFinale.finalize({
             gatheringId: gathering2.id,
-            memberId: world.members[6].id,
+            userId: world.members[6].userId,
             score: 4,
         })
         const members = await world.memberStore.find({
@@ -173,12 +169,12 @@ describe('Gathering finale', () => {
         const gathering2 = await world.makeGathering()
         await world.gatheringFinale.finalize({
             gatheringId: gathering1.id,
-            memberId: world.members[5].id,
+            userId: world.members[5].userId,
             score: 3,
         })
         await world.gatheringFinale.finalize({
             gatheringId: gathering2.id,
-            memberId: world.members[6].id,
+            userId: world.members[6].userId,
             score: 4,
         })
         const members = await world.memberStore.find({
@@ -221,9 +217,13 @@ async function setUp() {
         parentQuestId: quest1.id,
     })
 
+    const accepted = [5, 6, 9, 2]
+    const declined = [10, 7]
+
     const gathering = await makeGathering()
-    const defautlRequest = {
-        memberId: members[6].id,
+    const defaultMember = members[6]
+    const defaultRequest = {
+        userId: defaultMember.userId,
         gatheringId: gathering.id,
         score: 4,
     }
@@ -233,33 +233,32 @@ async function setUp() {
             ...quest1.memberIds,
             ...quest2.memberIds,
         ])
-    ).filter((id) => id !== defautlRequest.memberId)
+    ).filter((id) => id !== defaultMember.id)
 
     const gatheringFinale = new GatheringFinale(context)
 
     async function makeGathering() {
+        const member = members.find((m) => m.id === quest2.memberIds[0])
         await context.tribalizm.gatheringDeclare.declare({
             description: 'lets OLOLO together!',
             place: 'the Foo Bar',
             time: 100500200500,
-            memberId: quest2.memberIds[0],
+            userId: member!.userId,
             parentQuestId: quest2.id,
             type: 'all',
         })
         const gathering = await context.stores.gatheringStore._last()
-        const accepted = [5, 6, 9, 2]
-        const declined = [10, 7]
         for (let m of members) {
             if (accepted.includes(members.indexOf(m))) {
                 await context.tribalizm.gatheringAcknowledge.accept({
                     gatheringId: gathering.id,
-                    memberId: m.id,
+                    userId: m.userId,
                 })
             }
             if (declined.includes(members.indexOf(m))) {
                 await context.tribalizm.gatheringAcknowledge.decline({
                     gatheringId: gathering.id,
-                    memberId: m.id,
+                    userId: m.userId,
                 })
             }
         }
@@ -270,11 +269,14 @@ async function setUp() {
         ...context.testing,
         affectedMembers,
         members,
+        defaultMember,
         tribe,
+        accepted: accepted.map((i) => members[i]),
+        declined: declined.map((i) => members[i]),
         gathering,
         makeGathering,
         gatheringFinale,
-        defautlRequest,
+        defaultRequest,
         spyOnMessage: context.testing.spyOnMessage,
     }
 }

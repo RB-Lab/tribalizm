@@ -27,12 +27,7 @@ function isBrainstormState(state: Maybe<UserState>): state is BrainstormState {
     return notEmpty(state) && state.type === 'brainstorm'
 }
 
-const voteParser = makeCallbackDataParser('vote-idea', [
-    'brainstormId',
-    'memberId',
-    'ideaId',
-    'vote',
-])
+const voteParser = makeCallbackDataParser('vote-idea', ['ideaId', 'vote'])
 
 const stormConfirm = makeCallbackDataParser('storm-confirm', [
     'memberId',
@@ -108,13 +103,14 @@ export function brainstormScreen({
         const data = voteParser.parse(ctx.match[0])
         ctx.logEvent('storm: vote', {
             ideaId: data.ideaId,
-            stormId: data.brainstormId,
+            idea: (ctx.message as any)?.text,
+            vote: data.vote,
         })
 
         if (data.vote === 'up') {
-            await ctx.tribalizm.voting.voteUp(data.ideaId, data.memberId)
+            await ctx.tribalizm.voting.voteUp(data.ideaId, ctx.user.userId)
         } else {
-            await ctx.tribalizm.voting.voteDown(data.ideaId, data.memberId)
+            await ctx.tribalizm.voting.voteDown(data.ideaId, ctx.user.userId)
         }
         await removeInlineKeyboard(ctx)
     })
@@ -215,18 +211,14 @@ export function brainstormScreen({
                     Markup.button.callback(
                         '👍',
                         voteParser.serialize({
-                            brainstormId: payload.brainstormId,
                             ideaId: message.ideaId,
-                            memberId: payload.targetMemberId,
                             vote: 'up',
                         })
                     ),
                     Markup.button.callback(
                         '👎',
                         voteParser.serialize({
-                            brainstormId: payload.brainstormId,
                             ideaId: message.ideaId,
-                            memberId: payload.targetMemberId,
                             vote: 'down',
                         })
                     ),

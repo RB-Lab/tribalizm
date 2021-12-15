@@ -1,4 +1,5 @@
 import { SavedMember } from '../entities/member'
+import { IQuestData, NotYourQuest } from '../entities/quest'
 import { Context } from './context'
 import { Message } from './message'
 import { EntityNotFound } from './not-found-error'
@@ -102,6 +103,29 @@ export class ContextUser {
                 name: user.name,
             }
         })
+    }
+    protected async getTribeMemberByUserId(tribeId: string, userId: string) {
+        const members = await this.stores.memberStore.find({ tribeId, userId })
+        if (!members.length) {
+            throw new EntityNotFound(
+                `Cannot find member in tribe ${tribeId} for user ${userId}`
+            )
+        }
+        return members[0]
+    }
+
+    protected async getQuestMemberByUserId(quest: IQuestData, userId: string) {
+        const members = await this.stores.memberStore.find({
+            id: quest.memberIds,
+        })
+
+        const member = members.find((m) => m.userId === userId)
+        if (!member) {
+            throw new NotYourQuest(
+                `User ${userId} is not assigned to quest ${quest.id}`
+            )
+        }
+        return member
     }
 }
 

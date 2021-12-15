@@ -1,32 +1,41 @@
 import { NotYourTribe } from './utils/not-your-tribe'
 import { ContextUser } from './utils/context-user'
+import { EntityNotFound } from './utils/not-found-error'
 
 export class GatheringAcknowledge extends ContextUser {
     accept = async (req: GatheringAcknowledgeRequest) => {
         const gathering = await this.getGathering(req.gatheringId)
-        await this.checkTribe(req)
-        gathering.accept(req.memberId)
+        const member = await this.getGatheringMember(req)
+        gathering.accept(member.id)
         await this.stores.gatheringStore.save(gathering)
     }
     decline = async (req: GatheringAcknowledgeRequest) => {
         const gathering = await this.getGathering(req.gatheringId)
-        await this.checkTribe(req)
-        gathering.decline(req.memberId)
+        const member = await this.getGatheringMember(req)
+        gathering.decline(member.id)
         await this.stores.gatheringStore.save(gathering)
     }
 
-    private async checkTribe(req: GatheringAcknowledgeRequest) {
+    private async getGatheringMember(req: GatheringAcknowledgeRequest) {
         const gathering = await this.getGathering(req.gatheringId)
-        const member = await this.getMember(req.memberId)
-        if (member.tribeId !== gathering.tribeId) {
-            throw new NotYourTribe(
-                `Gathering ${gathering.id} doesn't belong to your tribe`
+        try {
+            const member = await this.getTribeMemberByUserId(
+                gathering.tribeId,
+                req.userId
             )
+            return member
+        } catch (e) {
+            if (e instanceof EntityNotFound) {
+                throw new NotYourTribe(
+                    `Gathering ${gathering.id} doesn't belong to your tribe`
+                )
+            }
+            throw e
         }
     }
 }
 
 export interface GatheringAcknowledgeRequest {
-    memberId: string
+    userId: string
     gatheringId: string
 }

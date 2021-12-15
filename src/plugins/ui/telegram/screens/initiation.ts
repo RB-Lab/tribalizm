@@ -15,23 +15,15 @@ import { negotiate } from './quest-negotiation'
 interface DeclineState extends UserState {
     type: 'decline-state'
     questId: string
-    memberId: string
 }
 function isDeclineState(state: Maybe<UserState>): state is DeclineState {
     return notEmpty(state) && state.type === 'decline-state'
 }
 
-const declineParser = makeCallbackDataParser('decline-application', [
-    'memberId',
-    'questId',
-])
+const declineParser = makeCallbackDataParser('decline-application', ['questId'])
 
-const acceptParser = makeCallbackDataParser('application-accept', [
-    'memberId',
-    'questId',
-])
+const acceptParser = makeCallbackDataParser('application-accept', ['questId'])
 const appDeclineParser = makeCallbackDataParser('application-decline', [
-    'memberId',
     'questId',
 ])
 
@@ -41,7 +33,6 @@ export function initiationScreen({ bot, bus, tgUsers }: TgContext) {
         const data = declineParser.parse(ctx.match.input)
         await ctx.user.setState<DeclineState>({
             type: 'decline-state',
-            memberId: data.memberId,
             questId: data.questId,
         })
         const texts = i18n(ctx).initiation
@@ -54,7 +45,7 @@ export function initiationScreen({ bot, bus, tgUsers }: TgContext) {
 
         await ctx.tribalizm.initiation.approveByElder({
             questId: data.questId,
-            elderId: data.memberId,
+            userId: ctx.user.userId,
         })
         await ctx.editMessageText(
             i18n(ctx).initiation.approvedOk(),
@@ -67,7 +58,7 @@ export function initiationScreen({ bot, bus, tgUsers }: TgContext) {
 
         await ctx.tribalizm.initiation.decline({
             questId: data.questId,
-            elderId: data.memberId,
+            userId: ctx.user.userId,
         })
         await ctx.editMessageText(
             i18n(ctx).initiation.declineOk(),
@@ -88,7 +79,7 @@ export function initiationScreen({ bot, bus, tgUsers }: TgContext) {
             // TODO should use the text maybe?
             await ctx.tribalizm.initiation.decline({
                 questId: state.questId,
-                elderId: state.memberId,
+                userId: ctx.user.userId,
             })
         } else {
             return next()
@@ -110,7 +101,6 @@ export function initiationScreen({ bot, bus, tgUsers }: TgContext) {
                 Markup.button.callback(
                     texts.assignInitiation(),
                     negotiate.serialize({
-                        memberId: payload.targetMemberId,
                         questId: payload.questId,
                         elder: payload.elder,
                     })
@@ -118,7 +108,6 @@ export function initiationScreen({ bot, bus, tgUsers }: TgContext) {
                 Markup.button.callback(
                     texts.decline(),
                     declineParser.serialize({
-                        memberId: payload.targetMemberId,
                         questId: payload.questId,
                     })
                 ),
@@ -161,14 +150,12 @@ export function initiationScreen({ bot, bus, tgUsers }: TgContext) {
                 Markup.button.callback(
                     texts.accept(),
                     acceptParser.serialize({
-                        memberId: payload.targetMemberId,
                         questId: payload.questId,
                     })
                 ),
                 Markup.button.callback(
                     texts.decline(),
                     appDeclineParser.serialize({
-                        memberId: payload.targetMemberId,
                         questId: payload.questId,
                     })
                 ),

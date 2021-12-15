@@ -2,9 +2,13 @@ import { UpdateFinishedBrainstormError } from './entities/brainstorm'
 import { ContextUser } from './utils/context-user'
 
 export class Voting extends ContextUser {
-    private checkVotingAllowed = async (ideaId: string, memberId: string) => {
+    private checkVotingAllowed = async (ideaId: string, userId: string) => {
         const idea = await this.getIdea(ideaId)
         const brainstorm = await this.getBrainstorm(idea.brainstormId)
+        const member = await this.getTribeMemberByUserId(
+            brainstorm.tribeId,
+            userId
+        )
         if (brainstorm.state === 'finished') {
             throw new BrainstormEndedError(
                 `Cannot vote for idea from ${brainstorm.id}, it is already finished`
@@ -15,23 +19,22 @@ export class Voting extends ContextUser {
                 "Cannot vote when voting hasn't been started"
             )
         }
-        const member = await this.getMember(memberId)
         if (member.tribeId !== brainstorm.tribeId) {
             throw new ExternalMemberVoteError(
                 `Member of tribe ${member.tribeId} cannot vote for brainstorm of tribe ${brainstorm.tribeId}`
             )
         }
-        return idea
+        return { idea, member }
     }
-    voteUp = async (ideaId: string, memberId: string) => {
-        const idea = await this.checkVotingAllowed(ideaId, memberId)
-        idea.voteUp(memberId)
+    voteUp = async (ideaId: string, userId: string) => {
+        const { idea, member } = await this.checkVotingAllowed(ideaId, userId)
+        idea.voteUp(member.id)
         await this.stores.ideaStore.save(idea)
     }
 
-    voteDown = async (ideaId: string, memberId: string) => {
-        const idea = await this.checkVotingAllowed(ideaId, memberId)
-        idea.voteDown(memberId)
+    voteDown = async (ideaId: string, userId: string) => {
+        const { idea, member } = await this.checkVotingAllowed(ideaId, userId)
+        idea.voteDown(member.id)
         await this.stores.ideaStore.save(idea)
     }
 }

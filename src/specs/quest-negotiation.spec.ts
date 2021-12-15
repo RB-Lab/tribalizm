@@ -42,7 +42,7 @@ describe('Quest negotiation', () => {
                 >({
                     description: world.quest.description,
                     place: world.defaultProposal.place,
-                    proposingMemberId: world.defaultProposal.memberId,
+                    proposingMemberId: world.member1.id,
                     questId: world.quest.id,
                     time: world.defaultProposal.time,
                     targetMemberId: world.member2.id,
@@ -55,7 +55,7 @@ describe('Quest negotiation', () => {
         await world.questNegotiation.proposeChange(world.defaultProposal)
         await world.questNegotiation.acceptQuest({
             questId: world.quest.id,
-            memberId: world.member2.id,
+            userId: world.user2.id,
         })
         await world.questNegotiation.proposeChange(world.defaultProposal)
         const quest = await world.questStore.getById(world.quest.id)
@@ -77,7 +77,7 @@ describe('Quest negotiation', () => {
         // the only other party in quest is memeber2
         await world.questNegotiation.acceptQuest({
             questId: world.quest.id,
-            memberId: world.member2.id,
+            userId: world.user2.id,
         })
         // so, when they agree quest must be accepted
         const quest = await world.questStore.getById(world.quest.id)
@@ -90,7 +90,7 @@ describe('Quest negotiation', () => {
         await world.questNegotiation.proposeChange(world.defaultProposal)
         await world.questNegotiation.acceptQuest({
             questId: world.quest.id,
-            memberId: world.member2.id,
+            userId: world.user2.id,
         })
         const quest = await world.questStore.getById(world.quest.id)
         expect(onQuestAccepted).toHaveBeenCalledWith(
@@ -115,7 +115,7 @@ describe('Quest negotiation', () => {
             await world.questNegotiation.proposeChange(world.defaultProposal)
             await world.questNegotiation.acceptQuest({
                 questId: world.quest.id,
-                memberId: world.member2.id,
+                userId: world.user2.id,
             })
             const tasks = (await world.taskStore.find({
                 type: 'how-was-quest',
@@ -136,7 +136,7 @@ describe('Quest negotiation', () => {
             await world.questNegotiation.proposeChange(world.defaultProposal)
             await world.questNegotiation.acceptQuest({
                 questId: world.quest.id,
-                memberId: world.member2.id,
+                userId: world.user2.id,
             })
             const tasks = (await world.taskStore.find({
                 type: 'how-was-quest',
@@ -163,7 +163,7 @@ describe('Quest negotiation', () => {
         await world.questStore.save(world.quest)
         await world.questNegotiation.proposeChange(world.defaultProposal)
         await world.questNegotiation.acceptQuest({
-            memberId: member3.id,
+            userId: member3.userId,
             questId: world.quest.id,
         })
         const quest = await world.questStore.getById(world.quest.id)
@@ -181,7 +181,7 @@ describe('Quest negotiation', () => {
         await world.questStore.save(world.quest)
         await expectAsync(
             world.questNegotiation.acceptQuest({
-                memberId: world.member2.id,
+                userId: world.user2.id,
                 questId: world.quest.id,
             })
         ).toBeRejectedWithError(InvalidAcceptanceTime)
@@ -191,16 +191,16 @@ describe('Quest negotiation', () => {
         await expectAsync(
             world.questNegotiation.proposeChange({
                 ...world.defaultProposal,
-                memberId: world.members[4].id,
+                userId: world.users[4].id,
             })
         ).toBeRejectedWithError(NotYourQuest)
     })
-    it('FAILs to accept for not assigned member', async () => {
+    it('FAILs to accept for not assigned user', async () => {
         const world = await setUp()
         await expectAsync(
             world.questNegotiation.acceptQuest({
                 questId: world.quest.id,
-                memberId: world.members[4].id,
+                userId: world.users[4].id,
             })
         ).toBeRejectedWithError(NotYourQuest)
     })
@@ -210,7 +210,7 @@ describe('Quest negotiation', () => {
             'new-coordination-quest-message'
         )
         await world.questNegotiation.declineQuest({
-            memberId: world.member2.id,
+            userId: world.user2.id,
             questId: world.quest.id,
         })
         expect(onQuest).toHaveBeenCalledWith(
@@ -242,7 +242,7 @@ describe('Quest negotiation', () => {
         const world = await setUp()
         await expectAsync(
             world.questNegotiation.declineQuest({
-                memberId: world.member1.id,
+                userId: world.user1.id,
                 questId: world.quest.id,
             })
         ).toBeRejectedWithError(IndeclinableError)
@@ -253,7 +253,7 @@ describe('Quest negotiation', () => {
         await world.questStore.save(world.quest)
         await expectAsync(
             world.questNegotiation.declineQuest({
-                memberId: world.member1.id,
+                userId: world.user1.id,
                 questId: world.quest.id,
             })
         ).toBeRejectedWithError(IndeclinableError)
@@ -303,7 +303,7 @@ async function setUp() {
 
     const defaultProposal = {
         questId: quest.id,
-        memberId: member1.id,
+        userId: user1.id,
         time: Date.now() + 100_500_000,
         place: 'the Foo Bar',
     }

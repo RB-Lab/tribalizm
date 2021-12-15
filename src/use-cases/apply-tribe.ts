@@ -43,7 +43,6 @@ export class TribeApplication extends ContextUser {
             type: 'application-message',
             payload: {
                 targetUserId: chief.userId,
-                targetMemberId: chief.id,
                 tribeName: tribe.name,
                 questId: quest.id,
                 coverLetter: app.coverLetter,
@@ -64,7 +63,6 @@ export interface ApplicationMessage extends Message {
     type: 'application-message'
     payload: {
         targetUserId: string
-        targetMemberId: string
         tribeName: string
         questId: string
         elder: 'chief' | 'shaman'

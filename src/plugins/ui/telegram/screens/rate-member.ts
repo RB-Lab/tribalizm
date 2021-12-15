@@ -5,8 +5,7 @@ import { i18n } from '../../i18n/i18n-ctx'
 import { TgContext } from '../tribe-ctx'
 import { makeCallbackDataParser } from './callback-parser'
 
-const parser = makeCallbackDataParser('rate-member', [
-    'memberId',
+const parser = makeCallbackDataParser('rate', [
     'voteFor',
     'questId',
     'score',
@@ -25,7 +24,7 @@ export function rateMemberScreen({ bot, bus, tgUsers }: TgContext) {
                 wisdom: data.score,
             })
             await ctx.tribalizm.questFinale.finalize({
-                memberId: data.memberId,
+                userId: ctx.user.userId,
                 questId: data.questId,
                 votes: [
                     {
@@ -71,7 +70,6 @@ export function rateMemberScreen({ bot, bus, tgUsers }: TgContext) {
                 return Markup.button.callback(
                     text,
                     parser.serialize({
-                        memberId: payload.targetMemberId,
                         score,
                         voteFor: payload.elderId,
                         questId: payload.questId,
@@ -105,7 +103,6 @@ export function rateMemberScreen({ bot, bus, tgUsers }: TgContext) {
                 return Markup.button.callback(
                     text,
                     parser.serialize({
-                        memberId: payload.targetMemberId,
                         score,
                         voteFor: payload.memberId,
                         questId: payload.questId,

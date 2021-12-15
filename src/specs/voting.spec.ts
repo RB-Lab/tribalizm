@@ -27,8 +27,8 @@ describe('Voting', () => {
                 votes: [],
             })
         )
-        await world.stromCycle.toVoting(world.toVoteTask)
-        await world.voting.voteUp(world.idea.id, world.votingMember.id)
+        await world.stormCycle.toVoting(world.toVoteTask)
+        await world.voting.voteUp(world.idea.id, world.votingMember.userId)
         await expectAsync(world.getIdea()).toBeResolvedTo(
             jasmine.objectContaining<QuestIdea>({
                 votes: jasmine.arrayContaining([
@@ -39,7 +39,7 @@ describe('Voting', () => {
                 ]),
             })
         )
-        await world.voting.voteDown(world.idea.id, world.votingMember.id)
+        await world.voting.voteDown(world.idea.id, world.votingMember.userId)
         await expectAsync(world.getIdea()).toBeResolvedTo(
             jasmine.objectContaining<QuestIdea>({
                 votes: jasmine.arrayContaining([
@@ -53,56 +53,56 @@ describe('Voting', () => {
     })
     it('should allow re-voting', async () => {
         const world = await setUp()
-        await world.stromCycle.toVoting(world.toVoteTask)
-        await world.voting.voteUp(world.idea.id, world.votingMember.id)
-        await world.voting.voteDown(world.idea.id, world.votingMember.id)
+        await world.stormCycle.toVoting(world.toVoteTask)
+        await world.voting.voteUp(world.idea.id, world.votingMember.userId)
+        await world.voting.voteDown(world.idea.id, world.votingMember.userId)
         const idea = await world.getIdea()
         expect(idea?.votes.length).toEqual(1)
         expect(idea?.getScore()).toEqual(-1)
     })
     it('FAILs to vote own idea', async () => {
         const world = await setUp()
-        await world.stromCycle.toVoting(world.toVoteTask)
+        await world.stormCycle.toVoting(world.toVoteTask)
         await expectAsync(
-            world.voting.voteUp(world.idea.id, world.idea.memberId)
+            world.voting.voteUp(world.idea.id, world.ideaMember.userId)
         ).toBeRejectedWithError(SelfVotingIdeaError)
     })
     it('FAILs to vote twice', async () => {
         const world = await setUp()
-        await world.stromCycle.toVoting(world.toVoteTask)
-        await world.voting.voteUp(world.idea.id, world.votingMember.id)
+        await world.stormCycle.toVoting(world.toVoteTask)
+        await world.voting.voteUp(world.idea.id, world.votingMember.userId)
         await expectAsync(
-            world.voting.voteUp(world.idea.id, world.votingMember.id)
+            world.voting.voteUp(world.idea.id, world.votingMember.userId)
         ).toBeRejectedWithError(DoubleVotingError)
     })
     it('FAILs to vote for non-existing idea', async () => {
         const world = await setUp()
-        await world.stromCycle.toVoting(world.toVoteTask)
+        await world.stormCycle.toVoting(world.toVoteTask)
         await expectAsync(
-            world.voting.voteUp('ololo', world.votingMember.id)
+            world.voting.voteUp('ololo', world.votingMember.userId)
         ).toBeRejectedWithError(EntityNotFound)
     })
     it('FAILs to vote before storm started', async () => {
         const world = await setUp()
         await expectAsync(
-            world.voting.voteDown(world.idea.id, world.votingMember.id)
+            world.voting.voteDown(world.idea.id, world.votingMember.userId)
         ).toBeRejectedWithError(VotingNotStartedError)
     })
 
     it('FAILs to vote in a finished storm', async () => {
         const world = await setUp()
 
-        await world.stromCycle.toVoting(world.toVoteTask)
+        await world.stormCycle.toVoting(world.toVoteTask)
         const endTask = await world.taskStore._last()
-        world.stromCycle.finalize(endTask as any)
+        world.stormCycle.finalize(endTask as any)
 
         await expectAsync(
-            world.voting.voteUp(world.idea.id, world.votingMember.id)
+            world.voting.voteUp(world.idea.id, world.votingMember.userId)
         ).toBeRejectedWithError(BrainstormEndedError)
     })
     it('FAILs to vote for non-existing persons', async () => {
         const world = await setUp()
-        await world.stromCycle.toVoting(world.toVoteTask)
+        await world.stormCycle.toVoting(world.toVoteTask)
         await expectAsync(
             world.voting.voteDown(world.idea.id, 'ololo')
         ).toBeRejectedWithError(EntityNotFound)
@@ -115,10 +115,10 @@ describe('Voting', () => {
                 tribeId: 't-not-42',
             })
         )
-        await world.stromCycle.toVoting(world.toVoteTask)
+        await world.stormCycle.toVoting(world.toVoteTask)
         await expectAsync(
             world.voting.voteUp(world.idea.id, member.id)
-        ).toBeRejectedWithError(ExternalMemberVoteError)
+        ).toBeRejected()
     })
 })
 
@@ -128,8 +128,8 @@ async function setUp() {
 
     const { tribe, members } = await context.testing.makeTribe()
 
-    const stromCycle = new BrainstormLifecycle(context)
-    await stromCycle.declare({
+    const stormCycle = new BrainstormLifecycle(context)
+    await stormCycle.declare({
         memberId: tribe.chiefId!,
         time: Date.now() + 100_500_000,
     })
@@ -137,7 +137,7 @@ async function setUp() {
     const tasks = await context.stores.taskStore.find({
         type: 'start-brainstorm',
     })
-    await stromCycle.startStorm(tasks[0] as any)
+    await stormCycle.startStorm(tasks[0] as any)
     const toVoteTask = await context.stores.taskStore._last()
     const ideasAdder = new AddIdea(context)
     await ideasAdder.addIdea({
@@ -147,12 +147,12 @@ async function setUp() {
     })
     const idea = await context.stores.ideaStore._last()
 
-    // aftere all updates
+    // after all updates
     brainstorm = await context.stores.brainstormStore._last()
 
     return {
         ...context.stores,
-        stromCycle,
+        stormCycle: stormCycle,
         voting,
         toVoteTask: toVoteTask as StormToVoting & Storable,
         brainstorm,

@@ -1,5 +1,5 @@
 import { mapify } from '../ts-utils'
-import { isIntroductionQuest, QuestType } from './entities/quest'
+import { isIntroductionQuest } from './entities/quest'
 import { Storable } from './entities/store'
 import { ContextUser } from './utils/context-user'
 import { findMaxTrait } from './utils/members-utils'
@@ -9,16 +9,16 @@ import { HowWasQuestTask, IntroductionTask } from './utils/scheduler'
 export class QuestFinale extends ContextUser {
     finalize = async (req: QuestFinaleRequest) => {
         const quest = await this.getQuest(req.questId)
-        quest.finish(req.memberId)
-        const member = await this.getMember(req.memberId)
+        const member = await this.getQuestMemberByUserId(quest, req.userId)
+        quest.finish(member.id)
         // TODO BEGIN transaction
         // TODO 🤔 this looks like it doesn't belong here...
-        if (isIntroductionQuest(quest) && req.memberId === quest.newMemberId) {
+        if (isIntroductionQuest(quest) && member.id === quest.newMemberId) {
             const allMembers = await this.stores.memberStore.find({
                 tribeId: member.tribeId,
             })
             const allIntroQuests =
-                await this.stores.questStore.getAllIntroQuests(req.memberId)
+                await this.stores.questStore.getAllIntroQuests(member.id)
             const nextOldMember = allMembers
                 .sort(() => Math.random() - 0.5)
                 .find(
@@ -38,16 +38,16 @@ export class QuestFinale extends ContextUser {
             }
         }
         for (let vote of req.votes) {
-            const member = await this.getMember(vote.voteForId)
-            member.castVote({
+            const ratedMember = await this.getMember(vote.voteForId)
+            ratedMember.castVote({
                 type: 'quest-vote',
                 casted: Date.now(),
+                memberId: member.id,
                 charisma: vote.charisma,
                 wisdom: vote.wisdom,
-                memberId: req.memberId,
                 questId: quest.id,
             })
-            await this.stores.memberStore.save(member)
+            await this.stores.memberStore.save(ratedMember)
         }
         const members = await this.stores.memberStore.find({
             tribeId: member.tribeId,
@@ -77,7 +77,6 @@ export class QuestFinale extends ContextUser {
             this.notify<RateMemberMessage>({
                 type: 'rate-member-message',
                 payload: {
-                    targetMemberId: member.id,
                     targetUserId: member.userId,
                     questId: quest.id,
                     memberName: membersViews[otherMember.id].name,
@@ -97,7 +96,7 @@ interface Vote {
 }
 
 export interface QuestFinaleRequest {
-    memberId: string
+    userId: string
     questId: string
     // TODO get rid of array here?
     votes: Vote[]
@@ -106,7 +105,6 @@ export interface QuestFinaleRequest {
 export interface RateMemberMessage extends Message {
     type: 'rate-member-message'
     payload: {
-        targetMemberId: string
         targetUserId: string
         questId: string
         memberName: string

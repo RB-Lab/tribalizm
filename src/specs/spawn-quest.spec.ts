@@ -171,8 +171,8 @@ describe('Spawn new quest', () => {
         })
         it('should still pick someone if there is not enough upvoters', async () => {
             const world = await setUp()
-            await world.voting.voteDown(world.idea.id, world.members[3].id)
-            await world.voting.voteDown(world.idea.id, world.members[4].id)
+            await world.voting.voteDown(world.idea.id, world.members[3].userId)
+            await world.voting.voteDown(world.idea.id, world.members[4].userId)
             await world.questSpawn.spawnQuest(world.defautlSpawnRequest)
             const quest = await world.getSpawnedQuest()
             expect(quest.memberIds.length).toEqual(2)

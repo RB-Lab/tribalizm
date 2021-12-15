@@ -1,3 +1,4 @@
+import { purgeGlobalCallbackRegistry } from '../../plugins/ui/telegram/screens/callback-parser'
 import { Awaited } from '../../ts-utils'
 import { City } from '../../use-cases/entities/city'
 import { Tribe } from '../../use-cases/entities/tribe'
@@ -22,6 +23,7 @@ describe('Get into tribe [integration]', () => {
         await world.tearDown()
         jasmine.clock().uninstall()
         process.env.chatDebug = ''
+        purgeGlobalCallbackRegistry()
     })
 
     it('Main scenario', async () => {

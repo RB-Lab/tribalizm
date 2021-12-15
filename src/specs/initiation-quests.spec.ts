@@ -65,7 +65,7 @@ describe('Initiation quests:', () => {
             await expectAsync(
                 world.initiation.startInitiation({
                     ...world.initReq,
-                    elderId: world.members[world.members.length - 2].id,
+                    userId: world.members[world.members.length - 2].userId,
                 })
             ).toBeRejectedWithError(ElderMismatchError)
         })
@@ -87,15 +87,15 @@ describe('Initiation quests:', () => {
             await expectAsync(
                 world.initiation.approveByChief({
                     questId: world.quest.id,
-                    elderId: world.members[world.members.length - 2].id,
+                    userId: world.members[world.members.length - 2].userId,
                 })
             ).toBeRejectedWithError(ElderMismatchError)
         })
         it('transfers approved application to shaman', async () => {
-            const world = await toChiefAproval()
+            const world = await toChiefApproval()
             await world.initiation.approveByChief({
                 questId: world.quest.id,
-                elderId: world.chief.id,
+                userId: world.chief.userId,
             })
             const app = await world.applicationStore.getById(
                 world.application.id
@@ -105,11 +105,11 @@ describe('Initiation quests:', () => {
         })
 
         it('fires an initiation quest', async () => {
-            const world = await toChiefAproval()
+            const world = await toChiefApproval()
 
             await world.initiation.approveByChief({
                 questId: world.quest.id,
-                elderId: world.chief.id,
+                userId: world.chief.userId,
             })
             const quest = await world.questStore._last()
             expect(quest).toEqual(
@@ -125,14 +125,14 @@ describe('Initiation quests:', () => {
         })
 
         it('notifies shaman about application', async () => {
-            const world = await toChiefAproval()
+            const world = await toChiefApproval()
             const onApprove = world.spyOnMessage<ApplicationMessage>(
                 'application-message'
             )
 
             await world.initiation.approveByChief({
                 questId: world.quest.id,
-                elderId: world.chief.id,
+                userId: world.chief.userId,
             })
             const newQuest = await world.questStore._last()
 
@@ -141,7 +141,6 @@ describe('Initiation quests:', () => {
                     type: 'application-message',
                     payload: {
                         targetUserId: world.shaman.userId,
-                        targetMemberId: world.shaman.id,
                         tribeName: world.tribe.name,
                         coverLetter: world.application.coverLetter,
                         userName: world.user.name,
@@ -151,12 +150,12 @@ describe('Initiation quests:', () => {
                 })
             )
         })
-        it('approves the memeber, if tribe has no shaman', async () => {
-            const world = await toChiefAproval()
+        it('approves the member, if tribe has no shaman', async () => {
+            const world = await toChiefApproval()
             await world.tribeStore.save({ ...world.tribe, shamanId: null })
             await world.initiation.approveByChief({
                 questId: world.quest.id,
-                elderId: world.chief.id,
+                userId: world.chief.userId,
             })
             const app = await world.applicationStore.getById(
                 world.application.id
@@ -169,14 +168,14 @@ describe('Initiation quests:', () => {
                 .toEqual(false)
         })
         it('approves member if the chief is also a shaman', async () => {
-            const world = await toChiefAproval()
+            const world = await toChiefApproval()
             await world.tribeStore.save({
                 ...world.tribe,
                 shamanId: world.tribe.chiefId,
             })
             await world.initiation.approveByChief({
                 questId: world.quest.id,
-                elderId: world.chief.id,
+                userId: world.chief.userId,
             })
             const app = await world.applicationStore.getById(
                 world.application.id
@@ -189,14 +188,14 @@ describe('Initiation quests:', () => {
                 .toEqual(false)
         })
         it('notifies member on (express) approval', async () => {
-            const world = await toChiefAproval()
+            const world = await toChiefApproval()
             await world.tribeStore.save({ ...world.tribe, shamanId: null })
             const onApprove = world.spyOnMessage<ApplicationApprovedMessage>(
                 'application-approved'
             )
             await world.initiation.approveByChief({
                 questId: world.quest.id,
-                elderId: world.chief.id,
+                userId: world.chief.userId,
             })
             expect(onApprove).toHaveBeenCalledWith(
                 jasmine.objectContaining<ApplicationApprovedMessage>({
@@ -224,7 +223,7 @@ describe('Initiation quests:', () => {
             await expectAsync(
                 world.initiation.startShamanInitiation({
                     ...world.initReq,
-                    elderId: world.members[world.members.length - 2].id,
+                    userId: world.members[world.members.length - 2].userId,
                 })
             ).toBeRejectedWithError(ElderMismatchError)
         })
@@ -232,7 +231,7 @@ describe('Initiation quests:', () => {
             const world = await toShamanInitiation()
             await world.initiation.startShamanInitiation({
                 ...world.initReq,
-                elderId: world.shaman.id,
+                userId: world.shaman.userId,
             })
             const app = await world.applicationStore.getById(
                 world.application.id
@@ -255,7 +254,7 @@ describe('Initiation quests:', () => {
             await expectAsync(
                 world.initiation.approveByShaman({
                     questId: world.quest.id,
-                    elderId: world.members[world.members.length - 2].id,
+                    userId: world.members[world.members.length - 2].userId,
                 })
             ).toBeRejectedWithError(ElderMismatchError)
         })
@@ -263,7 +262,7 @@ describe('Initiation quests:', () => {
             const world = await toShamanApproval()
             await world.initiation.approveByShaman({
                 questId: world.quest.id,
-                elderId: world.shaman.id,
+                userId: world.shaman.userId,
             })
             const app = await world.applicationStore.getById(
                 world.application.id
@@ -283,7 +282,7 @@ describe('Initiation quests:', () => {
 
             await world.initiation.approveByShaman({
                 questId: world.quest.id,
-                elderId: world.shaman.id,
+                userId: world.shaman.userId,
             })
             expect(onApprove).toHaveBeenCalledWith(
                 jasmine.objectContaining<ApplicationApprovedMessage>({
@@ -299,14 +298,14 @@ describe('Initiation quests:', () => {
     })
 
     describe('Decline', () => {
-        it('FAILs to decilne by shaman if NOT in "shamanInitiation" phase', async () => {
+        it('FAILs to decline by shaman if NOT in "shamanInitiation" phase', async () => {
             await failOnWrongPhase(
                 ApplicationPhase.shamanInitiation,
                 'decline',
                 'shaman'
             )
         })
-        it('FAILs to decilne by chief if NOT in "chiefzInitiation" or "initial" phase', async () => {
+        it('FAILs to decline by chief if NOT in "chiefInitiation" or "initial" phase', async () => {
             await failOnWrongPhase(
                 [ApplicationPhase.chiefInitiation, ApplicationPhase.initial],
                 'decline',
@@ -314,11 +313,11 @@ describe('Initiation quests:', () => {
             )
         })
         it('FAILs to decline by wrong elder (chief)', async () => {
-            const world = await toChiefAproval()
+            const world = await toChiefApproval()
             await expectAsync(
                 world.initiation.decline({
                     questId: world.quest.id,
-                    elderId: world.members[world.members.length - 2].id,
+                    userId: world.members[world.members.length - 2].userId,
                 })
             ).toBeRejectedWithError(ElderMismatchError)
         })
@@ -327,12 +326,12 @@ describe('Initiation quests:', () => {
             await expectAsync(
                 world.initiation.decline({
                     questId: world.quest.id,
-                    elderId: world.members[world.members.length - 2].id,
+                    userId: world.members[world.members.length - 2].userId,
                 })
             ).toBeRejectedWithError(ElderMismatchError)
         })
         it('finalizes declined application', async () => {
-            const world = await toChiefAproval()
+            const world = await toChiefApproval()
             await world.initiation.decline(world.initReq)
             const app = await world.applicationStore.getById(
                 world.application.id
@@ -353,7 +352,7 @@ describe('Initiation quests:', () => {
 
             await world.initiation.decline({
                 ...world.initReq,
-                elderId: world.shaman.id,
+                userId: world.shaman.userId,
             })
             expect(onDecline).toHaveBeenCalledWith(
                 jasmine.objectContaining<ApplicationDeclinedMessage>({
@@ -395,7 +394,7 @@ async function setUp() {
     const newMember = await context.stores.memberStore._last()
     const defaultInitiationRequest: InitiationRequest = {
         questId: quest!.id,
-        elderId: chief.id,
+        userId: chief.userId,
     }
 
     const initiation = new Initiation(context)
@@ -419,14 +418,14 @@ async function setUp() {
     }
 }
 
-async function toChiefAproval() {
+async function toChiefApproval() {
     const world = await setUp()
     await world.initiation.startInitiation(world.initReq)
     return world
 }
 
 async function toShamanInitiation() {
-    const world = await toChiefAproval()
+    const world = await toChiefApproval()
 
     await world.initiation.approveByChief(world.initReq)
     const quest = await world.questStore._last()
@@ -439,7 +438,7 @@ async function toShamanApproval() {
 
     await world.initiation.startShamanInitiation({
         ...world.initReq,
-        elderId: world.shaman.id,
+        userId: world.shaman.userId,
     })
     return world
 }
@@ -472,7 +471,7 @@ async function failOnWrongPhase(
             await expectAsync(
                 world.initiation[method]({
                     ...world.initReq,
-                    elderId: world[user].id,
+                    userId: world[user].userId,
                 })
             )
                 .withContext(phase)

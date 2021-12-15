@@ -49,7 +49,7 @@ export class Member implements IMember {
         if (vote.type === 'gathering-vote') {
             if (vote.score < 0 || vote.score > 4) {
                 throw new VoteRangeError(
-                    `Cannot set scroe ${vote.score}: must be between 0 and 4`
+                    `Cannot set score ${vote.score}: must be between 0 and 4`
                 )
             }
         } else if (vote.type === 'quest-vote') {
@@ -66,10 +66,10 @@ export class Member implements IMember {
             }
         }
         this.votes.push(vote)
-        this.recaluclateGatheringScores()
+        this.recalculateGatheringScores()
     }
 
-    private recaluclateGatheringScores = () => {
+    private recalculateGatheringScores = () => {
         const gatheringVotes: Record<string, number[]> = {}
         const memberVotes: Record<string, { c: number[]; w: number[] }> = {}
         let buffer: Record<string, { c: number[]; w: number[] }> = {}
@@ -134,7 +134,7 @@ export interface GatheringVote {
     type: 'gathering-vote'
     /** Member who voted */
     memberId: string
-    /** Gethernin that was the reason for voting */
+    /** Gathering that was the reason for voting */
     gatheringId: string
     score: number
     /** Timestamp of voting moment */

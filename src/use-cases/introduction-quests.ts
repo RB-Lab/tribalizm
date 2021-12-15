@@ -21,7 +21,6 @@ export class IntroductionQuests extends ContextUser {
             payload: {
                 tribe: tribe.name,
                 targetUserId: oldMember.userId,
-                targetMemberId: oldMember.id,
                 questId: quest.id,
                 newMemberName: user.name,
             },
@@ -40,7 +39,6 @@ export interface IntroQuestRequest {
 export interface IntroMessage extends Message {
     type: 'intro-request-message'
     payload: {
-        targetMemberId: string
         targetUserId: string
         questId: string
         newMemberName: string

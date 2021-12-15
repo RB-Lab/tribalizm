@@ -1,4 +1,5 @@
 import { StoredBotUpdate } from 'telegram-test-api/lib/telegramServer'
+import { purgeGlobalCallbackRegistry } from '../../plugins/ui/telegram/screens/callback-parser'
 import { Awaited } from '../../ts-utils'
 import { Admin } from '../../use-cases/admin'
 import { City } from '../../use-cases/entities/city'
@@ -20,6 +21,7 @@ describe('Brainstorm [integration]', () => {
         jasmine.DEFAULT_TIMEOUT_INTERVAL = 5000
         await world.tearDown()
         jasmine.clock().uninstall()
+        purgeGlobalCallbackRegistry()
     })
 
     it('Main scenario', async () => {

@@ -30,6 +30,7 @@ export enum QuestStatus {
 }
 
 export interface IQuestData {
+    // TODO add tribeId here & get rid of getQuestMemberByUserId & parentQuestMember
     id: string | null
     type: QuestType
     status: QuestStatus

@@ -10,7 +10,7 @@ describe('Quest finale', () => {
         await expectAsync(
             world.questFinale.finalize({
                 ...world.defaultFinalReq,
-                memberId: 'not-assigned',
+                userId: 'not-assigned',
             })
         ).toBeRejectedWithError(NotYourQuest)
     })
@@ -39,7 +39,7 @@ describe('Quest finale', () => {
                     votes: [
                         {
                             ...world.defaultFinalReq.votes[0],
-                            voteForId: world.defaultFinalReq.memberId,
+                            voteForId: world.member1.id,
                         },
                     ],
                 })
@@ -189,7 +189,7 @@ async function setUp() {
 
     const questFinale = new QuestFinale(context)
     const defaultFinalReq: QuestFinaleRequest = {
-        memberId: member1.id,
+        userId: member1.userId,
         questId: quest.id,
         votes: [
             {
@@ -223,9 +223,12 @@ async function setUp() {
                 const quest = await context.stores.questStore.save(
                     new Quest({ memberIds: [memberId, voteForId] })
                 )
+                const member = await context.stores.memberStore.getById(
+                    memberId
+                )
                 const wisdom = votesWisdom ? votesWisdom[i] : votesCharisma[i]
                 await questFinale.finalize({
-                    memberId,
+                    userId: member!.userId,
                     questId: quest.id,
                     votes: [{ voteForId, charisma: votesCharisma[i], wisdom }],
                 })

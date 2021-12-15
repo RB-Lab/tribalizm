@@ -9,7 +9,7 @@
     db: '{{ lookup("env", "DB") }}'
     bot_token: '{{ lookup("env", "BOT_TOKEN") }}'
     domain: '{{ lookup("env", "DOMAIN") }}'
-    port: '{{ lookup("env", "PORT") }}'
+    app_port: '{{ lookup("env", "PORT") }}'
     network: '{{ lookup("env", "NETWORK") }}'
     log_level: trace
 
@@ -18,7 +18,7 @@
       tags: [debug]
       debug:
         msg:
-          'Vars: registry: {{ registry }}; version: {{ version }}; port: {{ port }};
+          'Vars: registry: {{ registry }}; version: {{ version }}; port: {{ app_port }};
           db_user: {{ db_user }}; db_pass: {{ db_pass }}; db_host: {{ db_host }}; db: {{ db }};
           bot_token: {{ bot_token }}; domain: {{ domain }};  network: {{ network }}; '
 
@@ -64,7 +64,7 @@
         networks:
           - name: '{{ network }}'
         ports:
-          - '{{ port | string }}:3000'
+          - '{{ app_port | string }}:3000'
         restart_policy: always
         env:
           DB_USER: '{{ db_user | string}}'
@@ -86,7 +86,7 @@
     - name: Set Cron job to check tasks queue
       cron:
         name: check tasks queue
-        job: 'curl localhost:{{ port | string }}/check-queue > /dev/null'
+        job: 'curl localhost:{{ app_port | string }}/check-queue > /dev/null'
 
     - name: Pull Tribalizm Admin image
       tags: ['pull']

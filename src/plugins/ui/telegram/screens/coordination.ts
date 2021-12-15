@@ -20,7 +20,6 @@ function isSpawnState(state: Maybe<UserState>): state is SpawnState {
 }
 interface GatherState extends UserState {
     type: 'gather-state'
-    memberId: string
     parentQuestId: string
     description?: string
     date?: Date
@@ -36,7 +35,6 @@ const gatherConfirm = makeCallbackDataParser('gather-confirm', [])
 const spawn = makeCallbackDataParser('spawn-quest', ['questId', 'memberId'])
 const gathering = makeCallbackDataParser('declare-gathering', [
     'questId',
-    'memberId',
     'type',
 ])
 const reQuest = makeCallbackDataParser('re-quest', ['questId', 'memberId'])
@@ -52,11 +50,10 @@ export function coordinationScreen({ bot, bus, tgUsers }: TgContext) {
         await ctx.reply(i18n(ctx).coordination.spawnDescribe())
     })
     bot.action(gathering.regex, async (ctx) => {
-        const { questId, memberId, type } = gathering.parse(ctx.match[0])
+        const { questId, type } = gathering.parse(ctx.match[0])
         await ctx.user.setState<GatherState>({
             type: 'gather-state',
             gatheringType: type,
-            memberId,
             parentQuestId: questId,
         })
         await ctx.reply(i18n(ctx).coordination.gatheringDescribe())
@@ -112,7 +109,6 @@ export function coordinationScreen({ bot, bus, tgUsers }: TgContext) {
                 Markup.button.callback(
                     texts.edit(),
                     gathering.serialize({
-                        memberId: state.memberId,
                         type: state.gatheringType,
                         questId: state.parentQuestId,
                     })
@@ -137,7 +133,7 @@ export function coordinationScreen({ bot, bus, tgUsers }: TgContext) {
         })
         await ctx.tribalizm.gatheringDeclare.declare({
             description: state.description,
-            memberId: state.memberId,
+            userId: ctx.user.userId,
             parentQuestId: state.parentQuestId,
             place: state.place,
             time: ctx.user.convertTime(state.date).getTime(),
@@ -198,7 +194,6 @@ export function coordinationScreen({ bot, bus, tgUsers }: TgContext) {
                     Markup.button.callback(
                         texts.okay(),
                         negotiate.serialize({
-                            memberId: payload.targetMemberId,
                             questId: payload.questId,
                             elder: null,
                         })
@@ -280,7 +275,6 @@ export function coordinationScreen({ bot, bus, tgUsers }: TgContext) {
                         texts.okay(),
                         negotiate.serialize({
                             elder: null,
-                            memberId: payload.targetMemberId,
                             questId: payload.questId,
                         })
                     ),
