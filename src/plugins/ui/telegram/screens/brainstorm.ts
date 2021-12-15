@@ -61,6 +61,7 @@ export function brainstormScreen({
                 ])
             )
         }
+        removeInlineKeyboard(ctx)
         await ctx.reply(
             texts.proposeDate(),
             ctx.getCalendar(onDateSet, ctx.from?.language_code)

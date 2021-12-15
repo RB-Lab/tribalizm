@@ -30,15 +30,7 @@ export function tribesListScreen({ bot }: TgContext) {
             ctx.user.cityId &&
             (await ctx.tribalizm.tribesShow.getCityInfo(ctx.user.cityId))
 
-        removeInlineKeyboard(
-            ctx,
-            Markup.inlineKeyboard([
-                Markup.button.callback(
-                    i18n(ctx).start.buttons.rules(),
-                    'rules'
-                ),
-            ])
-        )
+        removeInlineKeyboard(ctx)
 
         if (city) {
             return showCityTribesList(ctx, city, 'saved city')
@@ -147,7 +139,7 @@ export function tribesListScreen({ bot }: TgContext) {
             await ctx.replyWithHTML(
                 `<b>${tribe.name}</b>\n${
                     tribe.description
-                }\n <i>${texts.count()} ${tribe.membersCount}</i>`,
+                }\n\t\t\t<i>${texts.count()} ${tribe.membersCount}</i>`,
                 keyboard
             )
         }

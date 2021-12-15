@@ -2,6 +2,7 @@ import { Markup } from 'telegraf'
 import { RateElderMessage } from '../../../../use-cases/initiation'
 import { RateMemberMessage } from '../../../../use-cases/quest-finale'
 import { i18n } from '../../i18n/i18n-ctx'
+import { removeInlineKeyboard } from '../telegraf-hacks'
 import { TgContext } from '../tribe-ctx'
 import { makeCallbackDataParser } from './callback-parser'
 
@@ -34,6 +35,7 @@ export function rateMemberScreen({ bot, bus, tgUsers }: TgContext) {
                     },
                 ],
             })
+            removeInlineKeyboard(ctx)
             await ctx.reply(texts.done())
         } else {
             const keys = [0, 1, 2, 3, 4].map((score) => {

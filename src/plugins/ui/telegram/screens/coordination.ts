@@ -47,6 +47,8 @@ export function coordinationScreen({ bot, bus, tgUsers }: TgContext) {
             memberId,
             parentQuestId: questId,
         })
+
+        removeInlineKeyboard(ctx)
         await ctx.reply(i18n(ctx).coordination.spawnDescribe())
     })
     bot.action(gathering.regex, async (ctx) => {
@@ -56,6 +58,8 @@ export function coordinationScreen({ bot, bus, tgUsers }: TgContext) {
             gatheringType: type,
             parentQuestId: questId,
         })
+
+        removeInlineKeyboard(ctx)
         await ctx.reply(i18n(ctx).coordination.gatheringDescribe())
     })
     async function onDateSet(date: Date, ctx: TribeCtx) {

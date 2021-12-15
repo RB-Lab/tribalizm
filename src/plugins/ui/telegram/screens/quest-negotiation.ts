@@ -44,6 +44,7 @@ export function questNegotiationScreen({ bot, bus, tgUsers }: TgContext) {
             questId,
             elder,
         })
+        await removeInlineKeyboard(ctx)
         await ctx.reply(
             texts.proposeDate(),
             ctx.getCalendar(onDateSet, ctx.from?.language_code)
@@ -71,18 +72,16 @@ export function questNegotiationScreen({ bot, bus, tgUsers }: TgContext) {
         ctx.logEvent('quest: proposal', { questId: state.questId })
         const texts = i18n(ctx).questNegotiation
         if (!state.date) {
-            await ctx.reply(
+            return ctx.reply(
                 texts.proposeDate(),
                 ctx.getCalendar(onDateSet, ctx.from?.language_code)
             )
-            return
         }
         if (!state.place) {
             return ctx.editMessageText(
                 texts.proposePlace(),
                 Markup.inlineKeyboard([])
             )
-            return
         }
         await ctx.user.setState(null)
         if (state.elder === 'chief') {
@@ -162,6 +161,7 @@ export function questNegotiationScreen({ bot, bus, tgUsers }: TgContext) {
             }
             text = texts.proposalAgreedPersonal({ who: other.name })
         }
+        removeInlineKeyboard(ctx)
         await ctx.reply(text)
     })
 

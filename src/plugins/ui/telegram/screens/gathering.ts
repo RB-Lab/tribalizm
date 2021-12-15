@@ -2,6 +2,7 @@ import { Markup } from 'telegraf'
 import { GatheringMessage } from '../../../../use-cases/gathering-declare'
 import { HowWasGatheringMessage } from '../../../../use-cases/gathering-finale'
 import { i18n } from '../../i18n/i18n-ctx'
+import { removeInlineKeyboard } from '../telegraf-hacks'
 import { TgContext } from '../tribe-ctx'
 import { makeCallbackDataParser } from './callback-parser'
 
@@ -21,6 +22,7 @@ export function gatheringScreen({ bot, bus, tgUsers }: TgContext) {
             gatheringId: data.gatheringId,
             userId: ctx.user.userId,
         })
+        removeInlineKeyboard(ctx)
         await ctx.reply(i18n(ctx).gathering.accepted())
     })
     bot.action(decline.regex, async (ctx) => {
@@ -30,6 +32,7 @@ export function gatheringScreen({ bot, bus, tgUsers }: TgContext) {
             gatheringId: data.gatheringId,
             userId: ctx.user.userId,
         })
+        removeInlineKeyboard(ctx)
         await ctx.reply(i18n(ctx).gathering.declined())
     })
     bot.action(rateGathering.regex, async (ctx) => {
@@ -44,6 +47,7 @@ export function gatheringScreen({ bot, bus, tgUsers }: TgContext) {
             gatheringId: data.gatheringId,
             userId: ctx.user.userId,
         })
+        removeInlineKeyboard(ctx)
         await ctx.reply(i18n(ctx).gathering.rateDone())
     })
 

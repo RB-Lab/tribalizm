@@ -7,6 +7,7 @@ import {
     RequestApplicationFeedbackMessage,
 } from '../../../../use-cases/initiation'
 import { i18n } from '../../i18n/i18n-ctx'
+import { removeInlineKeyboard } from '../telegraf-hacks'
 import { TgContext } from '../tribe-ctx'
 import { UserState } from '../users-adapter'
 import { makeCallbackDataParser } from './callback-parser'
@@ -20,7 +21,9 @@ function isDeclineState(state: Maybe<UserState>): state is DeclineState {
     return notEmpty(state) && state.type === 'decline-state'
 }
 
-const declineParser = makeCallbackDataParser('decline-application', ['questId'])
+const declineApplication = makeCallbackDataParser('decline-application', [
+    'questId',
+])
 
 const acceptParser = makeCallbackDataParser('application-accept', ['questId'])
 const appDeclineParser = makeCallbackDataParser('application-decline', [
@@ -29,13 +32,14 @@ const appDeclineParser = makeCallbackDataParser('application-decline', [
 
 export function initiationScreen({ bot, bus, tgUsers }: TgContext) {
     // this is from the get-go, @see notifications/ApplicationMessage
-    bot.action(declineParser.regex, async (ctx) => {
-        const data = declineParser.parse(ctx.match.input)
+    bot.action(declineApplication.regex, async (ctx) => {
+        const data = declineApplication.parse(ctx.match.input)
         await ctx.user.setState<DeclineState>({
             type: 'decline-state',
             questId: data.questId,
         })
         const texts = i18n(ctx).initiation
+        await removeInlineKeyboard(ctx)
         await ctx.reply(texts.declinePrompt())
     })
 
@@ -107,7 +111,7 @@ export function initiationScreen({ bot, bus, tgUsers }: TgContext) {
                 ),
                 Markup.button.callback(
                     texts.decline(),
-                    declineParser.serialize({
+                    declineApplication.serialize({
                         questId: payload.questId,
                     })
                 ),
