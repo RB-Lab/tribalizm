@@ -149,8 +149,10 @@ export async function makeBot(config: BotConfig) {
     brainstormScreen(tgContext)
     coordinationScreen(tgContext)
     gatheringScreen(tgContext)
+
+    // unhandled text (🗿 Spirits may hear you...)
     bot.on('text', async (ctx) => {
-        config.logger.event('unhandled text', { text: ctx.message.text })
+        ctx.logEvent('unhandled text', { text: ctx.message.text })
         return ctx.reply(i18n(ctx).unhandledText())
     })
 

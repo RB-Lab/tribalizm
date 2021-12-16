@@ -14,7 +14,7 @@ services:
       - tribalizm
   tribalizm-bot:
     # NOTE: for tags to work build must be run as yarn script
-    image: 'tribalizm-bot:${npm_package_version}'
+    image: 'tribalizm-bot:${VERSION}'
     build:
       context: .
       dockerfile: ./Dockerfile.bot
@@ -27,7 +27,7 @@ services:
     networks:
       - tribalizm
   admin:
-    image: 'tribalizm-admin:${npm_package_version}'
+    image: 'tribalizm-admin:${VERSION}'
     build:
       context: .
       dockerfile: ./Dockerfile.admin

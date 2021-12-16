@@ -94,7 +94,7 @@ describe('Voting', () => {
 
         await world.stormCycle.toVoting(world.toVoteTask)
         const endTask = await world.taskStore._last()
-        world.stormCycle.finalize(endTask as any)
+        await world.stormCycle.finalize(endTask as any)
 
         await expectAsync(
             world.voting.voteUp(world.idea.id, world.votingMember.userId)

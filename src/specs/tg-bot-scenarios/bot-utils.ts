@@ -1,5 +1,5 @@
-import Transport from 'winston-transport'
 import TelegramServer from 'telegram-test-api'
+import Transport from 'winston-transport'
 import { InMemoryStore } from '../../plugins/stores/in-memory-store/in-memory-store'
 import { makeBot } from '../../plugins/ui/telegram/bot'
 import { TelegramMessageInMemoryStore } from '../../plugins/ui/telegram/message-store'
@@ -8,6 +8,7 @@ import {
     StoreTelegramUsersAdapter,
 } from '../../plugins/ui/telegram/users-adapter'
 import { Awaited, noop, notEmpty } from '../../ts-utils'
+import { StoredCity } from '../../use-cases/entities/city'
 import { Member } from '../../use-cases/entities/member'
 import { createContext } from '../test-context'
 
@@ -179,6 +180,11 @@ export async function createTelegramContext(
             next()
         }
     }
+    const telegramUsersAdapter = new StoreTelegramUsersAdapter(
+        context.stores.userStore,
+        new TgUserStore(),
+        context.logger
+    )
     const bot = await makeBot({
         notificationBus: context.async.notificationBus,
         metrics: {
@@ -190,18 +196,12 @@ export async function createTelegramContext(
             port: 9002,
             path: '/tg-hook',
         },
-        telegramUsersAdapter: new StoreTelegramUsersAdapter(
-            context.stores.userStore,
-            new TgUserStore(),
-            context.logger
-        ),
+        telegramUsersAdapter,
         messageStore,
         telegramURL: server.config.apiURL,
         logger: context.logger,
     })
     bot.telegram.setWebhook('http://localhost:9002/tg-hook')
-    // TODO get rid of this use  --seed=66348
-    await new Promise((r) => setTimeout(r, 10))
 
     function makeClient(user: string, chat: string) {
         makeClient.counter++
@@ -219,10 +219,15 @@ export async function createTelegramContext(
 
     async function addTribeMember(
         client: ReturnType<typeof wrapClient>,
-        tribeId: string
+        tribeId: string,
+        city: StoredCity
     ) {
         await client.chat('/start')
         const user = await context.stores.userStore._last()
+        const tgUser = await telegramUsersAdapter.getTelegramUserForTribalism(
+            user.id
+        )
+        tgUser.locate(city.id, city.timeZone)
 
         const member = await context.stores.memberStore.save(
             new Member({

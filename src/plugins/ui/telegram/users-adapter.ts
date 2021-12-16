@@ -79,15 +79,29 @@ export class TelegramUser implements SavedTelegramUser {
     }
 
     /**
-     * Converts from server's date to user's one (if timeZone is set)
+     * Converts user defined date to server time (if timeZone is set)
+     * @param date date that is made from user-defined **string**
      */
-    convertTime(date: Date) {
-        if (!this.timeZone) return date
-        return new Date(
-            Date.parse(
-                date.toLocaleString('en-US', { timeZone: this.timeZone })
-            )
-        )
+    toServerTime(date: Date) {
+        return new Date(date.getTime() - this.getTimeDiff(date))
+    }
+
+    /**
+     * Converts server-created date to user's timezone (if it is set)
+     * @param date Date that is made from UTC time stamp
+     * @returns Date that accounts for user time zone and server's offset
+     */
+    toUserTime(date: Date) {
+        return new Date(date.getTime() + this.getTimeDiff(date))
+    }
+
+    private getTimeDiff(date: Date) {
+        if (!this.timeZone) return 0
+        const userTimeString = date.toLocaleString('en-US', {
+            timeZone: this.timeZone,
+        })
+
+        return Date.parse(userTimeString) - date.getTime()
     }
 
     private async save() {

@@ -1,7 +1,7 @@
 ---
 - hosts: bot
   vars:
-    version: '{{ lookup("env", "npm_package_version") }}'
+    version: '{{ lookup("env", "VERSION") }}'
     registry: '{{ lookup("env", "REGISTRY") }}'
     db_user: '{{ lookup("env", "DB_USER") }}'
     db_pass: '{{ lookup("env", "DB_PASS") }}'
@@ -93,3 +93,4 @@
       docker_image:
         name: '{{ registry | string }}/tribalizm-admin:{{ version | string }}'
         source: pull
+        force_source: yes

@@ -43,6 +43,7 @@ export function brainstormScreen({
     bot.action(startBrainstorm.regex, async (ctx) => {
         const texts = i18n(ctx).brainstorm
         const { memberId } = startBrainstorm.parse(ctx.match[0])
+
         const onDateSet = (date: Date, ctxIn: TribeCtx) => {
             ctxIn.editMessageText(
                 texts.confirmPrompt({ date }),
@@ -51,7 +52,7 @@ export function brainstormScreen({
                         texts.confirm(),
                         stormConfirm.serialize({
                             memberId,
-                            time: ctx.user.convertTime(date).getTime(),
+                            time: ctx.user.toServerTime(date).getTime(),
                         })
                     ),
                     Markup.button.callback(
@@ -145,7 +146,9 @@ export function brainstormScreen({
             const texts = i18n(user).brainstorm
             await bot.telegram.sendMessage(
                 user.chatId,
-                texts.brainstormDeclared({ date: new Date(payload.time) })
+                texts.brainstormDeclared({
+                    date: user.toUserTime(new Date(payload.time)),
+                })
             )
         }
     )
@@ -158,7 +161,9 @@ export function brainstormScreen({
             const texts = i18n(user).brainstorm
             await bot.telegram.sendMessage(
                 user.chatId,
-                texts.brainstormNotice({ date: new Date(payload.time) })
+                texts.brainstormNotice({
+                    date: user.toUserTime(new Date(payload.time)),
+                })
             )
         }
     )

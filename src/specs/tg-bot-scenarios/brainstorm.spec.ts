@@ -12,9 +12,9 @@ describe('Brainstorm [integration]', () => {
     let world: Awaited<ReturnType<typeof setup>>
     beforeEach(async () => {
         jasmine.DEFAULT_TIMEOUT_INTERVAL = 10000
-        world = await setup()
         jasmine.clock().install()
         jasmine.clock().mockDate(new Date('2021-11-02'))
+        world = await setup()
         // process.env.chatDebug = 'true'
     })
     afterEach(async () => {
@@ -34,6 +34,7 @@ describe('Brainstorm [integration]', () => {
         )
         expect(brainstormButtons.length).toBe(1)
         const calendar = await world.chief.chatLast(brainstormButtons[0])
+
         const dates = getInlineKeyCallbacks(calendar).filter((cb) =>
             cb.includes('date')
         )
@@ -78,6 +79,15 @@ describe('Brainstorm [integration]', () => {
 
         // Fast forward to brainstorm start time
         jasmine.clock().mockDate(new Date(tasks[2].time + 1000))
+
+        // Check that in Novosibirsk is intended time
+        expect(confirmUpd.message.text).toMatch('12:30 PM')
+        expect(
+            new Date().toLocaleString('en-US', {
+                timeZone: world.city.timeZone,
+            })
+        ).toMatch(/12:30:\d\d PM/)
+
         await world.context.requestTaskQueue()
         // All members are notified
         for (let u of world.users) {
@@ -86,7 +96,7 @@ describe('Brainstorm [integration]', () => {
         }
         const ideas: StoredBotUpdate[] = []
         // user 2 adds idea
-        const idea1 = "Let's go FOOOO!!"
+        const idea1 = "Let's go FOO!!"
         await world.user2.client.sendMessage(
             world.user2.client.makeMessage(idea1)
         )
@@ -169,7 +179,7 @@ describe('Brainstorm [integration]', () => {
             await world.user3.chatLast(hour2, true)
         )[2]
         await world.user3.chat(minutes2, true)
-        await world.user3.chatLast('Tarantuga Inn')
+        await world.user3.chatLast('Tarantulae Inn')
         await world.user3.chat('confirm-proposal', true)
 
         // check that quest negotiation works on coordination quests as well
@@ -209,7 +219,7 @@ describe('Brainstorm [integration]', () => {
 
         // spawn a new quest
         await world.chief.chat(spawnBtn!)
-        await world.chief.chat('Buy FOOO grenades!')
+        await world.chief.chat('Buy FOO grenades!')
         const spawnedQuest = await world.context.stores.questStore._last()
         let spawnedOk: string | undefined
         let userToPropose: typeof world.user1 | undefined
@@ -225,7 +235,7 @@ describe('Brainstorm [integration]', () => {
             }
         }
         if (!userToPropose || !userToAgree || !spawnedOk) {
-            throw new Error('Aaaaa!!! Panica! no uses from quest!!!')
+            throw new Error('Aaaaa!!! Panic! no uses from quest!!!')
         }
         const calendar4 = await userToPropose.chatLast(spawnedOk)
         const dates4 = getInlineKeyCallbacks(calendar4).filter((cb) =>
@@ -238,7 +248,7 @@ describe('Brainstorm [integration]', () => {
             await userToPropose.chatLast(hour4, true)
         )[0]
         await userToPropose.chat(minutes4, true)
-        await userToPropose.chatLast('Tarantuga Inn')
+        await userToPropose.chatLast('Tarantulae Inn')
         await userToPropose.chat('confirm-proposal', true)
         // TODO note that here userToAccept still have button to start negotiation
         const spawnedProposeUpd = await userToAgree.chatLast()
@@ -286,8 +296,10 @@ describe('Brainstorm [integration]', () => {
             b.startsWith('declare-gathering')
         )
         await userToPropose.chatLast(declareGathBtn)
-        const calendArr = await userToPropose.chatLast("Let's go really Arrr!!")
-        const arrDates = getInlineKeyCallbacks(calendArr).filter((cb) =>
+        const calendarArr = await userToPropose.chatLast(
+            "Let's go really Arr!!"
+        )
+        const arrDates = getInlineKeyCallbacks(calendarArr).filter((cb) =>
             cb.includes('date')
         )
         const arrHour = getInlineKeyCallbacks(
@@ -297,7 +309,7 @@ describe('Brainstorm [integration]', () => {
             await userToPropose.chatLast(arrHour, true)
         )[0]
         await userToPropose.chat(arrMins)
-        const gConfirmUpd = await userToPropose.chatLast('GalaDirilia park')
+        const gConfirmUpd = await userToPropose.chatLast('GalaDirtily park')
         const gathReplyUpds = await userToPropose.chat(
             getInlineKeyCallbacks(gConfirmUpd)[0]
         )
@@ -327,15 +339,19 @@ describe('Brainstorm [integration]', () => {
         // Fast forward to feedback of spawned task
         jasmine.clock().mockDate(new Date(spawnHowWasItTask!.time + 1000))
         await world.context.requestTaskQueue()
-        const uToPrpzFeedbackUpd = await userToPropose.chat()
-        const uToPrpzFdbChButtons = getInlineKeyCallbacks(uToPrpzFeedbackUpd[0])
-        expect(uToPrpzFdbChButtons.length).toBe(6)
-        const uToPrpzFdbWisdomUpd = await userToPropose.chatLast(
-            uToPrpzFdbChButtons[5],
+        const uToProposeFeedbackUpd = await userToPropose.chat()
+        const uToProposeFdbChButtons = getInlineKeyCallbacks(
+            uToProposeFeedbackUpd[0]
+        )
+        expect(uToProposeFdbChButtons.length).toBe(6)
+        const uToProposeFdbWisdomUpd = await userToPropose.chatLast(
+            uToProposeFdbChButtons[5],
             true
         )
-        const uToPrpzFdbWiBtns = getInlineKeyCallbacks(uToPrpzFdbWisdomUpd)
-        await userToPropose.chatLast(uToPrpzFdbWiBtns[3])
+        const uToProposeFdbWiBtns = getInlineKeyCallbacks(
+            uToProposeFdbWisdomUpd
+        )
+        await userToPropose.chatLast(uToProposeFdbWiBtns[3])
 
         const uToAgreeFeedbackUpd = await userToAgree.chat()
         const uToAgreeFdbChButtons = getInlineKeyCallbacks(
@@ -395,31 +411,36 @@ async function setup() {
         new Tribe({
             cityId: city.id,
             name: 'Foo Tribe',
-            description: 'We love to FOOO!!!',
+            description: 'We love to FOO!!!',
         })
     )
 
     const chief = await addTribeMember(
-        makeClient('FooRious', 'Tribe Chief'),
-        tribe.id
+        makeClient('FooRiots', 'Tribe Chief'),
+        tribe.id,
+        city
     )
     await context.addVotes(chief.member, 5, 3)
     const shaman = await addTribeMember(
-        makeClient('Dart Foor', 'Tribe Shaman'),
-        tribe.id
+        makeClient('Dart Food', 'Tribe Shaman'),
+        tribe.id,
+        city
     )
     await context.addVotes(shaman.member, 3, 5)
     const user1 = await addTribeMember(
-        makeClient('Fooer 1', 'User 1'),
-        tribe.id
+        makeClient('Foyer 1', 'User 1'),
+        tribe.id,
+        city
     )
     const user2 = await addTribeMember(
-        makeClient('Fooer 2', 'User 2'),
-        tribe.id
+        makeClient('Wooer 2', 'User 2'),
+        tribe.id,
+        city
     )
     const user3 = await addTribeMember(
-        makeClient('Fooer 3', 'User 3'),
-        tribe.id
+        makeClient('Fore 3', 'User 3'),
+        tribe.id,
+        city
     )
 
     await context.stores.tribeStore.save({

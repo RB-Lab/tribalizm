@@ -73,7 +73,7 @@ export function gatheringScreen({ bot, bus, tgUsers }: TgContext) {
                 ),
             ])
             const proposal = texts.proposal({
-                date: new Date(payload.time),
+                date: user.toUserTime(new Date(payload.time)),
                 place: payload.place,
             })
             const text = texts.declared({

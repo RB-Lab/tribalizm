@@ -56,7 +56,6 @@ describe('Get into tribe [integration]', () => {
         const chiefNot = chiefUpdates[0]
         expect(chiefNot.message.text).toMatch(coverLetter)
         const newUserMember = await world.context.stores.memberStore._last()
-        const initQuest = await world.context.stores.questStore._last()
         const chiefNotButtons = getInlineKeyCallbacks(chiefNot)
 
         expect(chiefNotButtons).toEqual([
@@ -540,17 +539,20 @@ async function setup() {
 
     const chief = await addTribeMember(
         makeClient('BarBar Monster', 'Tribe Chief'),
-        tribes[1].id
+        tribes[1].id,
+        city
     )
     await context.addVotes(chief.member, 5, 3)
     const shaman = await addTribeMember(
         makeClient('Barlog', 'Tribe Shaman'),
-        tribes[1].id
+        tribes[1].id,
+        city
     )
     await context.addVotes(shaman.member, 3, 5)
     const oldie1 = await addTribeMember(
         makeClient('Oldie Bar', 'Old User 1'),
-        tribes[1].id
+        tribes[1].id,
+        city
     )
     const newUser = makeClient('Newbie', 'Applicant')
 
@@ -564,7 +566,8 @@ async function setup() {
         addOldie2: async () => {
             return await addTribeMember(
                 makeClient('Oldie Garr', 'Old User 2'),
-                tribes[1].id
+                tribes[1].id,
+                city
             )
         },
         chief,

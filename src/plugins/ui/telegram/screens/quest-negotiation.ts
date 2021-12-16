@@ -98,7 +98,7 @@ export function questNegotiationScreen({ bot, bus, tgUsers }: TgContext) {
         }
         await ctx.tribalizm.questNegotiation.proposeChange({
             place: state.place,
-            time: ctx.user.convertTime(state.date).getTime(),
+            time: ctx.user.toServerTime(state.date).getTime(),
             userId: ctx.user.userId,
             questId: state.questId,
         })
@@ -175,7 +175,7 @@ export function questNegotiationScreen({ bot, bus, tgUsers }: TgContext) {
             const qnTexts = i18n(user).questNegotiation
 
             const proposal = qnTexts.proposal({
-                date: new Date(payload.time),
+                date: user.toUserTime(new Date(payload.time)),
                 place: payload.place,
             })
             let text = ''
@@ -245,7 +245,7 @@ export function questNegotiationScreen({ bot, bus, tgUsers }: TgContext) {
             )
             const qnTexts = i18n(user).questNegotiation
             const proposal = qnTexts.proposal({
-                date: new Date(payload.time),
+                date: user.toUserTime(new Date(payload.time)),
                 place: payload.place,
             })
             let text: string

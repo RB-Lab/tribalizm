@@ -139,7 +139,7 @@ export function tribesListScreen({ bot }: TgContext) {
             await ctx.replyWithHTML(
                 `<b>${tribe.name}</b>\n${
                     tribe.description
-                }\n\t\t\t<i>${texts.count()} ${tribe.membersCount}</i>`,
+                }\n<i>${texts.count()} ${tribe.membersCount}</i>`,
                 keyboard
             )
         }
