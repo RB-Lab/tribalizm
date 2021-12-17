@@ -104,7 +104,7 @@ export type Translation = {
 		 */
 		'requestLocation': string
 		/**
-		 * 🚀 Send application
+		 * 🖖 Send application
 		 */
 		'apply': string
 		/**
@@ -553,6 +553,20 @@ export type Translation = {
 		 */
 		'applicationDeclined': RequiredParams1<'tribe'>
 	}
+	'help': {	
+		/**
+		 * How good a person is as a leader
+		 */
+		'charisma': string
+		/**
+		 * How good a person grasps tribe's main topic
+		 */
+		'wisdom': string
+		/**
+		 * Can't find this topic
+		 */
+		'unknown': string
+	}
 	'rateMember': {	
 		/**
 		 * You've just meet {tribe} {elder}, how charismatic they are?
@@ -911,7 +925,7 @@ export type TranslationFunctions = {
 		 */
 		'requestLocation': () => LocalizedString
 		/**
-		 * 🚀 Send application
+		 * 🖖 Send application
 		 */
 		'apply': () => LocalizedString
 		/**
@@ -1312,6 +1326,20 @@ export type TranslationFunctions = {
 		 * Your application to the tribe "{tribe}" has been declined
 		 */
 		'applicationDeclined': (arg: { tribe: unknown }) => LocalizedString
+	}
+	'help': {	
+		/**
+		 * How good a person is as a leader
+		 */
+		'charisma': () => LocalizedString
+		/**
+		 * How good a person grasps tribe's main topic
+		 */
+		'wisdom': () => LocalizedString
+		/**
+		 * Can't find this topic
+		 */
+		'unknown': () => LocalizedString
 	}
 	'rateMember': {	
 		/**

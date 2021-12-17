@@ -117,9 +117,13 @@ export async function makeBot(config: BotConfig) {
     // analytics
     bot.use(async (ctx, next) => {
         ctx.logEvent = (event: string, meta?: object) => {
+            const username = ctx.user.username
+            const name = `${ctx.message?.from.first_name || ''} ${
+                ctx.message?.from.last_name || ''
+            }`
             config.logger.event(event, {
                 ...meta,
-                username: ctx.user.username,
+                username: username || name,
                 userId: ctx.user.userId,
             })
         }

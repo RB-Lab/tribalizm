@@ -1,6 +1,7 @@
 import { Markup } from 'telegraf'
 import { i18n } from '../../i18n/i18n-ctx'
 import { TgContext } from '../tribe-ctx'
+import { makeCallbackDataParser } from './callback-parser'
 
 export function rulesScreen({ bot, logger }: TgContext) {
     bot.action('rules', async (ctx) => {
@@ -88,5 +89,18 @@ export function rulesScreen({ bot, logger }: TgContext) {
         await ctx.editMessageText(i18n(ctx).start.text(), keyboard)
     })
 
+    bot.action(helpTopic.regex, async (ctx) => {
+        switch (helpTopic.parse(ctx.match.input).topic) {
+            case 'charisma':
+                return ctx.reply(i18n(ctx).help.charisma())
+            case 'wisdom':
+                return ctx.reply(i18n(ctx).help.wisdom())
+            default:
+                return ctx.reply(i18n(ctx).help.unknown())
+        }
+    })
+
     return [bot]
 }
+
+export const helpTopic = makeCallbackDataParser('help-topic', ['topic'])

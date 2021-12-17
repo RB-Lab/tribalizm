@@ -165,6 +165,11 @@ const en: BaseTranslation = {
         applicationDeclined:
             'Your application to the tribe "{tribe}" has been declined',
     },
+    help: {
+        charisma: 'How good a person is as a leader',
+        wisdom: "How good a person grasps tribe's main topic",
+        unknown: "Can't find this topic",
+    },
     rateMember: {
         elderCharismaPrompt:
             "You've just meet {tribe:string} {elder:string}, how charismatic they are?",

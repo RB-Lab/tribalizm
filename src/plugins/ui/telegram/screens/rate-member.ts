@@ -5,6 +5,7 @@ import { i18n } from '../../i18n/i18n-ctx'
 import { removeInlineKeyboard } from '../telegraf-hacks'
 import { TgContext } from '../tribe-ctx'
 import { makeCallbackDataParser } from './callback-parser'
+import { helpTopic } from './rules'
 
 const parser = makeCallbackDataParser('rate', [
     'voteFor',
@@ -52,7 +53,10 @@ export function rateMemberScreen({ bot, bus, tgUsers }: TgContext) {
             await ctx.editMessageText(
                 texts.wisdomPrompt(),
                 Markup.inlineKeyboard([
-                    Markup.button.callback(texts.help(), 'help-topic:wisdom'),
+                    Markup.button.callback(
+                        texts.help(),
+                        helpTopic.serialize({ topic: 'wisdom' })
+                    ),
                     ...keys,
                 ])
             )
@@ -86,7 +90,10 @@ export function rateMemberScreen({ bot, bus, tgUsers }: TgContext) {
                     tribe: payload.tribe,
                 }),
                 Markup.inlineKeyboard([
-                    Markup.button.callback(texts.help(), 'help-topic:charisma'),
+                    Markup.button.callback(
+                        texts.help(),
+                        helpTopic.serialize({ topic: 'charisma' })
+                    ),
                     ...keys,
                 ])
             )
@@ -116,7 +123,10 @@ export function rateMemberScreen({ bot, bus, tgUsers }: TgContext) {
                 user.chatId,
                 texts.charismaPrompt({ name: payload.memberName }),
                 Markup.inlineKeyboard([
-                    Markup.button.callback(texts.help(), 'help-topic:charisma'),
+                    Markup.button.callback(
+                        texts.help(),
+                        helpTopic.serialize({ topic: 'charisma' })
+                    ),
                     ...keys,
                 ])
             )
