@@ -5,7 +5,7 @@ import { i18n } from '../../i18n/i18n-ctx'
 import { removeInlineKeyboard } from '../telegraf-hacks'
 import { TgContext } from '../tribe-ctx'
 import { makeCallbackDataParser } from './callback-parser'
-import { helpTopic } from './rules'
+import { helpTopic } from './help'
 
 const parser = makeCallbackDataParser('rate', [
     'voteFor',

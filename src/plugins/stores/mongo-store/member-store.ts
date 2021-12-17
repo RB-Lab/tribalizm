@@ -28,7 +28,7 @@ export class MongoMemberStore
         return result
     }
     private getTribeMembersCount = async (tribeId: string) => {
-        const t = await this.find({ tribeId })
+        const t = await this.findSimple({ tribeId })
         return t.length
     }
 }

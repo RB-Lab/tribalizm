@@ -35,7 +35,7 @@ describe('Astral tribes [scenario]:', () => {
         await world.user1.chat(create)
         await world.user1.chat('Bar Tribe')
         await world.user1.chat('We really Bar Bar!')
-        const tribes = await world.context.stores.tribeStore.find({})
+        const tribes = await world.context.stores.tribeStore.findSimple({})
         expect(tribes.length).toBe(1)
         expect(tribes[0]).toEqual(
             jasmine.objectContaining<Tribe>({
@@ -45,13 +45,14 @@ describe('Astral tribes [scenario]:', () => {
                 chiefId: jasmine.any(String),
             })
         )
-        const members = await world.context.stores.memberStore.find({})
+        const members = await world.context.stores.memberStore.findSimple({})
         expect(members.length).toBe(1)
         expect(members[0].userId).toBe(user.id)
         expect(tribes[0].chiefId).toBe(members[0].id)
     })
     it('List tribes', async () => {
         const tribes = await world.create5tribes()
+        await world.addTribeMember(world.user1, tribes[0].id)
         const update = await world.user1.chatLast('/start')
         const listOrRules = getInlineKeyCallbacks(update)
         await world.user1.chat(listOrRules[0])
@@ -60,20 +61,18 @@ describe('Astral tribes [scenario]:', () => {
         expect(checkAstral.length).toBe(1)
         const astralUpds = await world.user1.chat(checkAstral[0])
         expect(astralUpds.length).toBe(5)
+
         for (let i of [1, 2, 3]) {
-            expect(astralUpds[i].message.text).toMatch(tribes[i - 1].name)
+            // user1 is member of first tribe, so it must be skipped
+            expect(astralUpds[i].message.text).toMatch(tribes[i].name)
         }
         const loadMore = getInlineKeyCallbacks(astralUpds[4])
         expect(loadMore.length).toBe(1)
         const nextTribesListUpdate = await world.user1.chat(loadMore[0])
-        expect(nextTribesListUpdate.length).toBe(3)
-        for (let i of [0, 1]) {
-            expect(nextTribesListUpdate[i].message.text).toMatch(
-                tribes[i + 3].name
-            )
-        }
+        expect(nextTribesListUpdate.length).toBe(2)
+        expect(nextTribesListUpdate[0].message.text).toMatch(tribes[4].name)
 
-        const create = getInlineKeyCallbacks(nextTribesListUpdate[2])[0]
+        const create = getInlineKeyCallbacks(nextTribesListUpdate[1])[0]
         expect(create).toMatch('create')
     })
 
@@ -138,14 +137,15 @@ describe('Astral tribes [scenario]:', () => {
         expect(meetingNotif.message.text).toMatch('5:30 PM')
     })
 
-    it('List list tribes in city and then check Astral', async () => {
+    it('List tribes in city and then check Astral', async () => {
         pending('Needs implementation')
     })
 })
 
 async function setup() {
     const context = await createContext()
-    const { server, makeClient, bot } = await createTelegramContext(context)
+    const { server, makeClient, bot, addTribeMember } =
+        await createTelegramContext(context)
 
     const baku = await context.stores.cityStore.save(
         new City({
@@ -189,6 +189,7 @@ async function setup() {
         baku,
         seoul,
         context,
+        addTribeMember,
         create5tribes,
         user1,
         user2,

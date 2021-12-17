@@ -10,7 +10,7 @@ describe('Task scheduling', () => {
             payload: null,
             time: Date.now() + 100_500_000,
         })
-        const tasks = await world.taskStore.find({})
+        const tasks = await world.taskStore.findSimple({})
         expect(tasks.length).toEqual(1)
     })
 })

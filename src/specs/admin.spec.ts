@@ -24,7 +24,9 @@ describe('Admin', () => {
             tribeId: tribe.id,
             userId: user.id,
         })
-        const members = await world.memberStore.find({ tribeId: tribe.id })
+        const members = await world.memberStore.findSimple({
+            tribeId: tribe.id,
+        })
         expect(members.length).toBe(1)
         expect(members[0].userId).toBe(user.id)
     })

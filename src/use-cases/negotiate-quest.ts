@@ -58,7 +58,7 @@ export class QuestNegotiation extends ContextUser {
                 `Cannot accept incomplete quest, time ${quest.time}, place: ${quest.place}`
             )
         }
-        const members = await this.stores.memberStore.find({
+        const members = await this.stores.memberStore.findSimple({
             id: targetMemberIds,
         })
 
@@ -141,7 +141,7 @@ export class QuestNegotiation extends ContextUser {
         const activeQuests = await this.stores.questStore.getActiveQuestsCount(
             memberIds
         )
-        const members = await this.stores.memberStore.find({
+        const members = await this.stores.memberStore.findSimple({
             id: memberIds,
         })
         const first = members.find(

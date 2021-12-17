@@ -39,7 +39,9 @@ describe('Gathering declaration', () => {
         const actualMembers = onGathering.calls
             .all()
             .map((c) => c.args[0].payload.targetUserId)
-        const upvoters = await world.memberStore.find({ id: world.upvoters })
+        const upvoters = await world.memberStore.findSimple({
+            id: world.upvoters,
+        })
         expect(actualMembers).toEqual(
             jasmine.arrayWithExactContents(upvoters.map((m) => m.userId))
         )
@@ -65,10 +67,10 @@ describe('Gathering declaration', () => {
     })
     it('creates gathering', async () => {
         const world = await setUp()
-        const gatheringsBefore = await world.gatheringStore.find({})
+        const gatheringsBefore = await world.gatheringStore.findSimple({})
         expect(gatheringsBefore).toEqual([])
         await world.gathering.declare({ ...world.defaultDeclare, type: 'all' })
-        const gatherings = await world.gatheringStore.find({})
+        const gatherings = await world.gatheringStore.findSimple({})
         expect(gatherings.length).toEqual(1)
         expect(gatherings[0]).toEqual(
             jasmine.objectContaining<IGathering>({

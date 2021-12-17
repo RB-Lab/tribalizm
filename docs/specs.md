@@ -104,16 +104,12 @@ Done: 35, In progress: 0, Must: 0, Should: 16, total: 52
     -   Charisma score (caster, member, score)
     -   Wisdom score (caster, member, score)
 
-## TODO
+## BACKLOG
 
 ### Design
 
 -   Fault tolerance: resurrect system from persisted state
 -   Reliability: use transactions in when update stores
--   Take time zones into account:
-    -   store timezone in user's object (either in tribalizm or in UI adapter)
-    -   search for `.getTime()`
-    -   set timezone in `Date` object before that call
 
 #### Ideas
 
@@ -139,3 +135,7 @@ Done: 35, In progress: 0, Must: 0, Should: 16, total: 52
     their charism & wisdom. But maybe it's a good thing. ┐( ˘_˘)┌
 10. consider this: we have 10 members tribe, three of them suggest 9 ideas (3 each) and up-vote all 9. Thus we will have 5 quests assigned between these 3 members (each have 3-4) while other 7
     passive tribesmen won't have any. ┐( ˘_˘)┌ maybe that's OK.
+
+## TODO
+
+-   fix timezones for 30 cities. Preserve IDs, because there are users linked to those cities already

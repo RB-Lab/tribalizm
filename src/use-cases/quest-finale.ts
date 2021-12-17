@@ -14,7 +14,7 @@ export class QuestFinale extends ContextUser {
         // TODO BEGIN transaction
         // TODO 🤔 this looks like it doesn't belong here...
         if (isIntroductionQuest(quest) && member.id === quest.newMemberId) {
-            const allMembers = await this.stores.memberStore.find({
+            const allMembers = await this.stores.memberStore.findSimple({
                 tribeId: member.tribeId,
             })
             const allIntroQuests =
@@ -49,7 +49,7 @@ export class QuestFinale extends ContextUser {
             })
             await this.stores.memberStore.save(ratedMember)
         }
-        const members = await this.stores.memberStore.find({
+        const members = await this.stores.memberStore.findSimple({
             tribeId: member.tribeId,
         })
 
@@ -67,7 +67,7 @@ export class QuestFinale extends ContextUser {
 
     howWasIt = async (task: HowWasQuestTask & Storable) => {
         const quest = await this.getQuest(task.payload.questId)
-        const members = await this.stores.memberStore.find({
+        const members = await this.stores.memberStore.findSimple({
             id: quest.memberIds,
         })
         const membersViews = mapify(await this.getMembersViews(members))

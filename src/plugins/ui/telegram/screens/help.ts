@@ -3,7 +3,7 @@ import { i18n } from '../../i18n/i18n-ctx'
 import { TgContext } from '../tribe-ctx'
 import { makeCallbackDataParser } from './callback-parser'
 
-export function rulesScreen({ bot, logger }: TgContext) {
+export function helpScreen({ bot }: TgContext) {
     bot.action('rules', async (ctx) => {
         ctx.logEvent('help')
         const btns = i18n(ctx).rules.buttons
@@ -90,7 +90,9 @@ export function rulesScreen({ bot, logger }: TgContext) {
     })
 
     bot.action(helpTopic.regex, async (ctx) => {
-        switch (helpTopic.parse(ctx.match.input).topic) {
+        const topic = helpTopic.parse(ctx.match.input).topic
+        ctx.logEvent('help', { topic })
+        switch (topic) {
             case 'charisma':
                 return ctx.reply(i18n(ctx).help.charisma())
             case 'wisdom':

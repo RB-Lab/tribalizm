@@ -30,7 +30,7 @@ export class BrainstormLifecycle extends ContextUser {
             })
         )
 
-        const members = await this.stores.memberStore.find({
+        const members = await this.stores.memberStore.findSimple({
             tribeId: member.tribeId,
         })
 
@@ -71,7 +71,7 @@ export class BrainstormLifecycle extends ContextUser {
     notifyMembers = async (task: StormNotify & Storable) => {
         const storm = await this.getBrainstorm(task.payload.brainstormId)
         const tribe = await this.getTribe(storm.tribeId)
-        const members = await this.stores.memberStore.find({
+        const members = await this.stores.memberStore.findSimple({
             tribeId: tribe.id,
         })
         members.forEach((m) => {
@@ -92,7 +92,7 @@ export class BrainstormLifecycle extends ContextUser {
     startStorm = async (task: StormStart & Storable) => {
         const storm = await this.getBrainstorm(task.payload.brainstormId)
         const tribe = await this.getTribe(storm.tribeId)
-        const members = await this.stores.memberStore.find({
+        const members = await this.stores.memberStore.findSimple({
             tribeId: tribe.id,
         })
 
@@ -123,7 +123,7 @@ export class BrainstormLifecycle extends ContextUser {
         const storm = await this.getBrainstorm(task.payload.brainstormId)
         const tribe = await this.getTribe(storm.tribeId)
 
-        const members = await this.stores.memberStore.find({
+        const members = await this.stores.memberStore.findSimple({
             tribeId: tribe.id,
         })
 
@@ -152,7 +152,7 @@ export class BrainstormLifecycle extends ContextUser {
         const brainstorm = await this.getBrainstorm(task.payload.brainstormId)
         brainstorm.finish()
         await this.stores.brainstormStore.save(brainstorm)
-        const members = await this.stores.memberStore.find({
+        const members = await this.stores.memberStore.findSimple({
             tribeId: brainstorm.tribeId,
         })
         members.forEach((member) => {

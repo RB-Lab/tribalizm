@@ -94,7 +94,7 @@ describe('Stranger application', () => {
 
         await world.tribeApplication.applyToTribe(world.defReq)
         const app = await world.applicationStore._last()
-        const members = await world.memberStore.find({
+        const members = await world.memberStore.findSimple({
             tribeId: world.tribe.id,
             userId: world.user.id,
         })

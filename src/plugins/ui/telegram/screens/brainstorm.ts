@@ -206,7 +206,7 @@ export function brainstormScreen({
             const user = await tgUsers.getTelegramUserForTribalism(
                 payload.targetUserId
             )
-            const messages = await messageStore.find({
+            const messages = await messageStore.findSimple({
                 brainstormId: payload.brainstormId,
                 chatId: user.chatId,
             })

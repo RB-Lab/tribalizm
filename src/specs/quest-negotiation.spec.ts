@@ -117,7 +117,7 @@ describe('Quest negotiation', () => {
                 questId: world.quest.id,
                 userId: world.user2.id,
             })
-            const tasks = (await world.taskStore.find({
+            const tasks = (await world.taskStore.findSimple({
                 type: 'how-was-quest',
             })) as HowWasQuestTask[]
             expect(tasks.length).toBe(1)
@@ -138,7 +138,7 @@ describe('Quest negotiation', () => {
                 questId: world.quest.id,
                 userId: world.user2.id,
             })
-            const tasks = (await world.taskStore.find({
+            const tasks = (await world.taskStore.findSimple({
                 type: 'how-was-quest',
             })) as HowWasQuestTask[]
             expect(tasks.length).toBe(1)
@@ -167,7 +167,7 @@ describe('Quest negotiation', () => {
             questId: world.quest.id,
         })
         const quest = await world.questStore.getById(world.quest.id)
-        const tasks = (await world.taskStore.find({
+        const tasks = (await world.taskStore.findSimple({
             type: 'how-was-quest',
         })) as HowWasQuestTask[]
         expect(quest!.status).toEqual(QuestStatus.proposed)

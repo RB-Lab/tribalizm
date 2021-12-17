@@ -30,6 +30,7 @@ export class MockTgUserAdapter extends StoreTelegramUsersAdapter {
     }
     private store = {
         find: async () => [this.user],
+        findSimple: async () => [this.user],
         getById: async () => this.user,
         save: async (d: any) => {
             this.user = d

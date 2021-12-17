@@ -59,25 +59,24 @@ export class TribeShow extends ContextUser {
         limit?: number,
         cursor?: string
     ) {
+        const userMembers = await this.stores.memberStore.findSimple({ userId })
+
         const tribes = await this.stores.tribeStore.find(
             { cityId },
+            { id: userMembers.map((m) => m.tribeId) },
             { limit, cursor }
         )
-
-        const userMembers = await this.stores.memberStore.find({ userId })
 
         const counts = await this.stores.memberStore.countTribeMembers(
             tribes.map((t) => t.id)
         )
 
-        return tribes
-            .filter((t) => !userMembers.some((m) => m.tribeId === t.id))
-            .map((t) => ({
-                id: t.id,
-                name: t.name,
-                description: t.description,
-                type: t.vocabulary,
-                membersCount: counts[t.id],
-            }))
+        return tribes.map((t) => ({
+            id: t.id,
+            name: t.name,
+            description: t.description,
+            type: t.vocabulary,
+            membersCount: counts[t.id],
+        }))
     }
 }

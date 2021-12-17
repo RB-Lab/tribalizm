@@ -48,10 +48,9 @@ describe('In memory store', () => {
         const ololo = new Foo({ id: '1', bar: 'ololo' })
         const ololo2 = new Foo({ id: '2', bar: 'ololo' })
         await store.saveBulk([ololo, ololo2])
-        await expectAsync(store.find({ bar: 'ololo' }) as any).toBeResolvedTo([
-            ololo,
-            ololo2,
-        ])
+        await expectAsync(
+            store.findSimple({ bar: 'ololo' }) as any
+        ).toBeResolvedTo([ololo, ololo2])
     })
     it('finds with AND', async () => {
         const store = new FooStore()
@@ -59,7 +58,7 @@ describe('In memory store', () => {
         const ololo2 = new Foo({ id: '2', bar: 'ololo' })
         await store.saveBulk([ololo, ololo2])
         await expectAsync(
-            store.find({ bar: 'ololo', id: '1' }) as any
+            store.findSimple({ bar: 'ololo', id: '1' }) as any
         ).toBeResolvedTo([ololo])
     })
     it('finds with OR', async () => {
@@ -69,8 +68,30 @@ describe('In memory store', () => {
         const ololo3 = new Foo({ id: '3', bar: 'ololo' })
         await store.saveBulk([ololo, ololo2, ololo3])
         await expectAsync(
-            store.find({ bar: 'ololo', id: ['1', '3'] }) as any
+            store.findSimple({ bar: 'ololo', id: ['1', '3'] }) as any
         ).toBeResolvedTo([ololo, ololo3])
+    })
+    describe('Filters', () => {
+        const setup = async () => {
+            const store = new BarStore()
+            const ololo = new Bar({ id: '1', bar: 'ololo' })
+            const ololo2 = new Bar({ id: '2', bar: 'ololo' })
+            const ololo3 = new Bar({ id: '3', bar: 'ololo' })
+            await store.saveBulk([ololo, ololo2, ololo3])
+            return { bars: [ololo, ololo2, ololo3] as any[], store }
+        }
+        it('array', async () => {
+            const { bars, store } = await setup()
+            await expectAsync(
+                store.find({ bar: 'ololo' }, { id: ['1', '3'] }, {})
+            ).toBeResolvedTo([bars[1]])
+        })
+        it('empty array', async () => {
+            const { bars, store } = await setup()
+            await expectAsync(
+                store.find({ bar: 'ololo' }, { id: [] }, {})
+            ).toBeResolvedTo(bars)
+        })
     })
 
     it('can work with objects', async () => {
@@ -84,7 +105,7 @@ describe('In memory store', () => {
         })
         await store.saveBulk([ololo, ololo2, ololo3])
         await expectAsync(
-            store.find({ bar: 'ololo', baz: { foo: 2 } }) as any
+            store.findSimple({ bar: 'ololo', baz: { foo: 2 } }) as any
         ).toBeResolvedTo([ololo2, ololo3])
     })
 })
@@ -111,5 +132,20 @@ class Foo {
         this._id = doc.id || null
         this._bar = doc.bar
         this._baz = doc.baz || null
+    }
+}
+
+class BarStore extends InMemoryStore<Bar> {
+    _class = Bar
+}
+class Bar {
+    id: string | null
+    bar: string
+    baz: object | null
+
+    constructor(doc: { id?: string; bar: string; baz?: object }) {
+        this.id = doc.id || null
+        this.bar = doc.bar
+        this.baz = doc.baz || null
     }
 }

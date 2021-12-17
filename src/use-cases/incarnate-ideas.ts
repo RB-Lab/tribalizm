@@ -10,10 +10,10 @@ import { StormFinalize } from './utils/scheduler'
 export class IdeasIncarnation extends ContextUser {
     incarnateIdeas = async (task: StormFinalize & Storable) => {
         const brainstorm = await this.getBrainstorm(task.payload.brainstormId)
-        const ideas = await this.stores.ideaStore.find({
+        const ideas = await this.stores.ideaStore.findSimple({
             brainstormId: brainstorm.id,
         })
-        const members = await this.stores.memberStore.find({
+        const members = await this.stores.memberStore.findSimple({
             tribeId: brainstorm.tribeId,
         })
         const membersMap = mapify(members)
@@ -63,7 +63,7 @@ export class IdeasIncarnation extends ContextUser {
             .filter((v) => v.vote === 'up')
             .map((v) => v.memberId)
         const memberIds = [...upvoterIds, idea.memberId]
-        const members = await this.stores.memberStore.find({
+        const members = await this.stores.memberStore.findSimple({
             id: memberIds,
         })
         const starter = members.find((m) => m.id === idea.memberId)

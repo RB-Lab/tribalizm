@@ -63,7 +63,7 @@ describe('Brainstorm lifecycle', () => {
     it('creates a brainstorm', async () => {
         const world = await setUp()
         await world.stromCycle.declare(world.defReq)
-        const storms = await world.brainstormStore.find({})
+        const storms = await world.brainstormStore.findSimple({})
         expect(storms.length).toBe(1)
         expect(storms[0]).toEqual(
             jasmine.objectContaining<IBrainstormData>({
@@ -76,8 +76,10 @@ describe('Brainstorm lifecycle', () => {
     it('alocates two tasks to notify about storm', async () => {
         const world = await setUp()
         await world.stromCycle.declare(world.defReq)
-        const tasks = await world.taskStore.find({ type: 'notify-brainstorm' })
-        const storms = await world.brainstormStore.find({})
+        const tasks = await world.taskStore.findSimple({
+            type: 'notify-brainstorm',
+        })
+        const storms = await world.brainstormStore.findSimple({})
         expect(tasks.length).toEqual(2)
         expect(tasks[0]).toEqual(
             jasmine.objectContaining<StormNotify>({
@@ -104,8 +106,10 @@ describe('Brainstorm lifecycle', () => {
     it('alocates a task to start brainstorm', async () => {
         const world = await setUp()
         await world.stromCycle.declare(world.defReq)
-        const tasks = await world.taskStore.find({ type: 'start-brainstorm' })
-        const storms = await world.brainstormStore.find({})
+        const tasks = await world.taskStore.findSimple({
+            type: 'start-brainstorm',
+        })
+        const storms = await world.brainstormStore.findSimple({})
         expect(tasks.length).toEqual(1)
         expect(tasks[0]).toEqual(
             jasmine.objectContaining<StormStart>({
@@ -200,7 +204,7 @@ describe('Brainstorm lifecycle', () => {
     it('allocates a task for strom transition', async () => {
         const world = await setUp()
         const { brainstorm } = await world.startStorm()
-        const tasks = await world.taskStore.find({
+        const tasks = await world.taskStore.findSimple({
             type: 'brainstorm-to-voting',
         })
         expect(tasks.length).toEqual(1)
@@ -248,7 +252,7 @@ describe('Brainstorm lifecycle', () => {
     it('Alocates a taks for storm to end', async () => {
         const world = await setUp()
         const { brainstorm } = await world.stormToVoting()
-        const tasks = await world.taskStore.find({
+        const tasks = await world.taskStore.findSimple({
             type: 'brainstorm-to-finalize',
         })
         expect(tasks.length).toEqual(1)
@@ -346,7 +350,7 @@ async function setUp() {
     const stormToVoting = async () => {
         const { brainstorm } = await startStorm()
         const task = (
-            await context.stores.taskStore.find({
+            await context.stores.taskStore.findSimple({
                 type: 'brainstorm-to-voting',
             })
         )[0]

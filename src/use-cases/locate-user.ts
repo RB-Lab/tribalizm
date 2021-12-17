@@ -17,7 +17,9 @@ export class LocateUser extends ContextUser {
         return { name: city.name, id: city.id, timeZone: city.timeZone }
     }
     async locateUserByCityName(req: LocateByCityNameRequest) {
-        const cities = await this.stores.cityStore.find({ name: req.cityName })
+        const cities = await this.stores.cityStore.findSimple({
+            name: req.cityName,
+        })
         if (!cities[0]) return null
         await this.locateUser(req.userId, cities[0])
         return {

@@ -14,7 +14,7 @@ export async function addMember(context: Context, back: () => Promise<void>) {
             name: 'tribe',
             message: 'Which tribe?',
             choices: (
-                await context.stores.tribeStore.find({})
+                await context.stores.tribeStore.findSimple({})
             ).map((t) => `${t.name}@${t.id}`),
         },
         {
@@ -22,7 +22,7 @@ export async function addMember(context: Context, back: () => Promise<void>) {
             name: 'user',
             message: 'Which user?',
             choices: (
-                await context.stores.userStore.find({})
+                await context.stores.userStore.findSimple({})
             ).map((m) => `${m.name}@${m.id}`),
         },
     ])

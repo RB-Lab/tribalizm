@@ -24,7 +24,7 @@ export async function listTgUsers(
         },
     ])
 
-    const users = await tgUsers.find({})
+    const users = await tgUsers.findSimple({})
     console.table(
         users.map((t) =>
             answers.fields.reduce(

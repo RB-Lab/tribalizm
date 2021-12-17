@@ -22,7 +22,7 @@ export async function listTribes(context: Context, back: () => Promise<void>) {
         },
     ])
 
-    const tribes = await context.stores.tribeStore.find({})
+    const tribes = await context.stores.tribeStore.findSimple({})
     console.table(
         tribes.map((t) =>
             answers.fields.reduce(

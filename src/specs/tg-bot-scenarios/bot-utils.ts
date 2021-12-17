@@ -220,15 +220,15 @@ export async function createTelegramContext(
     async function addTribeMember(
         client: ReturnType<typeof wrapClient>,
         tribeId: string,
-        city: StoredCity
+        city?: StoredCity
     ) {
         await client.chat('/start')
         const user = await context.stores.userStore._last()
-        const tgUser = await telegramUsersAdapter.getTelegramUserForTribalism(
-            user.id
-        )
-        tgUser.locate(city.id, city.timeZone)
-
+        if (city) {
+            const tgUser =
+                await telegramUsersAdapter.getTelegramUserForTribalism(user.id)
+            tgUser.locate(city.id, city.timeZone)
+        }
         const member = await context.stores.memberStore.save(
             new Member({
                 tribeId,

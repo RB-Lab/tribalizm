@@ -1,5 +1,6 @@
 import { Store } from '../../../use-cases/entities/store'
-import { Collection, ObjectId } from 'mongodb'
+import { Collection, FilterQuery, ObjectId } from 'mongodb'
+import { objectHasProp } from '../../../ts-utils'
 
 interface Storable {
     id: string
@@ -79,28 +80,35 @@ export class MongoStore<T extends { id?: string | null }> implements Store<T> {
         const res = await this._collection.findOne({ _id: toId({ id }) } as any)
         return res ? this._instantiate(res) : null
     }
-    find: Store<T>['find'] = async (query, { limit = 100, cursor } = {}) => {
-        let q: any = query
-        if (cursor) {
-            q = { ...query, _id: { $gt: new ObjectId(cursor) } }
-        }
-        q = Object.entries(q).reduce((res, [key, value]) => {
-            if (key === 'id') {
-                key = '_id'
+    find: Store<T>['find'] = async (query, filter, { limit = 100, cursor }) => {
+        let q: any = toQuery(objectify(query))
+        let f: any = Object.entries(objectify(filter)).reduce(
+            (res, [key, value]) => {
+                if (key === '_id') return { ...res, [key]: { $not: value } }
                 if (Array.isArray(value)) {
-                    value = value.map((v) => new ObjectId(v))
-                } else {
-                    value = new ObjectId(value as string)
+                    return { ...res, [key]: { $not: { $in: value } } }
                 }
-            }
-            if (Array.isArray(value)) {
-                return { ...res, [key]: { $in: value } }
-            }
-            return { ...res, [key]: value }
-        }, {})
+                return { ...res, [key]: { $not: value } }
+            },
+            {}
+        )
+        if (cursor) {
+            q = { $and: [q, f, { _id: { $gt: toId({ id: cursor }) } }] }
+        } else {
+            q = { $and: [q, f] }
+        }
+
         const c = this._collection
             .find(q)
             .limit(limit)
+            .map((d) => this._instantiate(d))
+        const res = await c.toArray()
+        await c.close()
+        return res
+    }
+    findSimple: Store<T>['findSimple'] = async (query) => {
+        const c = this._collection
+            .find(toQuery(objectify(query)))
             .map((d) => this._instantiate(d))
         const res = await c.toArray()
         await c.close()
@@ -150,4 +158,33 @@ function toId(doc: Storable) {
         }
         return null
     }
+}
+
+function objectify<T extends {}>(doc: T) {
+    if (objectHasProp(doc, 'id')) {
+        if (typeof doc.id === 'string') {
+            const { id, ...rest } = doc
+            return {
+                _id: toId({ id }),
+                ...rest,
+            }
+        } else if (Array.isArray(doc.id)) {
+            const { id, ...rest } = doc
+            return {
+                _id: { $in: id.map((i) => toId({ id: i })) },
+                ...rest,
+            }
+        }
+    }
+    return doc
+}
+
+function toQuery(doc: any): FilterQuery<any> {
+    return Object.entries(doc).reduce((res, [key, value]) => {
+        if (key === '_id') return { ...res, [key]: value }
+        if (Array.isArray(value)) {
+            return { ...res, [key]: { $in: value } }
+        }
+        return { ...res, [key]: value }
+    }, {})
 }

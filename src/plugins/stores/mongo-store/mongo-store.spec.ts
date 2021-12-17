@@ -40,10 +40,9 @@ async function run() {
                 new Foo({ bar: 'ololo' }),
                 new Foo({ bar: 'doloto' }),
             ])
-            await expectAsync(store.find({ bar: 'ololo' })).toBeResolvedTo([
-                ololo,
-                ololo2,
-            ])
+            await expectAsync(
+                store.findSimple({ bar: 'ololo' })
+            ).toBeResolvedTo([ololo, ololo2])
         })
         it('finds with AND', async () => {
             const store = await setUp()
@@ -53,7 +52,7 @@ async function run() {
                 new Foo({ bar: 'doloto' }),
             ])
             await expectAsync(
-                store.find({ bar: 'ololo', id: ololo.id })
+                store.findSimple({ bar: 'ololo', id: ololo.id })
             ).toBeResolvedTo([ololo])
         })
         it('finds with OR', async () => {
@@ -64,7 +63,7 @@ async function run() {
                 new Foo({ bar: 'ololo', baz: '3' }),
             ])
             await expectAsync(
-                store.find({ bar: 'ololo', baz: ['1', '3'] })
+                store.findSimple({ bar: 'ololo', baz: ['1', '3'] })
             ).toBeResolvedTo([ololo, ololo3])
         })
 
@@ -76,7 +75,7 @@ async function run() {
                 new Foo({ bar: 'ololo', baz: { foo: 2 } }),
             ])
             await expectAsync(
-                store.find({ bar: 'ololo', baz: { foo: 2 } })
+                store.findSimple({ bar: 'ololo', baz: { foo: 2 } })
             ).toBeResolvedTo([ololo2, ololo3])
         })
     })

@@ -134,7 +134,7 @@ async function setUp() {
         time: Date.now() + 100_500_000,
     })
     let brainstorm = await context.stores.brainstormStore._last()
-    const tasks = await context.stores.taskStore.find({
+    const tasks = await context.stores.taskStore.findSimple({
         type: 'start-brainstorm',
     })
     await stormCycle.startStorm(tasks[0] as any)

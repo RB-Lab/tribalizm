@@ -12,7 +12,7 @@ describe('Add idea', () => {
         const world = await setUp()
         await world.stromCycle.startStorm(world.startTask)
         await world.ideasAdder.addIdea(world.defReq)
-        const ideas = await world.ideaStore.find({})
+        const ideas = await world.ideaStore.findSimple({})
         expect(ideas.length).toEqual(1)
         expect(ideas[0]).toEqual(
             jasmine.objectContaining<IQuestIdea>(world.defReq)
@@ -97,7 +97,7 @@ async function setUp() {
         time: Date.now() + 100_500_000,
     })
     let brainstorm = await context.stores.brainstormStore._last()
-    const tasks = await context.stores.taskStore.find({
+    const tasks = await context.stores.taskStore.findSimple({
         type: 'start-brainstorm',
     })
     const startTask = tasks[0] as StormStart & Storable

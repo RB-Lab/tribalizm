@@ -1,7 +1,9 @@
 import path from 'path'
 import { loadCities } from '../scripts/load-cities'
 import { City } from '../use-cases/entities/city'
+import { Member } from '../use-cases/entities/member'
 import { Storable } from '../use-cases/entities/store'
+import { Tribe } from '../use-cases/entities/tribe'
 import { User } from '../use-cases/entities/user'
 import { TribeShow } from '../use-cases/tribes-show'
 import { createContext } from './test-context'
@@ -33,7 +35,42 @@ describe('Show tribe(s)', () => {
         )
     })
     it('does NOT show tribes user already in', async () => {
-        pending('add test implementation')
+        const world = await setUp()
+        const tribeNames = ['foo', 'bar', 'baz', 'quz', 'fizz']
+        const tribes = await world.tribeStore.saveBulk(
+            tribeNames.map((name) => new Tribe({ name, cityId: world.city.id }))
+        )
+        await world.memberStore.save(
+            new Member({ tribeId: tribes[1].id, userId: world.user.id })
+        )
+        const result = await world.tribeShow.getLocalTribes({
+            userId: world.user.id,
+            limit: 5,
+        })
+        expect(result.length).toBe(5)
+        expect(result.map((t) => t.name)).toEqual([
+            world.tribe.name,
+            world.tribe2.name,
+            'foo',
+            'baz',
+            'quz',
+        ])
+    })
+    it('lists astral', async () => {
+        const world = await setUp()
+        const tribeNames = ['foo', 'bar', 'baz', 'quz', 'fizz']
+        const tribes = await world.tribeStore.saveBulk(
+            tribeNames.map((name) => new Tribe({ name }))
+        )
+        await world.memberStore.save(
+            new Member({ tribeId: tribes[1].id, userId: world.user.id })
+        )
+        const result = await world.tribeShow.getAstralTribes({
+            userId: world.user.id,
+            limit: 3,
+        })
+        expect(result.length).toBe(3)
+        expect(result.map((t) => t.name)).toEqual(['foo', 'baz', 'quz'])
     })
     it('shows tribes info', async () => {
         const world = await setUp()
@@ -64,7 +101,9 @@ async function setUp() {
     let city: City & Storable
     if (process.env.FULL_TEST) {
         await loadCities(filePath, context.stores.cityStore)
-        const cities = await context.stores.cityStore.find({ name: 'Oslo' })
+        const cities = await context.stores.cityStore.findSimple({
+            name: 'Oslo',
+        })
         city = cities[0]
     } else {
         city = await context.stores.cityStore.save(
@@ -93,6 +132,7 @@ async function setUp() {
         tribe3,
         members,
         members2,
+        city,
         user,
         users,
         ...context.stores,

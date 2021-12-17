@@ -212,7 +212,7 @@ export async function createContext() {
 
     async function requestTaskQueue() {
         if (process.env.chatDebug) {
-            const tasks = await context.stores.taskStore.find({
+            const tasks = await context.stores.taskStore.findSimple({
                 done: false,
             })
             console.log(

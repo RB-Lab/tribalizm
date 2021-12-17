@@ -87,7 +87,7 @@ describe('Gathering finale', () => {
         it('affects all involved in gathering coordination', async () => {
             const world = await setUp()
             await world.gatheringFinale.finalize(world.defaultRequest)
-            const affectedMembers = await world.memberStore.find({
+            const affectedMembers = await world.memberStore.findSimple({
                 id: world.affectedMembers,
             })
             expect(affectedMembers.length).toBeGreaterThan(0)
@@ -154,7 +154,7 @@ describe('Gathering finale', () => {
             userId: world.members[6].userId,
             score: 4,
         })
-        const members = await world.memberStore.find({
+        const members = await world.memberStore.findSimple({
             tribeId: world.tribe.id,
         })
         const newLeaders = members.filter((m) => m.charisma > chief!.charisma)
@@ -177,7 +177,7 @@ describe('Gathering finale', () => {
             userId: world.members[6].userId,
             score: 4,
         })
-        const members = await world.memberStore.find({
+        const members = await world.memberStore.findSimple({
             tribeId: world.tribe.id,
         })
         const newLeaders = members.filter((m) => m.wisdom > shaman!.wisdom)

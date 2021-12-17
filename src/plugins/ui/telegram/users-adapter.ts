@@ -168,7 +168,9 @@ export class StoreTelegramUsersAdapter implements TelegramUsersAdapter {
      * @returns telegram user object. Tribalizm user id is included in it
      */
     async getUserByChatId(chatId: string | number) {
-        const users = await this.tgUserStore.find({ chatId: String(chatId) })
+        const users = await this.tgUserStore.findSimple({
+            chatId: String(chatId),
+        })
         return users.length
             ? new TelegramUser(this.tgUserStore, this.logger, users[0])
             : null
@@ -178,7 +180,9 @@ export class StoreTelegramUsersAdapter implements TelegramUsersAdapter {
      * @returns telegram user instance that map to one in Tribalizm, whose ID provided
      */
     async getTelegramUserForTribalism(tribalismUserId: string) {
-        const users = await this.tgUserStore.find({ userId: tribalismUserId })
+        const users = await this.tgUserStore.findSimple({
+            userId: tribalismUserId,
+        })
 
         if (!users.length) {
             throw new Error(`User ${tribalismUserId} does not use telegram`)

@@ -10,7 +10,7 @@ export class GatheringFinale extends ContextUser {
         const gathering = await this.getGathering(
             notifyTask.payload.gatheringId
         )
-        const members = await this.stores.memberStore.find({
+        const members = await this.stores.memberStore.findSimple({
             id: gathering.accepted,
         })
         for (let m of members) {
@@ -46,7 +46,7 @@ export class GatheringFinale extends ContextUser {
             }
         }
         await addCoordinators(gathering.parentQuestId)
-        const members = await this.stores.memberStore.find({
+        const members = await this.stores.memberStore.findSimple({
             id: [...coordinators],
         })
         members.forEach((m) => {
@@ -61,7 +61,7 @@ export class GatheringFinale extends ContextUser {
             }
         })
         await this.stores.memberStore.saveBulk(members)
-        const tribeMembers = await this.stores.memberStore.find({
+        const tribeMembers = await this.stores.memberStore.findSimple({
             tribeId: gathering.tribeId,
         })
         const mostCharismatic = findMaxTrait(tribeMembers, 'charisma')

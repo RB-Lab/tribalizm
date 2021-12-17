@@ -84,9 +84,9 @@ export class ContextUser {
 
     protected async getMembersViews(members: string[] | SavedMember[]) {
         if (isArrayOfStrings(members)) {
-            members = await this.stores.memberStore.find({ id: members })
+            members = await this.stores.memberStore.findSimple({ id: members })
         }
-        const users = await this.stores.userStore.find({
+        const users = await this.stores.userStore.findSimple({
             id: members.map((m) => m.userId),
         })
 
@@ -105,7 +105,10 @@ export class ContextUser {
         })
     }
     protected async getTribeMemberByUserId(tribeId: string, userId: string) {
-        const members = await this.stores.memberStore.find({ tribeId, userId })
+        const members = await this.stores.memberStore.findSimple({
+            tribeId,
+            userId,
+        })
         if (!members.length) {
             throw new EntityNotFound(
                 `Cannot find member in tribe ${tribeId} for user ${userId}`
@@ -115,7 +118,7 @@ export class ContextUser {
     }
 
     protected async getQuestMemberByUserId(quest: IQuestData, userId: string) {
-        const members = await this.stores.memberStore.find({
+        const members = await this.stores.memberStore.findSimple({
             id: quest.memberIds,
         })
 

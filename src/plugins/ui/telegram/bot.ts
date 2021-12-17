@@ -12,7 +12,7 @@ import { initiationScreen } from './screens/initiation'
 import { introQuestsScreen } from './screens/intro-quests'
 import { questNegotiationScreen } from './screens/quest-negotiation'
 import { rateMemberScreen } from './screens/rate-member'
-import { rulesScreen } from './screens/rules'
+import { helpScreen } from './screens/help'
 import { startScreen } from './screens/start'
 import { tribesListScreen } from './screens/tribes-list'
 import { TribeCtx } from './tribe-ctx'
@@ -144,7 +144,7 @@ export async function makeBot(config: BotConfig) {
         messageStore: config.messageStore,
     }
     startScreen(tgContext)
-    rulesScreen(tgContext)
+    helpScreen(tgContext)
     tribesListScreen(tgContext)
     initiationScreen(tgContext)
     questNegotiationScreen(tgContext)

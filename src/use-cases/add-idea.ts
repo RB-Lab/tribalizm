@@ -6,7 +6,7 @@ import { NotYourTribe } from './utils/not-your-tribe'
 export class AddIdea extends ContextUser {
     addIdea = async (req: AddIdeaRequest) => {
         const member = await this.getMember(req.memberId)
-        const members = await this.stores.memberStore.find({
+        const members = await this.stores.memberStore.findSimple({
             tribeId: member.tribeId,
         })
         const brainstorm = await this.getBrainstorm(req.brainstormId)

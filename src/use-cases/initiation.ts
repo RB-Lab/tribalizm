@@ -151,7 +151,7 @@ export class Initiation extends ContextUser {
         const { app, quest } = await this.getQuestAndApplication(
             task.payload.questId
         )
-        const members = await this.stores.memberStore.find({
+        const members = await this.stores.memberStore.findSimple({
             id: quest.memberIds,
         })
         const membersViews = mapify(await this.getMembersViews(members))
@@ -228,7 +228,7 @@ export class Initiation extends ContextUser {
             },
         })
         const members = (
-            await this.stores.memberStore.find({
+            await this.stores.memberStore.findSimple({
                 tribeId: app.tribeId,
             })
         ).filter(

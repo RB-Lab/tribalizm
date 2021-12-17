@@ -107,7 +107,7 @@ export class SpawnQuest extends ContextUser {
                 `There is not enough members who liked idea ${idea.id}: ${memberIds.length} (2 min)`
             )
         }
-        const members = await this.stores.memberStore.find({
+        const members = await this.stores.memberStore.findSimple({
             id: memberIds,
         })
         const activeQuests = await this.stores.questStore.getActiveQuestsCount(

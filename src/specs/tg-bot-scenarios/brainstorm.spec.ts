@@ -49,7 +49,7 @@ describe('Brainstorm [integration]', () => {
         const confirmBtns = getInlineKeyCallbacks(confirmUpd)
         await world.chief.chat(confirmBtns[0])
 
-        const tasks = await world.context.stores.taskStore.find({})
+        const tasks = await world.context.stores.taskStore.findSimple({})
         expect(tasks.length).toBe(3)
         tasks.sort((t1, t2) => t1.time - t2.time)
 
@@ -376,7 +376,7 @@ describe('Brainstorm [integration]', () => {
             await user.chat(voteBtns[world.users.indexOf(user)])
         }
 
-        const quests = await world.context.stores.questStore.find({
+        const quests = await world.context.stores.questStore.findSimple({
             type: QuestType.coordination,
         })
         const coordinators = quests.reduce<string[]>(

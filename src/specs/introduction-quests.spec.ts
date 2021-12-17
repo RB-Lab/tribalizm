@@ -17,7 +17,9 @@ describe('Introduction quests', () => {
     it('allocates introduction task on member approval', async () => {
         const world = await setUp()
         const newMember = await world.getApproval()
-        const tasks = await world.taskStore.find({ type: 'introduction-quest' })
+        const tasks = await world.taskStore.findSimple({
+            type: 'introduction-quest',
+        })
         expect(tasks.length).toBe(1)
         expect(tasks[0]).toEqual(
             jasmine.objectContaining<IntroductionTask>({
@@ -40,7 +42,9 @@ describe('Introduction quests', () => {
     it('does NOT allocate intro if only shaman & chief in tribe', async () => {
         const world = await setUp(2)
         await world.getApproval()
-        const tasks = await world.taskStore.find({ type: 'introduction-quest' })
+        const tasks = await world.taskStore.findSimple({
+            type: 'introduction-quest',
+        })
         expect(tasks.length).toBe(0)
     })
     // FLICK??
@@ -78,7 +82,7 @@ describe('Introduction quests', () => {
         const newMember = await world.getApproval()
         const { oldMember, task } = await world.makeIntroTask()
         await world.introQuests.notifyOldMember(task)
-        const quests = await world.questStore.find({
+        const quests = await world.questStore.findSimple({
             type: QuestType.introduction,
         })
         expect(quests.length).toBe(1)
@@ -92,7 +96,7 @@ describe('Introduction quests', () => {
         const { next } = await world.makeIntroTask()
         const { task } = (await next())!
         expect(task).toBeTruthy()
-        const tasks = await world.taskStore.find({ done: false })
+        const tasks = await world.taskStore.findSimple({ done: false })
         expect(tasks.length).toBe(1)
     })
     it('allocates next intro with a new member', async () => {
@@ -185,11 +189,13 @@ async function setUp(size?: number) {
         }
         await initiation.startShamanInitiation(shamanReq)
         await initiation.approveByShaman(shamanReq)
-        return (await context.stores.memberStore.find({ userId: user.id }))[0]
+        return (
+            await context.stores.memberStore.findSimple({ userId: user.id })
+        )[0]
     }
 
     const getNewItroTask = async () => {
-        const tasks = await context.stores.taskStore.find({
+        const tasks = await context.stores.taskStore.findSimple({
             type: 'introduction-quest',
             done: false,
         })
@@ -203,7 +209,9 @@ async function setUp(size?: number) {
     const makeIntroTask = async () => {
         let task = (await getNewItroTask())!
         const next = async () => {
-            const membersMap = mapify(await context.stores.memberStore.find({}))
+            const membersMap = mapify(
+                await context.stores.memberStore.findSimple({})
+            )
             await introQuests.notifyOldMember(task)
             const quest = await context.stores.questStore._last()
 

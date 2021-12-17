@@ -31,7 +31,7 @@ describe('When brainstorm is over', () => {
             await Promise.all(ideas.map((i, n) => world.vote(n, votes)))
 
             await world.incarnation.incarnateIdeas(world.task)
-            const quests = await world.questStore.find({
+            const quests = await world.questStore.findSimple({
                 // @ts-ignore
                 ideaId: ideas.map((i) => i.id),
             })
@@ -316,7 +316,7 @@ async function setUp(settings: Settings = {}) {
     }
     async function getQuestByIdeaN(ideaN: number) {
         const idea = getIdeaByN(ideaN)
-        const quests = await context.stores.questStore.find({
+        const quests = await context.stores.questStore.findSimple({
             // @ts-ignore
             ideaId: idea.id,
         })
@@ -334,7 +334,7 @@ async function setUp(settings: Settings = {}) {
         tribe,
         task,
         getIdeas: async () => {
-            return await context.stores.ideaStore.find({
+            return await context.stores.ideaStore.findSimple({
                 brainstormId: brainstorm.id,
             })
         },

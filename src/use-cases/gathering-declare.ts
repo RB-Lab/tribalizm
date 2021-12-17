@@ -38,7 +38,7 @@ export class GatheringDeclare extends ContextUser {
             member,
             req.parentQuestId
         )
-        const targetMembers = await this.stores.memberStore.find({
+        const targetMembers = await this.stores.memberStore.findSimple({
             id: targetMembersIds,
         })
         targetMembers.forEach((targetMember) => {
@@ -72,7 +72,7 @@ export class GatheringDeclare extends ContextUser {
     ) => {
         if (type === 'all') {
             return (
-                await this.stores.memberStore.find({
+                await this.stores.memberStore.findSimple({
                     tribeId: member.tribeId,
                 })
             ).map((m) => m.id)

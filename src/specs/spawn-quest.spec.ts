@@ -76,7 +76,7 @@ describe('Spawn new quest', () => {
             parentQuestId: quest.id!,
         })
         // @ts-ignore
-        const newQuest = (await world.questStore.find({ description }))[0]
+        const newQuest = (await world.questStore.findSimple({ description }))[0]
         expect(newQuest).toBeTruthy()
         expect(newQuest.memberIds.length).toEqual(2)
         const validMmebers = [...world.upvoters, world.idea.memberId]
@@ -226,7 +226,7 @@ async function setUp() {
         ...context.stores,
         getSpawnedQuest: async () => {
             return (
-                await context.stores.questStore.find({
+                await context.stores.questStore.findSimple({
                     //@ts-ignore
                     description: defautlSpawnRequest.description,
                 })
