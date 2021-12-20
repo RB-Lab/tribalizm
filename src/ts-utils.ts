@@ -34,3 +34,12 @@ export function hasPropertyValue<T extends {}>(
 ) {
     return notEmpty(obj) && objectHasProp(obj, prop) && obj[prop] === value
 }
+
+// OK, these are not exactly TS-utils, but let them be here for some time...
+export function base64Encode(str: string) {
+    return Buffer.from(str, 'utf-8').toString('base64')
+}
+
+export function base64Decode(str: string) {
+    return Buffer.from(str, 'base64').toString('utf-8')
+}

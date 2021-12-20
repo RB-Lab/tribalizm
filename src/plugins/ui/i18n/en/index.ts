@@ -43,6 +43,7 @@ const en: BaseTranslation = {
         requestLocationText: "What is the city you're in?",
         requestLocation: '🌍 Share my location',
         apply: '🖖 Send application',
+        more: 'More…',
         count: 'Members count:',
         searchIn: 'Tribes in {city}: ',
         searchInAstral: 'Tribes in Astral',

@@ -1,12 +1,16 @@
 import { Markup } from 'telegraf'
-import e from 'telegram-test-api/node_modules/@types/express'
 import { hasPropertyValue, Maybe, notEmpty } from '../../../../ts-utils'
-import { TribeInfo } from '../../../../use-cases/tribes-show'
 import { i18n } from '../../i18n/i18n-ctx'
 import { removeInlineKeyboard } from '../telegraf-hacks'
 import { TgContext, TribeCtx } from '../tribe-ctx'
 import { UserState } from '../users-adapter'
 import { makeCallbackDataParser } from './callback-parser'
+import {
+    applyTribe,
+    moreTribeInfo,
+    tribeView,
+    tribeViewShort,
+} from './views/tribe'
 
 interface LocateState extends UserState {
     type: 'locate-state'
@@ -22,7 +26,7 @@ function isApplyState(state: Maybe<UserState>): state is ApplyState {
     return notEmpty(state) && state.type === 'apply-state'
 }
 
-export function tribesListScreen({ bot }: TgContext) {
+export function listTribesScreen({ bot }: TgContext) {
     bot.action('list-tribes', async (ctx) => {
         ctx.logEvent('list tribes')
         const texts = i18n(ctx).tribesList
@@ -44,6 +48,27 @@ export function tribesListScreen({ bot }: TgContext) {
             .resize()
 
         await ctx.reply(texts.requestLocationText(), keyboard)
+    })
+    bot.action(moreTribeInfo.regex, async (ctx) => {
+        const { tribeId } = moreTribeInfo.parse(ctx.match.input)
+        const tribe = await ctx.tribalizm.tribesShow.getTribeInfo({
+            tribeId,
+        })
+        ctx.logEvent('Tribe info', { tribeId: tribe.id, tribeName: tribe.name })
+
+        await ctx.deleteMessage()
+        const view = tribeView(ctx, tribe)
+        if (tribe.logo) {
+            if (!ctx.chat) {
+                throw new Error('WTF, context has no chat')
+            }
+            await ctx.telegram.sendPhoto(ctx.chat.id, tribe.logo, {
+                caption: view.text,
+                ...view.extra,
+            })
+        } else {
+            await ctx.reply(view.text, view.extra)
+        }
     })
 
     bot.on('location', async (ctx, next) => {
@@ -92,7 +117,6 @@ export function tribesListScreen({ bot }: TgContext) {
         await showCityTribesList(ctx, city, 'city name')
     })
 
-    const applyTribe = makeCallbackDataParser('apply-tribe', ['tribeId'])
     const searchAstral = makeCallbackDataParser('search-astral', ['after'])
     async function showCityTribesList(
         ctx: TribeCtx,
@@ -123,38 +147,37 @@ export function tribesListScreen({ bot }: TgContext) {
             ])
             return ctx.reply(texts.nothingFound({ city: city.name }), keyboard)
         }
-        return showTribes(ctx, tribes)
-    }
-
-    async function showTribes(ctx: TribeCtx, tribes: TribeInfo[]) {
-        const texts = i18n(ctx).tribesList
-
         for (let tribe of tribes) {
-            const keyboard = Markup.inlineKeyboard([
-                Markup.button.callback(
-                    texts.apply(),
-                    applyTribe.serialize({ tribeId: tribe.id })
-                ),
-            ])
-            await ctx.replyWithHTML(
-                `<b>${tribe.name}</b>\n${
-                    tribe.description
-                }\n<i>${texts.count()} ${tribe.membersCount}</i>`,
-                keyboard
-            )
+            const view = tribeViewShort(ctx, tribe)
+            await ctx.reply(view.text, view.extra)
         }
     }
 
     bot.action(applyTribe.regex, async (ctx) => {
-        const { tribeId } = applyTribe.parse(ctx.match.input)
+        const { tribeId, isShort } = applyTribe.parse(ctx.match.input)
         const texts = i18n(ctx).tribesList
         ctx.logEvent('apply tribe', { tribeId })
         await ctx.user.setState<ApplyState>({ type: 'apply-state', tribeId })
         const tribe = await ctx.tribalizm.tribesShow.getTribeInfo({
             tribeId,
         })
-        await removeInlineKeyboard(ctx, texts.applicationSentShort())
-        await ctx.reply(texts.applyText({ tribe: tribe.name }))
+
+        const view = isShort
+            ? tribeViewShort(ctx, tribe)
+            : tribeView(ctx, tribe)
+        const msg = ctx.update.callback_query.message
+        const extra = {
+            parse_mode: 'HTML' as 'HTML',
+            reply_markup: { inline_keyboard: [] },
+        }
+        const text = `${view.text} ${texts.applicationSentShort()}`
+        if (msg && 'caption' in msg) {
+            await ctx.editMessageCaption(text, extra)
+        } else {
+            await ctx.editMessageText(text, extra)
+        }
+
+        return ctx.reply(texts.applyText({ tribe: tribe.name }))
     })
 
     bot.on('text', async (ctx, next) => {
@@ -215,7 +238,10 @@ export function tribesListScreen({ bot }: TgContext) {
         } else {
             await ctx.deleteMessage()
         }
-        await showTribes(ctx, tribes)
+        for (let tribe of tribes) {
+            const view = tribeViewShort(ctx, tribe)
+            await ctx.reply(view.text, view.extra)
+        }
         // TODO make proper pagination with `hasNext` property
         //      and `loadMore` button rendered with `apply`
         if (tribes.length === 3) {

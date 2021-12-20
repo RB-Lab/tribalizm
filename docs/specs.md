@@ -110,6 +110,10 @@ Done: 35, In progress: 0, Must: 0, Should: 16, total: 52
 
 -   Fault tolerance: resurrect system from persisted state
 -   Reliability: use transactions in when update stores
+-   Use view-model: intermediate layer for simple entity queries: thus notifications etc. could have
+    absolute minimal data and view could get what they need from view-models. In theory this will
+    lead to less modifications in business logic & tests.
+-   Use yarn workspaces & move business logic to a separate "package"?
 
 #### Ideas
 
@@ -139,3 +143,4 @@ Done: 35, In progress: 0, Must: 0, Should: 16, total: 52
 ## TODO
 
 -   fix timezones for 30 cities. Preserve IDs, because there are users linked to those cities already
+-   DROP chiefs/shamans & ratings

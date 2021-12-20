@@ -18,6 +18,7 @@ export class TribeCreation extends ContextUser {
         const member = new Member({
             tribeId: tribe.id,
             userId: user.id,
+            isCandidate: false,
         })
 
         // we consider tribe creation to be initial gathering

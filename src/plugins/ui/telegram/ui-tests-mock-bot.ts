@@ -1,7 +1,7 @@
 import { createContext } from '../../../specs/test-context'
 import { noop } from '../../../ts-utils'
 import { Admin } from '../../../use-cases/admin'
-import { City } from '../../../use-cases/entities/city'
+import { City, StoredCity } from '../../../use-cases/entities/city'
 import { Tribe } from '../../../use-cases/entities/tribe'
 import { User } from '../../../use-cases/entities/user'
 import { ILogger } from '../../../use-cases/utils/logger'
@@ -12,6 +12,7 @@ import { TelegramMessageInMemoryStore } from './message-store'
 import { testLauncher } from './screens/test-launcher'
 import {
     ITelegramUser,
+    SavedTelegramUser,
     StoreTelegramUsersAdapter,
     TelegramUser,
 } from './users-adapter'
@@ -21,7 +22,7 @@ class TgUserStore extends InMemoryStore<ITelegramUser> {}
 const myChatId = '217518902'
 
 export class MockTgUserAdapter extends StoreTelegramUsersAdapter {
-    user = {
+    user: SavedTelegramUser = {
         id: '8768',
         chatId: myChatId,
         userId: 'whatever',
@@ -46,6 +47,11 @@ export class MockTgUserAdapter extends StoreTelegramUsersAdapter {
         new TelegramUser(this.store, this.logger, this.user)
     getTelegramUserForTribalism = async () =>
         new TelegramUser(this.store, this.logger, this.user)
+
+    setCity(city: StoredCity) {
+        this.user.cityId = city.id
+        this.user.timeZone = city.timeZone
+    }
 }
 async function run() {
     const context = await createContext()
@@ -64,18 +70,24 @@ async function run() {
             timeZone: 'Europe/Oslo',
         })
     )
+    telegramUsersAdapter.setCity(city)
     const tribes = await context.stores.tribeStore.saveBulk([
         new Tribe({
             cityId: city.id,
             name: 'Lex Fridman podcast discussion group',
             description:
                 'Here we discuss Lex Fridman podcast and related stuff',
+            logo: 'https://downculture.files.wordpress.com/2019/05/img_6103.png',
         }),
         new Tribe({
             cityId: city.id,
             name: 'SpaceX gazers',
             description:
-                'We love to look at stuff in Boca Chica from the other side of the Earth',
+                '🚀 We love to look at stuff in Boca Chica from the other side of the Earth. ' +
+                'Yeah, it will definitely change the way we explore space and make humans ' +
+                'not only multi-planetary species but also a space faring civilization!!! \n' +
+                "So excited about this, can't wait to get excited together!! 🚀",
+            logo: 'https://cdn.images.express.co.uk/img/dynamic/151/750x445/1324925.jpg',
         }),
         new Tribe({
             cityId: city.id,
@@ -87,13 +99,22 @@ async function run() {
         new User({ name: 'Joe Rogan' }),
         new User({ name: 'Marcus House' }),
         new User({ name: 'Eliser U' }),
-        new User({ name: 'R.B.' }),
+        new User({ name: 'R.B.', cityId: city.id }),
     ])
     admin.addTribeMember({ tribeId: tribes[0].id, userId: users[0].id })
     admin.addTribeMember({ tribeId: tribes[1].id, userId: users[1].id })
     admin.addTribeMember({ tribeId: tribes[2].id, userId: users[2].id })
     telegramUsersAdapter.user.userId = users[3].id
 
+    // context.tribalizm.tribesShow.getTribeInfo = (req) =>
+    //     Promise.resolve({
+    //         id: req.tribeId,
+    //         description: tribes[0].description,
+    //         isInTribe: false,
+    //         logo: '',
+    //         membersCount: 23,
+    //         name: tribes[0].name,
+    //     })
     makeBot({
         logger,
         metrics: {

@@ -1,3 +1,8 @@
+const booleanCodes = {
+    true: '\u001b',
+    false: '\u0000',
+}
+
 let usedCbNames: string[] = []
 export function purgeGlobalCallbackRegistry() {
     usedCbNames = []
@@ -21,7 +26,9 @@ export function makeCallbackDataParser<T extends {}>(
     usedCbNames.push(cbName)
 
     return {
-        /** if data is not set all keys will be undefined */
+        /**
+         * if data is not set all keys will be undefined
+         */
         serialize: (data?: T) => {
             if (!data) {
                 return cbName
@@ -34,6 +41,9 @@ export function makeCallbackDataParser<T extends {}>(
                             `Cannot make callback data, invalid character: ${data[k]}`
                         )
                     }
+                    if (typeof value === 'boolean') {
+                        return value ? booleanCodes.true : booleanCodes.false
+                    }
                     return value
                 })
                 .join(':')
@@ -43,10 +53,20 @@ export function makeCallbackDataParser<T extends {}>(
             }
             return result
         },
-        /** if data was not provided during serialization, all keys will be undefined */
+        /**
+         * if data was not provided during serialization, all keys will be undefined
+         */
         parse: (str: string) => {
             const arr = str.replace(`${cbName}`, '').split(':').slice(1)
-            return keys.reduce<T>((r, k, i) => ({ ...r, [k]: arr[i] }), {} as T)
+            return keys.reduce<T>((r, k, i) => {
+                let val: string | boolean = arr[i]
+                if (val === booleanCodes.false) {
+                    val = false
+                } else if (val === booleanCodes.true) {
+                    val = true
+                }
+                return { ...r, [k]: val }
+            }, {} as T)
         },
         regex: makeRegex(cbName),
         toString: () => cbName,

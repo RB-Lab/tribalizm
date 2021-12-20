@@ -108,6 +108,10 @@ export type Translation = {
 		 */
 		'apply': string
 		/**
+		 * More…
+		 */
+		'more': string
+		/**
 		 * Members count:
 		 */
 		'count': string
@@ -928,6 +932,10 @@ export type TranslationFunctions = {
 		 * 🖖 Send application
 		 */
 		'apply': () => LocalizedString
+		/**
+		 * More…
+		 */
+		'more': () => LocalizedString
 		/**
 		 * Members count:
 		 */

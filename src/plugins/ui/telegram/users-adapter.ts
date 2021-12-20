@@ -59,11 +59,15 @@ export class TelegramUser implements SavedTelegramUser {
     }
     async setState<T extends UserState>(state: T | null) {
         if (state) {
-            this.logger.trace(`set-user-state: ${state.type}`, state)
+            this.logger.trace(`set-user-state: ${state.type}`, {
+                ...state,
+                userId: this.userId,
+            })
             this.state = state
         } else {
             this.logger?.trace(
-                `droop-user-state, was: ${this.state?.type || 'null'}`
+                `droop-user-state, was: ${this.state?.type || 'null'}`,
+                { userId: this.userId }
             )
             delete this.state
         }

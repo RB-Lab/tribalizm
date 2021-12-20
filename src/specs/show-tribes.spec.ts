@@ -8,31 +8,27 @@ import { User } from '../use-cases/entities/user'
 import { TribeShow } from '../use-cases/tribes-show'
 import { createContext } from './test-context'
 
-describe('Show tribe(s)', () => {
+fdescribe('Show tribe(s)', () => {
     it('list tribes for user', async () => {
         const world = await setUp()
         const tribes = await world.tribeShow.getLocalTribes({
             userId: world.user.id,
         })
         expect(tribes.length).toBe(2)
-        expect(tribes).toEqual(
-            jasmine.arrayContaining([
-                {
-                    id: world.tribe.id,
-                    name: world.tribe.name,
-                    description: world.tribe.description,
-                    type: world.tribe.vocabulary,
-                    membersCount: world.members.length,
-                },
-                {
-                    id: world.tribe2.id,
-                    name: world.tribe2.name,
-                    description: world.tribe2.description,
-                    type: world.tribe2.vocabulary,
-                    membersCount: world.members2.length,
-                },
-            ])
-        )
+        expect(tribes).toEqual([
+            jasmine.objectContaining({
+                id: world.tribe.id,
+                name: world.tribe.name,
+                description: world.tribe.description,
+                membersCount: world.members.length,
+            }),
+            jasmine.objectContaining({
+                id: world.tribe2.id,
+                name: world.tribe2.name,
+                description: world.tribe2.description,
+                membersCount: world.members2.length,
+            }),
+        ])
     })
     it('does NOT show tribes user already in', async () => {
         const world = await setUp()
@@ -77,20 +73,23 @@ describe('Show tribe(s)', () => {
         const tribe = await world.tribeShow.getTribeInfo({
             tribeId: world.tribe.id,
         })
-        const chief = world.members.find((m) => m.id === world.tribe.chiefId)
-        const chiefUser = world.users.find((u) => u.id === chief!.userId)
+
         expect(tribe).toEqual(
             jasmine.objectContaining({
                 id: world.tribe.id,
                 name: world.tribe.name,
                 description: world.tribe.description,
-                type: world.tribe.vocabulary,
                 membersCount: world.members.length,
-                chief: {
-                    name: chiefUser!.name,
-                },
             })
         )
+    })
+    it('Marks inTribe if user is in tribe', async () => {
+        const world = await setUp()
+        const tribe = await world.tribeShow.getTribeInfo({
+            tribeId: world.tribe.id,
+            userId: world.users[1].id,
+        })
+        expect(tribe.isInTribe).toBe(true)
     })
 })
 
