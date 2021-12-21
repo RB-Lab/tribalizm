@@ -42,10 +42,12 @@ describe('Get into tribe [integration]', () => {
 
         // apply to last tribe
         const tribeListItem = tribesListUpdate[tribesListUpdate.length - 1]
-        const applyButton = getInlineKeyCallbacks(tribeListItem)[0]
+        const applyButton = getInlineKeyCallbacks(tribeListItem)[1]
         expect(applyButton).toMatch('apply-tribe')
         const applyReply = await world.newUser.chatLast(applyButton)
-        const tribeId = applyButton.replace('apply-tribe:', '')
+        const tribeId = applyButton
+            .replace('apply-tribe:', '')
+            .replace(/:.*/, '')
         const tribe = world.tribes.find((t) => t.id === tribeId)
         expect(applyReply.message.text).toMatch(tribe!.name)
         const coverLetter = 'I want to FOO!!'
@@ -344,6 +346,7 @@ describe('Get into tribe [integration]', () => {
         const response = await world.newUser.chatLast('list-tribes')
         // should have button for sharing location
         const btn = getKeyboardButtons(response)[0]
+
         expect(btn).toBeTruthy()
         expect(typeof btn === 'object' && 'request_location' in btn).toBeTrue()
         await world.newUser.client.sendMessage(
@@ -361,7 +364,7 @@ describe('Get into tribe [integration]', () => {
         await world.newUser.chat('/start')
         await world.newUser.chat('list-tribes')
         const lastTribeReply = await world.newUser.chatLast(world.city.name)
-        await world.newUser.chat(getInlineKeyCallbacks(lastTribeReply)[0])
+        await world.newUser.chat(getInlineKeyCallbacks(lastTribeReply)[1])
         await world.newUser.chat('I want to FOO!!')
         const chiefUpdates = await world.chief.chatLast()
         const buttons = getInlineKeyCallbacks(chiefUpdates)
@@ -377,7 +380,7 @@ describe('Get into tribe [integration]', () => {
         await world.newUser.chat('list-tribes')
         const tribesListUpdate = await world.newUser.chat(world.city.name)
         const tribeListItem = tribesListUpdate[tribesListUpdate.length - 1]
-        const applyButton = getInlineKeyCallbacks(tribeListItem)[0]
+        const applyButton = getInlineKeyCallbacks(tribeListItem)[1]
         await world.newUser.chatLast(applyButton)
         await world.newUser.chat('I want to FOO!!')
         const chiefUpdates = await world.chief.chat()
@@ -439,7 +442,7 @@ describe('Get into tribe [integration]', () => {
         await world.newUser.chat('list-tribes')
         const tribesListUpdate = await world.newUser.chat(world.city.name)
         const tribeListItem = tribesListUpdate[tribesListUpdate.length - 1]
-        const applyButton = getInlineKeyCallbacks(tribeListItem)[0]
+        const applyButton = getInlineKeyCallbacks(tribeListItem)[1]
         await world.newUser.chatLast(applyButton)
         await world.newUser.chat('I want to FOO!!')
         const chiefUpdates = await world.chief.chat()

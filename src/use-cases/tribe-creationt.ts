@@ -2,16 +2,20 @@ import { Member } from './entities/member'
 import { Tribe } from './entities/tribe'
 import { ContextUser } from './utils/context-user'
 
+interface CreateTribeRequest {
+    userId: string
+    name: string
+    logo?: string
+    description: string
+}
+
 export class TribeCreation extends ContextUser {
-    createTribe = async (req: {
-        userId: string
-        name: string
-        description: string
-    }) => {
+    createTribe = async (req: CreateTribeRequest) => {
         const tribe = await this.stores.tribeStore.save(
             new Tribe({
                 name: req.name,
                 description: req.description,
+                logo: req.logo,
             })
         )
         const user = await this.getUser(req.userId)
@@ -31,6 +35,7 @@ export class TribeCreation extends ContextUser {
         })
         const savedMember = await this.stores.memberStore.save(member)
         tribe.chiefId = savedMember.id
-        await this.stores.tribeStore.save(tribe)
+        const newTribe = await this.stores.tribeStore.save(tribe)
+        return newTribe.id
     }
 }

@@ -22,7 +22,7 @@ export function startScreen({ bot }: TgContext) {
                 tribeId,
             })
 
-            const view = tribeView(ctx, tribeInfo)
+            const view = tribeView(ctx, { tribeInfo })
             if (tribeInfo.logo) {
                 return ctx.telegram.sendPhoto(ctx.chat.id, tribeInfo.logo, {
                     caption: view.text,

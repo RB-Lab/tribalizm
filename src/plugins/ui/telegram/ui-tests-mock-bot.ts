@@ -72,28 +72,29 @@ async function run() {
     )
     telegramUsersAdapter.setCity(city)
     const tribes = await context.stores.tribeStore.saveBulk([
-        new Tribe({
-            cityId: city.id,
-            name: 'Lex Fridman podcast discussion group',
-            description:
-                'Here we discuss Lex Fridman podcast and related stuff',
-            logo: 'https://downculture.files.wordpress.com/2019/05/img_6103.png',
-        }),
-        new Tribe({
-            cityId: city.id,
-            name: 'SpaceX gazers',
-            description:
-                '🚀 We love to look at stuff in Boca Chica from the other side of the Earth. ' +
-                'Yeah, it will definitely change the way we explore space and make humans ' +
-                'not only multi-planetary species but also a space faring civilization!!! \n' +
-                "So excited about this, can't wait to get excited together!! 🚀",
-            logo: 'https://cdn.images.express.co.uk/img/dynamic/151/750x445/1324925.jpg',
-        }),
-        new Tribe({
-            cityId: city.id,
-            name: 'Less Wrong Aya Napa',
-            description: 'The Rational People Tribe!',
-        }),
+        // new Tribe({
+        //     cityId: city.id,
+        //     name: 'Lex Fridman podcast discussion group',
+        //     description:
+        //         'Here we discuss Lex Fridman podcast and related stuff',
+        //     logo: 'https://downculture.files.wordpress.com/2019/05/img_6103.png',
+        // }),
+        // new Tribe({
+        //     cityId: city.id,
+        //     name: 'SpaceX gazers',
+        //     description:
+        //         '🚀 We love to look at stuff in Boca Chica from the other side of the Earth. ' +
+        //         'Yeah, it will definitely change the way we explore space and make humans ' +
+        //         'not only multi-planetary species but also a space faring civilization!!! \n' +
+        //         "So excited about this, can't wait to get excited together!! 🚀",
+        //     logo: 'https://cdn.images.express.co.uk/img/dynamic/151/750x445/1324925.jpg',
+        // }),
+        // new Tribe({
+        //     cityId: city.id,
+        //     logo: 'AQADNrgxG4DfEUp9',
+        //     name: 'Less Wrong Aya Napa',
+        //     description: 'The Rational People Tribe!',
+        // }),
     ])
     const users = await context.stores.userStore.saveBulk([
         new User({ name: 'Joe Rogan' }),
@@ -101,9 +102,9 @@ async function run() {
         new User({ name: 'Eliser U' }),
         new User({ name: 'R.B.', cityId: city.id }),
     ])
-    admin.addTribeMember({ tribeId: tribes[0].id, userId: users[0].id })
-    admin.addTribeMember({ tribeId: tribes[1].id, userId: users[1].id })
-    admin.addTribeMember({ tribeId: tribes[2].id, userId: users[2].id })
+    // admin.addTribeMember({ tribeId: tribes[0].id, userId: users[0].id })
+    // admin.addTribeMember({ tribeId: tribes[1].id, userId: users[1].id })
+    // admin.addTribeMember({ tribeId: tribes[2].id, userId: users[2].id })
     telegramUsersAdapter.user.userId = users[3].id
 
     // context.tribalizm.tribesShow.getTribeInfo = (req) =>

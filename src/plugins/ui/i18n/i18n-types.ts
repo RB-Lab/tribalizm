@@ -171,9 +171,21 @@ export type Translation = {
 		 */
 		'tribeDescriptionPrompt': string
 		/**
-		 * 🌅 A new tribe created. You're it's chief now.
+		 * 🌅 A new tribe created.
 		 */
 		'tribeCreated': string
+		/**
+		 * Join the tribe!
+		 */
+		'joinLink': string
+		/**
+		 * Upload tribe image
+		 */
+		'uploadLogo': string
+		/**
+		 * ⏩ Skip image
+		 */
+		'skipImage': string
 		/**
 		 * There's more tribes...
 		 */
@@ -993,9 +1005,21 @@ export type TranslationFunctions = {
 		 */
 		'tribeDescriptionPrompt': () => LocalizedString
 		/**
-		 * 🌅 A new tribe created. You're it's chief now.
+		 * 🌅 A new tribe created.
 		 */
 		'tribeCreated': () => LocalizedString
+		/**
+		 * Join the tribe!
+		 */
+		'joinLink': () => LocalizedString
+		/**
+		 * Upload tribe image
+		 */
+		'uploadLogo': () => LocalizedString
+		/**
+		 * ⏩ Skip image
+		 */
+		'skipImage': () => LocalizedString
 		/**
 		 * There's more tribes...
 		 */

@@ -55,7 +55,7 @@ export class InMemoryStore<T> implements Store<T> {
             (doc) => check(query, doc) && checkNot(filter, doc)
         )
 
-        const index = cursor ? storeValues.findIndex((o) => o.id === cursor) : 0
+        const index = cursor ? results.findIndex((o) => o.id === cursor) + 1 : 0
 
         return Promise.resolve(
             results.slice(index, index + limit).map(this._instantiate)

@@ -8,7 +8,7 @@ import { User } from '../use-cases/entities/user'
 import { TribeShow } from '../use-cases/tribes-show'
 import { createContext } from './test-context'
 
-fdescribe('Show tribe(s)', () => {
+describe('Show tribe(s)', () => {
     it('list tribes for user', async () => {
         const world = await setUp()
         const tribes = await world.tribeShow.getLocalTribes({

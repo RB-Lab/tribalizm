@@ -34,7 +34,8 @@ describe('Astral tribes [scenario]:', () => {
         expect(create).toEqual(jasmine.any(String))
         await world.user1.chat(create)
         await world.user1.chat('Bar Tribe')
-        await world.user1.chat('We really Bar Bar!')
+        const upload = await world.user1.chatLast('We really Bar Bar!')
+        await world.user1.chat(getInlineKeyCallbacks(upload)[0])
         const tribes = await world.context.stores.tribeStore.findSimple({})
         expect(tribes.length).toBe(1)
         expect(tribes[0]).toEqual(
@@ -87,7 +88,8 @@ describe('Astral tribes [scenario]:', () => {
         const create = getInlineKeyCallbacks(astralUpds[0])[0]
         await world.user1.chat(create)
         await world.user1.chat('Bar Tribe')
-        await world.user1.chat('We really Bar Bar!')
+        const upload = await world.user1.chatLast('We really Bar Bar!')
+        await world.user1.chat(getInlineKeyCallbacks(upload)[0])
 
         // second user applies to that tribe
         const listOrRules2 = getInlineKeyCallbacks(
@@ -99,7 +101,7 @@ describe('Astral tribes [scenario]:', () => {
         )
         const astralUpds2 = await world.user2.chat(checkAstral2[0])
         const applyKeyboard = getInlineKeyCallbacks(astralUpds2[1])
-        await world.user2.forceCallback(applyKeyboard[0])
+        await world.user2.forceCallback(applyKeyboard[1])
         await world.user2.chat('Because I BAR')
 
         const meetOrDecline = getInlineKeyCallbacks(

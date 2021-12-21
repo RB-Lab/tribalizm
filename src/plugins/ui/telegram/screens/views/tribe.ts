@@ -1,7 +1,8 @@
 import { Markup } from 'telegraf'
-import { ExtraPhoto, ExtraReplyMessage } from 'telegraf/typings/telegram-types'
+import { base64Encode } from '../../../../../ts-utils'
 import { TribeInfo } from '../../../../../use-cases/tribes-show'
-import { i18n, Ctx } from '../../../i18n/i18n-ctx'
+import { Ctx, i18n } from '../../../i18n/i18n-ctx'
+import { TribeCtx } from '../../tribe-ctx'
 import { makeCallbackDataParser } from '../callback-parser'
 
 export const applyTribe = makeCallbackDataParser('apply-tribe', [
@@ -11,17 +12,30 @@ export const applyTribe = makeCallbackDataParser('apply-tribe', [
 
 export const moreTribeInfo = makeCallbackDataParser('tribe-info', ['tribeId'])
 
-export function tribeView(ctx: Ctx, tribeInfo: TribeInfo) {
+interface TribeViewProps {
+    tribeInfo: TribeInfo
+    hasLink?: boolean
+}
+
+export function tribeView(ctx: TribeCtx, props: TribeViewProps) {
     const texts = i18n(ctx).tribesList
 
-    const text = `<b>${tribeInfo.name}</b>\n${tribeInfo.description}\n`
+    let text = `<b>${props.tribeInfo.name}</b>\n\n${props.tribeInfo.description}\n\n`
+    if (props.hasLink) {
+        const tribeId = base64Encode(`tribe=${props.tribeInfo.id}`)
+        const href = `https://t.me/${ctx.botInfo.username}?start=${tribeId}`
+        text += `\n<a href="${href}"><b>${texts.joinLink()}</b></a>\n`
+    }
 
     const keys = []
-    if (!tribeInfo.isInTribe) {
+    if (!props.tribeInfo.isInTribe) {
         keys.push(
             Markup.button.callback(
                 texts.apply(),
-                applyTribe.serialize({ tribeId: tribeInfo.id, isShort: false })
+                applyTribe.serialize({
+                    tribeId: props.tribeInfo.id,
+                    isShort: false,
+                })
             )
         )
     }
