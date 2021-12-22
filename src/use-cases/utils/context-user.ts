@@ -1,21 +1,14 @@
 import { SavedMember } from '../entities/member'
 import { IQuestData, NotYourQuest } from '../entities/quest'
-import { Context } from './context'
+import { Context, Stores } from './context'
 import { Message } from './message'
 import { EntityNotFound } from './not-found-error'
 import { Scheduler } from './scheduler'
 
-export class ContextUser {
-    protected stores: Context['stores']
-    protected bus: Context['async']['notificationBus']
-    protected scheduler: Scheduler
-    constructor(context: Context) {
-        this.stores = context.stores
-        this.bus = context.async.notificationBus
-        this.scheduler = new Scheduler(context.stores.taskStore)
-    }
-    protected notify<T extends Message>(message: T) {
-        return this.bus.notify<T>(message)
+export class StoreUser {
+    protected stores: Stores
+    constructor(stores: Stores) {
+        this.stores = stores
     }
 
     protected async getQuest(questId: string) {
@@ -129,6 +122,19 @@ export class ContextUser {
             )
         }
         return member
+    }
+}
+
+export class ContextUser extends StoreUser {
+    protected bus: Context['async']['notificationBus']
+    protected scheduler: Scheduler
+    constructor(context: Context) {
+        super(context.stores)
+        this.bus = context.async.notificationBus
+        this.scheduler = new Scheduler(this.stores.taskStore)
+    }
+    protected notify<T extends Message>(message: T) {
+        return this.bus.notify<T>(message)
     }
 }
 

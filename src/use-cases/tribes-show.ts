@@ -17,7 +17,7 @@ export interface TribesRequest {
 }
 
 export class TribeShow extends ContextUser {
-    getTribeInfo = async (req: { tribeId: string; userId?: string }) => {
+    getTribeInfo = async (req: { tribeId: string; userId: string }) => {
         const tribe = await this.getTribe(req.tribeId)
         const count = await this.stores.memberStore.countTribeMembers(tribe.id)
         const response: TribeInfo = {
@@ -28,13 +28,11 @@ export class TribeShow extends ContextUser {
             logo: tribe.logo,
             isInTribe: false,
         }
-        if (req.userId) {
-            const members = await this.stores.memberStore.findSimple({
-                userId: req.userId,
-            })
-            if (members.some((m) => m.tribeId === req.tribeId)) {
-                response.isInTribe = true
-            }
+        const members = await this.stores.memberStore.findSimple({
+            userId: req.userId,
+        })
+        if (members.some((m) => m.tribeId === req.tribeId)) {
+            response.isInTribe = true
         }
         return response
     }

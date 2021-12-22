@@ -72,6 +72,7 @@ describe('Show tribe(s)', () => {
         const world = await setUp()
         const tribe = await world.tribeShow.getTribeInfo({
             tribeId: world.tribe.id,
+            userId: world.user.id,
         })
 
         expect(tribe).toEqual(

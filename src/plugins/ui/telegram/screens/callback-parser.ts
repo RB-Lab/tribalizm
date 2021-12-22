@@ -10,6 +10,7 @@ export function purgeGlobalCallbackRegistry() {
 function makeRegex(str: string) {
     return new RegExp(`${str}:(.+)|${str}`)
 }
+
 export function makeCallbackDataParser<T extends {}>(
     cbName: string,
     keys: Array<keyof T>
@@ -66,6 +67,7 @@ export function makeCallbackDataParser<T extends {}>(
                     val = true
                 }
                 return { ...r, [k]: val }
+                // TODO returned values should not be `any`, rather string|boolean|undefined
             }, {} as T)
         },
         regex: makeRegex(cbName),

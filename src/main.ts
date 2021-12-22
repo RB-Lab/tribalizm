@@ -9,6 +9,7 @@ import { makeTribalizm } from './use-cases/tribalism'
 import { Scheduler } from './use-cases/utils/scheduler'
 import { TaskDispatcher } from './use-cases/utils/task-dispatcher'
 import promClient from 'prom-client'
+import { makeViewModels } from './view-models/view-models'
 
 async function getDb() {
     const { DB_USER, DB_HOST, DB_PASS } = process.env
@@ -49,6 +50,7 @@ async function main() {
         })
 
         const tribalizm = makeTribalizm({ stores, async: { notificationBus } })
+        const viewModels = makeViewModels(stores)
 
         const tgUsersAdapter = new StoreTelegramUsersAdapter(
             stores.userStore,
@@ -70,7 +72,8 @@ async function main() {
             metrics: { countErrors },
             telegramUsersAdapter: tgUsersAdapter,
             messageStore: stores.messageStore,
-            tribalizm: tribalizm,
+            tribalizm,
+            viewModels,
             token: process.env.BOT_TOKEN,
             notificationBus: notificationBus,
         })

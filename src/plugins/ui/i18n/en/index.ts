@@ -2,11 +2,17 @@ import type { BaseTranslation } from '../i18n-types'
 
 const en: BaseTranslation = {
     unhandledText: '🗿 Spirits may hear you...',
+    buttons: {
+        back: '← Back',
+    },
     start: {
         text: 'Join tribes of likely-minded people nearby!',
+        profile: 'My Tribalizm profile',
+        myTribes: 'My tribes',
         buttons: {
             rules: 'ℹ️  Game rules',
             list: '📜 List tribes',
+            myTribes: 'My tribes',
         },
     },
     rules: {
@@ -173,6 +179,8 @@ const en: BaseTranslation = {
         charisma: 'How good a person is as a leader',
         wisdom: "How good a person grasps tribe's main topic",
         unknown: "Can't find this topic",
+        whatIsTribalizm: 'What is Tribalizm Bot?',
+        whatIsTribalizmText: 'TBD...',
     },
     rateMember: {
         elderCharismaPrompt:

@@ -192,6 +192,7 @@ export async function createTelegramContext(
         },
         token,
         tribalizm: context.tribalizm,
+        viewModels: context.viewModels,
         webHook: {
             port: 9002,
             path: '/tg-hook',

@@ -2,19 +2,21 @@ import { Telegraf } from 'telegraf'
 import { Tribalizm } from '../../../use-cases/tribalism'
 import { ILogger } from '../../../use-cases/utils/logger'
 import { NotificationBus } from '../../../use-cases/utils/notification-bus'
+import { ViewModels } from '../../../view-models/view-models'
 import { i18n } from '../i18n/i18n-ctx'
 import { DateTimePicker } from './date-time-picker'
 import { TelegramMessageStore } from './message-store'
 import { brainstormScreen } from './screens/brainstorm'
 import { coordinationScreen } from './screens/coordination'
+import { createTribeScreen } from './screens/create-tribe'
 import { gatheringScreen } from './screens/gathering'
+import { helpScreen } from './screens/help'
 import { initiationScreen } from './screens/initiation'
 import { introQuestsScreen } from './screens/intro-quests'
+import { listTribesScreen } from './screens/list-tribes'
 import { questNegotiationScreen } from './screens/quest-negotiation'
 import { rateMemberScreen } from './screens/rate-member'
-import { helpScreen } from './screens/help'
 import { startScreen } from './screens/start'
-import { listTribesScreen } from './screens/list-tribes'
 import { TribeCtx } from './tribe-ctx'
 import { TelegramUsersAdapter } from './users-adapter'
 
@@ -40,6 +42,7 @@ interface BotConfig {
     telegramUsersAdapter: TelegramUsersAdapter
     webHook?: PublicHookConfig
     tribalizm: Tribalizm
+    viewModels: ViewModels
     token: string | undefined
     notificationBus: NotificationBus
     messageStore: TelegramMessageStore
@@ -87,6 +90,7 @@ export async function makeBot(config: BotConfig) {
     // add tribalizm
     bot.use(async (ctx, next) => {
         ctx.tribalizm = config.tribalizm
+        ctx.viewModels = config.viewModels
         return next()
     })
 
@@ -100,8 +104,8 @@ export async function makeBot(config: BotConfig) {
         )
         if (user) {
             ctx.user = user
-        }
-        if (!user) {
+            ctx.firstTime = false
+        } else {
             const name =
                 ctx.from.first_name +
                 (ctx.from.last_name ? ` ${ctx.from.last_name}` : '')
@@ -110,6 +114,7 @@ export async function makeBot(config: BotConfig) {
                 locale: ctx.from.language_code,
                 username: ctx.from.username,
             })
+            ctx.firstTime = true
         }
         return next()
     })
@@ -146,6 +151,7 @@ export async function makeBot(config: BotConfig) {
     startScreen(tgContext)
     helpScreen(tgContext)
     listTribesScreen(tgContext)
+    createTribeScreen(tgContext)
     initiationScreen(tgContext)
     questNegotiationScreen(tgContext)
     rateMemberScreen(tgContext)

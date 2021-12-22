@@ -32,6 +32,7 @@ import { Message } from '../use-cases/utils/message'
 import { NotificationBus } from '../use-cases/utils/notification-bus'
 import { Scheduler } from '../use-cases/utils/scheduler'
 import { TaskDispatcher } from '../use-cases/utils/task-dispatcher'
+import { makeViewModels } from '../view-models/view-models'
 
 function createInMemoryStores() {
     const ideaStore = new InMemoryIdeaStore()
@@ -207,6 +208,7 @@ export async function createContext() {
     }
 
     const tribalizm = makeTribalizm(context)
+    const viewModels = makeViewModels(stores)
     const scheduler = new Scheduler(context.stores.taskStore)
     const taskDispatcher = new TaskDispatcher(tribalizm, scheduler, logger)
 
@@ -229,6 +231,7 @@ export async function createContext() {
         logger,
         testing,
         tribalizm,
+        viewModels,
         addVotes,
         requestTaskQueue,
     }

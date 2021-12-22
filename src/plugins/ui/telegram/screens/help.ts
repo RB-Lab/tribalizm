@@ -92,11 +92,14 @@ export function helpScreen({ bot }: TgContext) {
     bot.action(helpTopic.regex, async (ctx) => {
         const topic = helpTopic.parse(ctx.match.input).topic
         ctx.logEvent('help', { topic })
+        await ctx.answerCbQuery()
         switch (topic) {
             case 'charisma':
                 return ctx.reply(i18n(ctx).help.charisma())
             case 'wisdom':
                 return ctx.reply(i18n(ctx).help.wisdom())
+            case 'tribalizm':
+                return ctx.reply(i18n(ctx).help.whatIsTribalizmText())
             default:
                 return ctx.reply(i18n(ctx).help.unknown())
         }

@@ -14,11 +14,25 @@ export type Translation = {
 	 * 🗿 Spirits may hear you...
 	 */
 	'unhandledText': string
+	'buttons': {	
+		/**
+		 * ← Back
+		 */
+		'back': string
+	}
 	'start': {	
 		/**
 		 * Join tribes of likely-minded people nearby!
 		 */
 		'text': string
+		/**
+		 * My Tribalizm profile
+		 */
+		'profile': string
+		/**
+		 * My tribes
+		 */
+		'myTribes': string
 		'buttons': {	
 			/**
 			 * ℹ️  Game rules
@@ -28,6 +42,10 @@ export type Translation = {
 			 * 📜 List tribes
 			 */
 			'list': string
+			/**
+			 * My tribes
+			 */
+			'myTribes': string
 		}
 	}
 	'rules': {	
@@ -582,6 +600,14 @@ export type Translation = {
 		 * Can't find this topic
 		 */
 		'unknown': string
+		/**
+		 * What is Tribalizm Bot?
+		 */
+		'whatIsTribalizm': string
+		/**
+		 * TBD...
+		 */
+		'whatIsTribalizmText': string
 	}
 	'rateMember': {	
 		/**
@@ -851,11 +877,25 @@ export type TranslationFunctions = {
 	 * 🗿 Spirits may hear you...
 	 */
 	'unhandledText': () => LocalizedString
+	'buttons': {	
+		/**
+		 * ← Back
+		 */
+		'back': () => LocalizedString
+	}
 	'start': {	
 		/**
 		 * Join tribes of likely-minded people nearby!
 		 */
 		'text': () => LocalizedString
+		/**
+		 * My Tribalizm profile
+		 */
+		'profile': () => LocalizedString
+		/**
+		 * My tribes
+		 */
+		'myTribes': () => LocalizedString
 		'buttons': {	
 			/**
 			 * ℹ️  Game rules
@@ -865,6 +905,10 @@ export type TranslationFunctions = {
 			 * 📜 List tribes
 			 */
 			'list': () => LocalizedString
+			/**
+			 * My tribes
+			 */
+			'myTribes': () => LocalizedString
 		}
 	}
 	'rules': {	
@@ -1372,6 +1416,14 @@ export type TranslationFunctions = {
 		 * Can't find this topic
 		 */
 		'unknown': () => LocalizedString
+		/**
+		 * What is Tribalizm Bot?
+		 */
+		'whatIsTribalizm': () => LocalizedString
+		/**
+		 * TBD...
+		 */
+		'whatIsTribalizmText': () => LocalizedString
 	}
 	'rateMember': {	
 		/**

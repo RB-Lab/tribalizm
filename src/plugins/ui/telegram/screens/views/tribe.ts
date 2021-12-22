@@ -4,6 +4,7 @@ import { TribeInfo } from '../../../../../use-cases/tribes-show'
 import { Ctx, i18n } from '../../../i18n/i18n-ctx'
 import { TribeCtx } from '../../tribe-ctx'
 import { makeCallbackDataParser } from '../callback-parser'
+import { helpTopic } from '../help'
 
 export const applyTribe = makeCallbackDataParser('apply-tribe', [
     'tribeId',
@@ -15,8 +16,11 @@ export const moreTribeInfo = makeCallbackDataParser('tribe-info', ['tribeId'])
 interface TribeViewProps {
     tribeInfo: TribeInfo
     hasLink?: boolean
+    back?: string
+    showHelp?: boolean
 }
 
+// TODO for first time user show "what is tribalizm button"
 export function tribeView(ctx: TribeCtx, props: TribeViewProps) {
     const texts = i18n(ctx).tribesList
 
@@ -28,6 +32,9 @@ export function tribeView(ctx: TribeCtx, props: TribeViewProps) {
     }
 
     const keys = []
+    if (props.back) {
+        keys.push(Markup.button.callback(i18n(ctx).buttons.back(), props.back))
+    }
     if (!props.tribeInfo.isInTribe) {
         keys.push(
             Markup.button.callback(
@@ -36,6 +43,14 @@ export function tribeView(ctx: TribeCtx, props: TribeViewProps) {
                     tribeId: props.tribeInfo.id,
                     isShort: false,
                 })
+            )
+        )
+    }
+    if (props.showHelp) {
+        keys.push(
+            Markup.button.callback(
+                i18n(ctx).help.whatIsTribalizm(),
+                helpTopic.serialize({ topic: 'tribalizm' })
             )
         )
     }

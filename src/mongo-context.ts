@@ -10,10 +10,22 @@ import { MongoQuestStore } from './plugins/stores/mongo-store/quest-store'
 import { MongoTaskStore } from './plugins/stores/mongo-store/task-store'
 import { MongoTribeStore } from './plugins/stores/mongo-store/tribe-store'
 import { MongoUserStore } from './plugins/stores/mongo-store/user-store'
-import { TelegramMessageMongoStore } from './plugins/ui/telegram/message-store'
-import { ITelegramUser } from './plugins/ui/telegram/users-adapter'
+import {
+    TelegramMessageMongoStore,
+    TelegramMessageStore,
+} from './plugins/ui/telegram/message-store'
+import {
+    ITelegramUser,
+    TelegramUserStore,
+} from './plugins/ui/telegram/users-adapter'
+import { Stores } from './use-cases/utils/context'
 
-export function createMongoStores(db: Db) {
+// TODO invert this
+export interface MongoStores extends Stores {
+    tgUserStore: TelegramUserStore
+    messageStore: TelegramMessageStore
+}
+export function createMongoStores(db: Db): MongoStores {
     const ideasCollection = db.collection('idea')
     const ideaStore = new MongoIdeaStore(ideasCollection)
     const brainstormsCollection = db.collection('brainstorm')
