@@ -180,7 +180,16 @@ const en: BaseTranslation = {
         wisdom: "How good a person grasps tribe's main topic",
         unknown: "Can't find this topic",
         whatIsTribalizm: 'What is Tribalizm Bot?',
-        whatIsTribalizmText: 'TBD...',
+        whatIsTribalizmText:
+            'Tribalizm is a bot that facilitates real life connections in' +
+            'local communities, called "tribes" (e.g. "pop science lovers" or "electric transport' +
+            ' enthusiasts").\n' +
+            'Each new member of the tribe meets other members tet-a-tet in time of "initiation" ' +
+            "thus when it's time for gathering everybody already knows each other\n" +
+            'From time to time a brainstorm is declared where all tribe members can suggest ideas ' +
+            'of activities (from simple, lik "meet in pub or park" or "discuss new Dawkins paper" ' +
+            'to more viable ones like "get lobbied new charging station"). Most popular ideas are ' +
+            'to be implemented for which tribe members get the quests.',
     },
     rateMember: {
         elderCharismaPrompt:
