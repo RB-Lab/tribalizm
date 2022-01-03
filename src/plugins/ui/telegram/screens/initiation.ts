@@ -51,10 +51,8 @@ export function initiationScreen({ bot, bus, tgUsers }: TgContext) {
             questId: data.questId,
             userId: ctx.user.userId,
         })
-        await ctx.editMessageText(
-            i18n(ctx).initiation.approvedOk(),
-            Markup.inlineKeyboard([])
-        )
+        await removeInlineKeyboard(ctx)
+        await ctx.reply(i18n(ctx).initiation.approvedOk())
     })
     bot.action(appDeclineParser.regex, async (ctx) => {
         const data = appDeclineParser.parse(ctx.match.input)
@@ -64,10 +62,8 @@ export function initiationScreen({ bot, bus, tgUsers }: TgContext) {
             questId: data.questId,
             userId: ctx.user.userId,
         })
-        await ctx.editMessageText(
-            i18n(ctx).initiation.declineOk(),
-            Markup.inlineKeyboard([])
-        )
+        await removeInlineKeyboard(ctx)
+        await ctx.reply(i18n(ctx).initiation.declineOk())
     })
 
     bot.on('text', async (ctx, next) => {
@@ -80,7 +76,6 @@ export function initiationScreen({ bot, bus, tgUsers }: TgContext) {
             })
             const texts = i18n(ctx).initiation
             await ctx.reply(texts.declineOk())
-            // TODO should use the text maybe?
             await ctx.tribalizm.initiation.decline({
                 questId: state.questId,
                 userId: ctx.user.userId,

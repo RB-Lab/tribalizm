@@ -123,19 +123,15 @@ function formatValue(value: any): string {
         }
         if (value instanceof Date) {
             const yy = value.getFullYear().toString().slice(1)
-            const dd = dualize(value.getDate())
-            const mm = dualize(value.getMonth())
-            const h = dualize(value.getHours())
-            const m = dualize(value.getMinutes())
-            const s = dualize(value.getSeconds())
-            const ms = dualize(value.getMilliseconds())
+            const dd = String(value.getDate()).padStart(2, '0')
+            const mm = String(value.getMonth()).padStart(2, '0')
+            const h = String(value.getHours()).padStart(2, '0')
+            const m = String(value.getMinutes()).padStart(2, '0')
+            const s = String(value.getSeconds()).padStart(2, '0')
+            const ms = String(value.getMilliseconds()).padStart(2, '0')
             return `${dd}.${mm}.${yy} ${h}:${m}:${s}.${ms}`
         }
         return formatObject(value)
     }
     return String(value)
-}
-
-function dualize(n: number) {
-    return `00${n}`.slice(-2)
 }

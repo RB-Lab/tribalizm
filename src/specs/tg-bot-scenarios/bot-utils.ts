@@ -19,20 +19,22 @@ type BotUpdate = Awaited<UpdatePromise>['result'][0]
 export function getInlineKeyCallbacks(update: BotUpdate | undefined) {
     const markup = update?.message.reply_markup
     if (markup && 'inline_keyboard' in markup) {
-        return flatten(
-            markup.inline_keyboard.map((bs) =>
+        return markup.inline_keyboard
+            .map((bs) =>
                 bs.map((b) => ('callback_data' in b && b.callback_data) || null)
             )
-        ).filter(notEmpty)
+            .flat()
+            .filter(notEmpty)
     }
     return []
 }
 export function getInlineKeys(update: BotUpdate | undefined) {
     const markup = update?.message.reply_markup
     if (markup && 'inline_keyboard' in markup) {
-        return flatten(
-            markup.inline_keyboard.map((bs) => bs.map((b) => b.text))
-        ).filter(notEmpty)
+        return markup.inline_keyboard
+            .map((bs) => bs.map((b) => b.text))
+            .flat()
+            .filter(notEmpty)
     }
     return []
 }
@@ -40,13 +42,9 @@ export function getInlineKeys(update: BotUpdate | undefined) {
 export function getKeyboardButtons(update: BotUpdate | undefined) {
     const markup = update?.message.reply_markup
     if (markup && 'keyboard' in markup) {
-        return flatten(markup.keyboard)
+        return markup.keyboard.flat()
     }
     return []
-}
-/** array [[x]] → [x] */
-function flatten<T>(arr: T[][]): T[] {
-    return Array.prototype.concat.apply([], arr)
 }
 
 export function wrapClient(server: TelegramServer, client: TelegramClient) {
