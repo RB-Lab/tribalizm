@@ -7,19 +7,17 @@ import {
     SelfVotingIdeaError,
 } from '../use-cases/entities/brainstorm'
 import { Member } from '../use-cases/entities/member'
-import { Storable } from '../use-cases/entities/store'
 import { EntityNotFound } from '../use-cases/utils/not-found-error'
 import { StormToVoting } from '../use-cases/utils/scheduler'
+import { Storable } from '../use-cases/utils/store'
 import {
     BrainstormEndedError,
-    ExternalMemberVoteError,
     Voting,
     VotingNotStartedError,
 } from '../use-cases/vote-idea'
 import { createContext } from './test-context'
 
 describe('Voting', () => {
-    // FLICK
     it('should store current idea with votes', async () => {
         const world = await setUp()
         expectAsync(world.getIdea()).toBeResolvedTo(
@@ -130,7 +128,7 @@ async function setUp() {
 
     const stormCycle = new BrainstormLifecycle(context)
     await stormCycle.declare({
-        memberId: tribe.chiefId!,
+        tribeId: tribe.id,
         time: Date.now() + 100_500_000,
     })
     let brainstorm = await context.stores.brainstormStore._last()

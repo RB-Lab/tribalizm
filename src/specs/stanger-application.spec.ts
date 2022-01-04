@@ -18,7 +18,7 @@ import { User } from '../use-cases/entities/user'
 import { createContext } from './test-context'
 
 describe('Stranger application', () => {
-    it('notifies target tribe chief', async () => {
+    it('notifies target tribe member', async () => {
         const world = await setUp()
         const onApplication = jasmine.createSpy('onApplication')
         world.notificationBus.subscribe<ApplicationMessage>(
@@ -32,12 +32,11 @@ describe('Stranger application', () => {
             jasmine.objectContaining<ApplicationMessage>({
                 type: 'application-message',
                 payload: {
-                    targetUserId: world.chief.userId,
+                    targetUserId: jasmine.any(String),
                     tribeName: world.tribe.name,
                     coverLetter: world.defReq.coverLetter,
                     questId: jasmine.any(String),
                     userName: world.user.name,
-                    elder: 'chief',
                 },
             })
         )
@@ -50,8 +49,6 @@ describe('Stranger application', () => {
         expect(savedApp).toEqual(
             jasmine.objectContaining<IApplication>({
                 coverLetter: world.defReq.coverLetter,
-                tribeId: world.tribe.id,
-                chiefId: world.tribe.chiefId,
                 phase: ApplicationPhase.initial,
             })
         )
@@ -68,12 +65,10 @@ describe('Stranger application', () => {
                 type: QuestType.initiation,
                 status: QuestStatus.proposed,
                 applicationId: app!.id,
-                memberIds: jasmine.arrayContaining([
-                    world.chief.id,
-                    app!.memberId,
-                ]),
+                memberIds: jasmine.arrayContaining([app!.memberId]),
             })
         )
+        expect(quest.memberIds.length).toBe(2)
     })
 
     it('FAILs if tribe have no chief', async () => {
@@ -114,8 +109,6 @@ async function setUp() {
     const context = await createContext()
     const { tribe } = await context.testing.makeTribe()
 
-    const chief = await context.stores.memberStore.getById(tribe.chiefId!)
-    const shaman = await context.stores.memberStore.getById(tribe.shamanId!)
     const user = await context.stores.userStore.save(
         new User({ name: 'Userus Tribe' })
     )
@@ -128,8 +121,6 @@ async function setUp() {
     const tribeApplication = new TribeApplication(context)
     return {
         tribe,
-        chief: chief!,
-        shaman: shaman!,
         user,
         defReq,
         ...context.stores,

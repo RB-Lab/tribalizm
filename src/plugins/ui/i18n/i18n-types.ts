@@ -71,34 +71,18 @@ export type Translation = {
 			 */
 			'onAstral': string
 			/**
-			 * Who's shaman?
-			 */
-			'onShaman': string
-			/**
-			 * Who's chief?
-			 */
-			'onChief': string
-			/**
 			 * What's next?
 			 */
 			'next': string
 		}
 		/**
-		 * To join a tribe you like you must send an application. Tribe's chief and shaman will consider it and invite you to have a conversation with them. If they decide that you align with the tribe spirit well, they will let you join.If you didn't find tribe you'd like, try to search in Astral
+		 * To join a tribe you like you must send an application. Other tribe members will consider it and invite you to have a conversation with them. If they decide that you align with the tribe spirit well, they will let you join.If you didn't find tribe you'd like, try to search in Astral
 		 */
 		'apply': string
 		/**
 		 * Astral is the place for "virtual" tribes. You can still meet likely-minded people via video chats in case your city doesn't have enough of them. As soon as there's enough people in yourtribe is incarnated in real world.
 		 */
 		'onAstral': string
-		/**
-		 * Chief is the most charismatic person in the tribe. Their duties is to maintain tribe's integrity.
-		 */
-		'onChief': string
-		/**
-		 * Shaman is the most wise person in the tribe. Their duties is to assist tribe's chief.
-		 */
-		'onShaman': string
 		/**
 		 * Now, when you're in tribe you can participate in brainstorm and tribe's quests
 		 */
@@ -143,12 +127,12 @@ export type Translation = {
 		 */
 		'searchInAstral': string
 		/**
-		 * Please, write tribe's chief and shaman about yourself and why do you want to join "{tribe}" tribe?
+		 * Please, write about yourself and why do you want to join "{tribe}" tribe?
 		 * @param {unknown} tribe
 		 */
 		'applyText': RequiredParams1<'tribe'>
 		/**
-		 * 📨 Your application has been sent. Tribe chief will propose a meeting soon.
+		 * 📨 Your application has been sent. One of tribe member will propose a meeting soon.
 		 */
 		'applicationSent': string
 		/**
@@ -217,16 +201,6 @@ export type Translation = {
 		 */
 		'tribeListEnd': string
 	}
-	'elders': {	
-		/**
-		 * chief
-		 */
-		'chief': string
-		/**
-		 * shaman
-		 */
-		'shaman': string
-	}
 	'initiation': {	
 		/**
 		 * Please describe in a few words why did you decline an application.
@@ -241,14 +215,13 @@ export type Translation = {
 		 */
 		'approvedOk': string
 		/**
-		 * {name}, {elder} of the {tribe} proposes to meet: 
+		 * {name} of the {tribe} proposes to meet: 
 	 {proposal}
-		 * @param {string} elder
 		 * @param {string} name
 		 * @param {string} proposal
 		 * @param {string} tribe
 		 */
-		'questNotification': RequiredParams4<'elder', 'name', 'proposal', 'tribe'>
+		'questNotification': RequiredParams3<'name', 'proposal', 'tribe'>
 		/**
 		 * Candidate for {tribe} tribe {name} proposes to meet: 
 	 {proposal}
@@ -589,14 +562,6 @@ export type Translation = {
 	}
 	'help': {	
 		/**
-		 * How good a person is as a leader
-		 */
-		'charisma': string
-		/**
-		 * How good a person grasps tribe's main topic
-		 */
-		'wisdom': string
-		/**
 		 * Can't find this topic
 		 */
 		'unknown': string
@@ -605,78 +570,11 @@ export type Translation = {
 		 */
 		'whatIsTribalizm': string
 		/**
-		 * TBD...
+		 * Tribalizm is a bot that facilitates real life connections inlocal communities, called "tribes" (e.g. "pop science lovers" or "electric transport enthusiasts").
+	Each new member of the tribe meets other members tet-a-tet in time of "initiation" thus when it's time for gathering everybody already knows each other
+	From time to time a brainstorm is declared where all tribe members can suggest ideas of activities (from simple, lik "meet in pub or park" or "discuss new Dawkins paper" to more viable ones like "get lobbied new charging station"). Most popular ideas are to be implemented for which tribe members get the quests.
 		 */
 		'whatIsTribalizmText': string
-	}
-	'rateMember': {	
-		/**
-		 * You've just meet {tribe} {elder}, how charismatic they are?
-		 * @param {string} elder
-		 * @param {string} tribe
-		 */
-		'elderCharismaPrompt': RequiredParams2<'elder', 'tribe'>
-		/**
-		 * You've just meet {name}, how charismatic they are?
-		 * @param {string} name
-		 */
-		'charismaPrompt': RequiredParams1<'name'>
-		/**
-		 * How wise they are?
-		 */
-		'wisdomPrompt': string
-		/**
-		 * ℹ️
-		 */
-		'help': string
-		'charisma': {	
-			/**
-			 * 😩
-			 */
-			'0': string
-			/**
-			 * 😕
-			 */
-			'1': string
-			/**
-			 * 🤔
-			 */
-			'2': string
-			/**
-			 * 🤩
-			 */
-			'3': string
-			/**
-			 * 🔥
-			 */
-			'4': string
-		}
-		'wisdom': {	
-			/**
-			 * 🤪
-			 */
-			'0': string
-			/**
-			 * 🤥
-			 */
-			'1': string
-			/**
-			 * 🤔
-			 */
-			'2': string
-			/**
-			 * 🥸
-			 */
-			'3': string
-			/**
-			 * 🦉
-			 */
-			'4': string
-		}
-		/**
-		 * Got it! Your scores will be applied soon
-		 */
-		'done': string
 	}
 	'brainstorm': {	
 		/**
@@ -793,10 +691,6 @@ export type Translation = {
 		 */
 		'ApplicationTransitionError': string
 		/**
-		 * 🤨 Hmm... this tribe has no chief.
-		 */
-		'NoChiefTribeError': string
-		/**
 		 * 🤨 404. Not found. What did you try to find?
 		 */
 		'EntityNotFound': string
@@ -809,25 +703,9 @@ export type Translation = {
 		 */
 		'NoIdeaError': string
 		/**
-		 * 🤨 Hmm... this tribe already has a chief.
-		 */
-		'AlreadyHaveChief': string
-		/**
-		 * 🤬 ElderMismatchError? 🤨
-		 */
-		'ElderMismatchError': string
-		/**
 		 * 🤬 WrongQuestError? 🤨
 		 */
 		'WrongQuestError': string
-		/**
-		 * 🤨 Hmm... this tribe has no chief.
-		 */
-		'NoChiefSetError': string
-		/**
-		 * 🤨 Hmm... this tribe has no shaman.
-		 */
-		'NoShamanSetError': string
 		/**
 		 * 🚫 Sorry, you cannot change application process now.
 		 */
@@ -844,10 +722,6 @@ export type Translation = {
 		 * 🤬 NotEnoughMembers? 🤨
 		 */
 		'NotEnoughMembers': string
-		/**
-		 * 🚫 Sorry, you cannot start a brainstorm, only tribe chief can
-		 */
-		'NotAChiefError': string
 		/**
 		 * 🤬 System error! Cannot finalize storm before voting
 		 */
@@ -934,34 +808,18 @@ export type TranslationFunctions = {
 			 */
 			'onAstral': () => LocalizedString
 			/**
-			 * Who's shaman?
-			 */
-			'onShaman': () => LocalizedString
-			/**
-			 * Who's chief?
-			 */
-			'onChief': () => LocalizedString
-			/**
 			 * What's next?
 			 */
 			'next': () => LocalizedString
 		}
 		/**
-		 * To join a tribe you like you must send an application. Tribe's chief and shaman will consider it and invite you to have a conversation with them. If they decide that you align with the tribe spirit well, they will let you join.If you didn't find tribe you'd like, try to search in Astral
+		 * To join a tribe you like you must send an application. Other tribe members will consider it and invite you to have a conversation with them. If they decide that you align with the tribe spirit well, they will let you join.If you didn't find tribe you'd like, try to search in Astral
 		 */
 		'apply': () => LocalizedString
 		/**
 		 * Astral is the place for "virtual" tribes. You can still meet likely-minded people via video chats in case your city doesn't have enough of them. As soon as there's enough people in yourtribe is incarnated in real world.
 		 */
 		'onAstral': () => LocalizedString
-		/**
-		 * Chief is the most charismatic person in the tribe. Their duties is to maintain tribe's integrity.
-		 */
-		'onChief': () => LocalizedString
-		/**
-		 * Shaman is the most wise person in the tribe. Their duties is to assist tribe's chief.
-		 */
-		'onShaman': () => LocalizedString
 		/**
 		 * Now, when you're in tribe you can participate in brainstorm and tribe's quests
 		 */
@@ -1005,11 +863,11 @@ export type TranslationFunctions = {
 		 */
 		'searchInAstral': () => LocalizedString
 		/**
-		 * Please, write tribe's chief and shaman about yourself and why do you want to join "{tribe}" tribe?
+		 * Please, write about yourself and why do you want to join "{tribe}" tribe?
 		 */
 		'applyText': (arg: { tribe: unknown }) => LocalizedString
 		/**
-		 * 📨 Your application has been sent. Tribe chief will propose a meeting soon.
+		 * 📨 Your application has been sent. One of tribe member will propose a meeting soon.
 		 */
 		'applicationSent': () => LocalizedString
 		/**
@@ -1077,16 +935,6 @@ export type TranslationFunctions = {
 		 */
 		'tribeListEnd': () => LocalizedString
 	}
-	'elders': {	
-		/**
-		 * chief
-		 */
-		'chief': () => LocalizedString
-		/**
-		 * shaman
-		 */
-		'shaman': () => LocalizedString
-	}
 	'initiation': {	
 		/**
 		 * Please describe in a few words why did you decline an application.
@@ -1101,10 +949,10 @@ export type TranslationFunctions = {
 		 */
 		'approvedOk': () => LocalizedString
 		/**
-		 * {name}, {elder} of the {tribe} proposes to meet: 
+		 * {name} of the {tribe} proposes to meet: 
 	 {proposal}
 		 */
-		'questNotification': (arg: { elder: string, name: string, proposal: string, tribe: string }) => LocalizedString
+		'questNotification': (arg: { name: string, proposal: string, tribe: string }) => LocalizedString
 		/**
 		 * Candidate for {tribe} tribe {name} proposes to meet: 
 	 {proposal}
@@ -1405,14 +1253,6 @@ export type TranslationFunctions = {
 	}
 	'help': {	
 		/**
-		 * How good a person is as a leader
-		 */
-		'charisma': () => LocalizedString
-		/**
-		 * How good a person grasps tribe's main topic
-		 */
-		'wisdom': () => LocalizedString
-		/**
 		 * Can't find this topic
 		 */
 		'unknown': () => LocalizedString
@@ -1421,75 +1261,11 @@ export type TranslationFunctions = {
 		 */
 		'whatIsTribalizm': () => LocalizedString
 		/**
-		 * TBD...
+		 * Tribalizm is a bot that facilitates real life connections inlocal communities, called "tribes" (e.g. "pop science lovers" or "electric transport enthusiasts").
+	Each new member of the tribe meets other members tet-a-tet in time of "initiation" thus when it's time for gathering everybody already knows each other
+	From time to time a brainstorm is declared where all tribe members can suggest ideas of activities (from simple, lik "meet in pub or park" or "discuss new Dawkins paper" to more viable ones like "get lobbied new charging station"). Most popular ideas are to be implemented for which tribe members get the quests.
 		 */
 		'whatIsTribalizmText': () => LocalizedString
-	}
-	'rateMember': {	
-		/**
-		 * You've just meet {tribe} {elder}, how charismatic they are?
-		 */
-		'elderCharismaPrompt': (arg: { elder: string, tribe: string }) => LocalizedString
-		/**
-		 * You've just meet {name}, how charismatic they are?
-		 */
-		'charismaPrompt': (arg: { name: string }) => LocalizedString
-		/**
-		 * How wise they are?
-		 */
-		'wisdomPrompt': () => LocalizedString
-		/**
-		 * ℹ️
-		 */
-		'help': () => LocalizedString
-		'charisma': {	
-			/**
-			 * 😩
-			 */
-			'0': () => LocalizedString
-			/**
-			 * 😕
-			 */
-			'1': () => LocalizedString
-			/**
-			 * 🤔
-			 */
-			'2': () => LocalizedString
-			/**
-			 * 🤩
-			 */
-			'3': () => LocalizedString
-			/**
-			 * 🔥
-			 */
-			'4': () => LocalizedString
-		}
-		'wisdom': {	
-			/**
-			 * 🤪
-			 */
-			'0': () => LocalizedString
-			/**
-			 * 🤥
-			 */
-			'1': () => LocalizedString
-			/**
-			 * 🤔
-			 */
-			'2': () => LocalizedString
-			/**
-			 * 🥸
-			 */
-			'3': () => LocalizedString
-			/**
-			 * 🦉
-			 */
-			'4': () => LocalizedString
-		}
-		/**
-		 * Got it! Your scores will be applied soon
-		 */
-		'done': () => LocalizedString
 	}
 	'brainstorm': {	
 		/**
@@ -1603,10 +1379,6 @@ export type TranslationFunctions = {
 		 */
 		'ApplicationTransitionError': () => LocalizedString
 		/**
-		 * 🤨 Hmm... this tribe has no chief.
-		 */
-		'NoChiefTribeError': () => LocalizedString
-		/**
 		 * 🤨 404. Not found. What did you try to find?
 		 */
 		'EntityNotFound': () => LocalizedString
@@ -1619,25 +1391,9 @@ export type TranslationFunctions = {
 		 */
 		'NoIdeaError': () => LocalizedString
 		/**
-		 * 🤨 Hmm... this tribe already has a chief.
-		 */
-		'AlreadyHaveChief': () => LocalizedString
-		/**
-		 * 🤬 ElderMismatchError? 🤨
-		 */
-		'ElderMismatchError': () => LocalizedString
-		/**
 		 * 🤬 WrongQuestError? 🤨
 		 */
 		'WrongQuestError': () => LocalizedString
-		/**
-		 * 🤨 Hmm... this tribe has no chief.
-		 */
-		'NoChiefSetError': () => LocalizedString
-		/**
-		 * 🤨 Hmm... this tribe has no shaman.
-		 */
-		'NoShamanSetError': () => LocalizedString
 		/**
 		 * 🚫 Sorry, you cannot change application process now.
 		 */
@@ -1654,10 +1410,6 @@ export type TranslationFunctions = {
 		 * 🤬 NotEnoughMembers? 🤨
 		 */
 		'NotEnoughMembers': () => LocalizedString
-		/**
-		 * 🚫 Sorry, you cannot start a brainstorm, only tribe chief can
-		 */
-		'NotAChiefError': () => LocalizedString
 		/**
 		 * 🤬 System error! Cannot finalize storm before voting
 		 */

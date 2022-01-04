@@ -43,13 +43,11 @@ describe('Astral tribes [scenario]:', () => {
                 name: 'Bar Tribe',
                 description: 'We really Bar Bar!',
                 cityId: null,
-                chiefId: jasmine.any(String),
             })
         )
         const members = await world.context.stores.memberStore.findSimple({})
         expect(members.length).toBe(1)
         expect(members[0].userId).toBe(user.id)
-        expect(tribes[0].chiefId).toBe(members[0].id)
     })
     it('List tribes', async () => {
         const tribes = await world.create5tribes()

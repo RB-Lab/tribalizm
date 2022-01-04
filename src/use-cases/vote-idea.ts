@@ -1,4 +1,3 @@
-import { UpdateFinishedBrainstormError } from './entities/brainstorm'
 import { ContextUser } from './utils/context-user'
 
 export class Voting extends ContextUser {

@@ -192,20 +192,6 @@ export async function createContext() {
             notificationBus,
         },
     }
-    async function addVotes(member: IMember, c: number, w: number) {
-        const arr = Array(5).fill(0)
-        arr.forEach(() => {
-            member.castVote({
-                casted: 0,
-                charisma: c,
-                wisdom: w,
-                memberId: 'dd',
-                questId: 'dfw',
-                type: 'quest-vote',
-            })
-        })
-        context.stores.memberStore.save(member)
-    }
 
     const tribalizm = makeTribalizm(context)
     const viewModels = makeViewModels(stores)
@@ -232,7 +218,6 @@ export async function createContext() {
         testing,
         tribalizm,
         viewModels,
-        addVotes,
         requestTaskQueue,
     }
 }

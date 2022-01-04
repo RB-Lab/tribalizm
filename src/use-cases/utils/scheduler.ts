@@ -1,6 +1,5 @@
 import { EntityNotFound } from './not-found-error'
-import { Storable, Store } from '../entities/store'
-import { QuestType } from '../entities/quest'
+import { Storable, Store } from './store'
 
 export interface TaskStore extends Store<ITask> {
     // TODO: add pagination
@@ -117,41 +116,5 @@ export function isIntroductionTask(task: ITask): task is IntroductionTask {
         task.payload !== null &&
         'newMemberId' in task.payload &&
         'oldMemberId' in task.payload
-    )
-}
-
-export interface HowWasQuestTask extends ITask {
-    time: number
-    done: boolean
-    type: 'how-was-quest'
-    payload: {
-        questId: string
-        questType: QuestType
-    }
-}
-
-export function isHowWasQuestTask(task: ITask): task is HowWasQuestTask {
-    return (
-        task.type === 'how-was-quest' &&
-        task.payload !== null &&
-        'questId' in task.payload
-    )
-}
-
-export interface HowWasGatheringTask extends ITask {
-    time: number
-    done: boolean
-    type: 'how-was-gathering'
-    payload: {
-        gatheringId: string
-    }
-}
-export function isHowWasGatheringTask(
-    task: ITask
-): task is HowWasGatheringTask {
-    return (
-        task.type === 'how-was-gathering' &&
-        task.payload !== null &&
-        'gatheringId' in task.payload
     )
 }

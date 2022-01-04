@@ -1,4 +1,4 @@
-import { Storable, Store } from './store'
+import { Storable, Store } from '../utils/store'
 
 export interface ApplicationStore extends Store<IApplication> {}
 
@@ -9,11 +9,11 @@ export interface IApplicationData {
     tribeId: string
     memberId: string
     coverLetter: string
-    chiefId: string | null
-    shamanId: string | null
     phase: ApplicationPhase
     status?: ApplicationStatus
 }
+// TODO MIGRATE: drop chiefId, shamanId
+//               replace chiefInitiation, awaitingShaman, shamanInitiation
 export interface IApplication extends IApplicationData {
     nextPhase: () => void
     approve: () => void
@@ -22,9 +22,6 @@ export interface IApplication extends IApplicationData {
 
 export enum ApplicationPhase {
     initial = 'initial',
-    chiefInitiation = 'chiefInitiation',
-    awaitingShaman = 'awaitingShaman',
-    shamanInitiation = 'shamanInitiation',
     finished = 'finished',
 }
 export type RequiredParams = Pick<
@@ -37,8 +34,6 @@ export class Application implements IApplication {
     tribeId: string
     memberId: string
     coverLetter: string
-    chiefId: string | null
-    shamanId: string | null
     phase: ApplicationPhase
     status?: ApplicationStatus
 
@@ -47,8 +42,6 @@ export class Application implements IApplication {
         this.tribeId = params.tribeId
         this.memberId = params.memberId
         this.coverLetter = params.coverLetter
-        this.chiefId = params.chiefId || null
-        this.shamanId = params.shamanId || null
         this.phase = params.phase || ApplicationPhase.initial
         this.status = params.status
     }
@@ -64,15 +57,7 @@ export class Application implements IApplication {
     nextPhase = () => {
         switch (this.phase) {
             case ApplicationPhase.initial:
-                this.phase = ApplicationPhase.chiefInitiation
-                break
-            case ApplicationPhase.chiefInitiation:
-                this.phase = ApplicationPhase.awaitingShaman
-                break
-            case ApplicationPhase.awaitingShaman:
-                this.phase = ApplicationPhase.shamanInitiation
-                break
-            case ApplicationPhase.shamanInitiation:
+                // TODO what should be here???
                 this.phase = ApplicationPhase.finished
                 break
             default:

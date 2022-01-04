@@ -11,10 +11,7 @@ import { TgContext, TribeCtx } from '../tribe-ctx'
 import { UserState } from '../users-adapter'
 import { makeCallbackDataParser } from './callback-parser'
 
-export const negotiate = makeCallbackDataParser('negotiate-quest', [
-    'questId',
-    'elder',
-])
+export const negotiate = makeCallbackDataParser('negotiate-quest', ['questId'])
 
 const agreeQuest = makeCallbackDataParser('agree-quest', [
     'questId',
@@ -27,7 +24,6 @@ interface NegotiationState extends UserState {
     questId: string
     date?: Date
     place?: string
-    elder: 'chief' | 'shaman' | null
 }
 function isNegotiationState(
     state: Maybe<UserState>
@@ -37,12 +33,11 @@ function isNegotiationState(
 
 export function questNegotiationScreen({ bot, bus, tgUsers }: TgContext) {
     bot.action(negotiate.regex, async (ctx) => {
-        const { questId, elder } = negotiate.parse(ctx.match[0])
+        const { questId } = negotiate.parse(ctx.match[0])
         const texts = i18n(ctx).questNegotiation
         await ctx.user.setState<NegotiationState>({
             type: 'negotiation-state',
             questId,
-            elder,
         })
         await removeInlineKeyboard(ctx)
         await ctx.reply(
@@ -84,18 +79,6 @@ export function questNegotiationScreen({ bot, bus, tgUsers }: TgContext) {
             )
         }
         await ctx.user.setState(null)
-        if (state.elder === 'chief') {
-            await ctx.tribalizm.initiation.startInitiation({
-                questId: state.questId,
-                userId: ctx.user.userId,
-            })
-        }
-        if (state.elder === 'shaman') {
-            await ctx.tribalizm.initiation.startShamanInitiation({
-                questId: state.questId,
-                userId: ctx.user.userId,
-            })
-        }
         await ctx.tribalizm.questNegotiation.proposeChange({
             place: state.place,
             time: ctx.user.toServerTime(state.date).getTime(),
@@ -128,7 +111,6 @@ export function questNegotiationScreen({ bot, bus, tgUsers }: TgContext) {
                     texts.edit(),
                     negotiate.serialize({
                         questId: state.questId,
-                        elder: state.elder,
                     })
                 ),
             ])
@@ -184,7 +166,6 @@ export function questNegotiationScreen({ bot, bus, tgUsers }: TgContext) {
                 if (payload.elder) {
                     // X, shaman|chief of the tribe Y proposed to meet: ...
                     text = texts.questNotification({
-                        elder: i18n(user).elders[payload.elder](),
                         name: payload.proposingMemberName,
                         tribe: payload.tribe,
                         proposal,
@@ -227,7 +208,6 @@ export function questNegotiationScreen({ bot, bus, tgUsers }: TgContext) {
                 Markup.button.callback(
                     qnTexts.proposeOther(),
                     negotiate.serialize({
-                        elder: null,
                         questId: payload.questId,
                     })
                 ),

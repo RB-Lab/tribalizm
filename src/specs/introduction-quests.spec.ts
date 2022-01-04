@@ -1,7 +1,7 @@
 import { mapify } from '../ts-utils'
 import { TribeApplication } from '../use-cases/apply-tribe'
 import { QuestStatus, QuestType } from '../use-cases/entities/quest'
-import { Storable } from '../use-cases/entities/store'
+import { Storable } from '../use-cases/utils/store'
 import { User } from '../use-cases/entities/user'
 import { Initiation } from '../use-cases/initiation'
 import {
@@ -9,7 +9,6 @@ import {
     IntroMessage,
 } from '../use-cases/introduction-quests'
 import { QuestNegotiation } from '../use-cases/negotiate-quest'
-import { QuestFinale } from '../use-cases/quest-finale'
 import { IntroductionTask } from '../use-cases/utils/scheduler'
 import { createContext } from './test-context'
 
@@ -117,26 +116,16 @@ describe('Introduction quests', () => {
         allNewMembers.forEach((m) => expect(m).toEqual(allNewMembers[0]))
         expect(allOldMembers).not.toContain(allNewMembers[0])
     })
-    it('does NOT allocate intro with shaman & chief', async () => {
-        const world = await setUp()
-        const newMember = await world.getApproval()
-        const allTasks = await world.getAllTasks()
-        const allOldMembers = allTasks.map((t) => t.payload.oldMemberId)
-        expect(allOldMembers).not.toContain(world.tribe.chiefId!)
-        expect(allOldMembers).not.toContain(world.tribe.shamanId!)
+    it('does NOT allocate intro with initiation members', async () => {
+        fail('not implemented')
     })
     it('allocates task for ALL regular members', async () => {
         const world = await setUp()
         await world.getApproval()
         const allTasks = await world.getAllTasks()
         const allOldRegularMembers = allTasks.map((t) => t.payload.oldMemberId)
-        const allOldMembers = [
-            ...allOldRegularMembers,
-            world.tribe.shamanId,
-            world.tribe.chiefId,
-        ]
         const allMembers = world.members.map((m) => m.id)
-        expect(allOldMembers.sort()).toEqual(allMembers.sort())
+        expect(allOldRegularMembers.sort()).toEqual(allMembers.sort())
     })
     it('allocates intro with a NEW chief', async () => {
         const world = await setUp()
@@ -162,7 +151,6 @@ async function setUp(size?: number) {
     const tribeApplication = new TribeApplication(context)
     const introQuests = new IntroductionQuests(context)
     const negotiation = new QuestNegotiation(context)
-    const questFinale = new QuestFinale(context)
 
     const getApproval = async () => {
         await tribeApplication.applyToTribe({
@@ -171,24 +159,15 @@ async function setUp(size?: number) {
             userId: user.id,
         })
         const initQuest = await context.stores.questStore._last()
-        const chief = members[0]
-        const shaman = members[1]
         const initReq = {
             questId: initQuest.id,
-            userId: chief.userId,
+            userId: members[0].userId,
             place: 'The Foo Bar',
             time: 1_700_100_500_000,
         }
         await initiation.startInitiation(initReq)
-        await initiation.approveByChief(initReq)
-        const newInitQuest = await context.stores.questStore._last()
-        const shamanReq = {
-            ...initReq,
-            userId: shaman.userId,
-            questId: newInitQuest.id,
-        }
-        await initiation.startShamanInitiation(shamanReq)
-        await initiation.approveByShaman(shamanReq)
+        // TODO spin the full initiation
+        
         return (
             await context.stores.memberStore.findSimple({ userId: user.id })
         )[0]
@@ -213,15 +192,7 @@ async function setUp(size?: number) {
                 await context.stores.memberStore.findSimple({})
             )
             await introQuests.notifyOldMember(task)
-            const quest = await context.stores.questStore._last()
-
-            for (let id of quest.memberIds) {
-                await questFinale.finalize({
-                    userId: membersMap[id].userId,
-                    questId: quest!.id,
-                    votes: [],
-                })
-            }
+            // TODO new task allocated after the former one?? 
             const newTask = await getNewItroTask()
             if (newTask) {
                 task = newTask
@@ -263,7 +234,6 @@ async function setUp(size?: number) {
         introQuests,
         initiation,
         negotiation,
-        questFinale,
         app: tribeApplication,
         getApproval,
         makeIntroTask,

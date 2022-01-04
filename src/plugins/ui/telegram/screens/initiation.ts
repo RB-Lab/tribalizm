@@ -47,7 +47,7 @@ export function initiationScreen({ bot, bus, tgUsers }: TgContext) {
         const data = acceptParser.parse(ctx.match.input)
         ctx.logEvent('app accepted', { questId: data.questId })
 
-        await ctx.tribalizm.initiation.approveByElder({
+        await ctx.tribalizm.initiation.approve({
             questId: data.questId,
             userId: ctx.user.userId,
         })
@@ -101,7 +101,6 @@ export function initiationScreen({ bot, bus, tgUsers }: TgContext) {
                     texts.assignInitiation(),
                     negotiate.serialize({
                         questId: payload.questId,
-                        elder: payload.elder,
                     })
                 ),
                 Markup.button.callback(

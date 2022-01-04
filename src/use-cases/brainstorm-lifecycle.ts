@@ -7,31 +7,23 @@ import {
 } from './utils/scheduler'
 import { ContextUser } from './utils/context-user'
 import { Message } from './utils/message'
-import { Storable } from './entities/store'
+import { Storable } from './utils/store'
 
 /**
  * Moves @see Brainstorm through it's phases (new, started, voting, done) directly or via task
- * allocations and notifis members about those transitions
+ * allocations and notifies members about those transitions
  */
 export class BrainstormLifecycle extends ContextUser {
     declare = async (req: BrainstormDeclarationContext) => {
-        const member = await this.getMember(req.memberId)
-        const tribe = await this.getTribe(member.tribeId)
-        if (member.id !== tribe.chiefId) {
-            throw new NotAChiefError(
-                `You are not a chief of the tribe ${tribe.name}`
-            )
-        }
-
         const storm = await this.stores.brainstormStore.save(
             new Brainstorm({
-                tribeId: member.tribeId,
+                tribeId: req.tribeId,
                 time: req.time,
             })
         )
 
         const members = await this.stores.memberStore.findSimple({
-            tribeId: member.tribeId,
+            tribeId: req.tribeId,
         })
 
         await this.scheduler.schedule<StormNotify>({
@@ -54,7 +46,6 @@ export class BrainstormLifecycle extends ContextUser {
         })
 
         members.forEach((m) => {
-            if (m.id === member.id) return
             if (m.isCandidate) return
             this.notify<BrainstormDeclarationMessage>({
                 type: 'new-brainstorm',
@@ -170,7 +161,7 @@ export class BrainstormLifecycle extends ContextUser {
 }
 
 interface BrainstormDeclarationContext {
-    memberId: string
+    tribeId: string
     time: number
 }
 

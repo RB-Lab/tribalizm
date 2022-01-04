@@ -1,4 +1,4 @@
-import { Store } from '../../../use-cases/entities/store'
+import { Store } from '../../../use-cases/utils/store'
 import { Collection, FilterQuery, ObjectId } from 'mongodb'
 import { objectHasProp } from '../../../ts-utils'
 

@@ -199,7 +199,6 @@ export function coordinationScreen({ bot, bus, tgUsers }: TgContext) {
                         texts.okay(),
                         negotiate.serialize({
                             questId: payload.questId,
-                            elder: null,
                         })
                     ),
                 ])
@@ -278,7 +277,6 @@ export function coordinationScreen({ bot, bus, tgUsers }: TgContext) {
                     Markup.button.callback(
                         texts.okay(),
                         negotiate.serialize({
-                            elder: null,
                             questId: payload.questId,
                         })
                     ),

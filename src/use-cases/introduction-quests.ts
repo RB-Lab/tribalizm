@@ -1,5 +1,5 @@
 import { IntroductionQuest, Quest, QuestType } from './entities/quest'
-import { Storable } from './entities/store'
+import { Storable } from './utils/store'
 import { ContextUser } from './utils/context-user'
 import { Message } from './utils/message'
 import { IntroductionTask } from './utils/scheduler'

@@ -9,8 +9,6 @@ export function helpScreen({ bot }: TgContext) {
         const btns = i18n(ctx).rules.buttons
         const keyboard = Markup.inlineKeyboard(
             [
-                Markup.button.callback(btns.onChief(), 'on-chief'),
-                Markup.button.callback(btns.onShaman(), 'on-shaman'),
                 Markup.button.callback(btns.next(), 'in-tribe'),
                 Markup.button.callback(btns.onAstral(), 'on-astral'),
                 Markup.button.callback(btns.start(), 'start'),
@@ -18,24 +16,6 @@ export function helpScreen({ bot }: TgContext) {
             { columns: 2 }
         )
         await ctx.editMessageText(i18n(ctx).rules.apply(), keyboard)
-    })
-    bot.action('on-chief', async (ctx) => {
-        ctx.logEvent('help: on-chief')
-        const btns = i18n(ctx).rules.buttons
-        const keyboard = Markup.inlineKeyboard([
-            Markup.button.callback(btns.back(), 'rules'),
-            Markup.button.callback(btns.start(), 'start'),
-        ])
-        await ctx.editMessageText(i18n(ctx).rules.onChief(), keyboard)
-    })
-    bot.action('on-shaman', async (ctx) => {
-        ctx.logEvent('help: on-shaman')
-        const btns = i18n(ctx).rules.buttons
-        const keyboard = Markup.inlineKeyboard([
-            Markup.button.callback(btns.back(), 'rules'),
-            Markup.button.callback(btns.start(), 'start'),
-        ])
-        await ctx.editMessageText(i18n(ctx).rules.onShaman(), keyboard)
     })
     bot.action('on-astral', async (ctx) => {
         ctx.logEvent('help: on-astral')
@@ -94,10 +74,6 @@ export function helpScreen({ bot }: TgContext) {
         ctx.logEvent('help', { topic })
         await ctx.answerCbQuery()
         switch (topic) {
-            case 'charisma':
-                return ctx.reply(i18n(ctx).help.charisma())
-            case 'wisdom':
-                return ctx.reply(i18n(ctx).help.wisdom())
             case 'tribalizm':
                 return ctx.reply(i18n(ctx).help.whatIsTribalizmText())
             default:

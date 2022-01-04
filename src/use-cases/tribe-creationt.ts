@@ -24,17 +24,7 @@ export class TribeCreation extends ContextUser {
             userId: user.id,
             isCandidate: false,
         })
-
-        // we consider tribe creation to be initial gathering
-        member.castVote({
-            type: 'gathering-vote',
-            casted: Date.now(),
-            gatheringId: 'initial',
-            memberId: 'spirits',
-            score: 4,
-        })
-        const savedMember = await this.stores.memberStore.save(member)
-        tribe.chiefId = savedMember.id
+        await this.stores.memberStore.save(member)
         const newTribe = await this.stores.tribeStore.save(tribe)
         return newTribe.id
     }

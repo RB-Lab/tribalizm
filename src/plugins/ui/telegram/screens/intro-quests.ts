@@ -24,7 +24,6 @@ export function introQuestsScreen({ bot, bus, tgUsers }: TgContext) {
                         texts.okay(),
                         negotiate.serialize({
                             questId: payload.questId,
-                            elder: null,
                         })
                     ),
                 ])

@@ -1,4 +1,4 @@
-import { Page, Query, Store } from '../../../use-cases/entities/store'
+import { Page, Query, Store } from '../../../use-cases/utils/store'
 
 interface Storable {
     id: string

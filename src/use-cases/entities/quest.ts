@@ -1,8 +1,8 @@
-import { Storable, Store } from './store'
+import { Storable, Store } from '../utils/store'
 
 export interface QuestStore extends Store<IQuest> {
     /**
-     * Counts all quests that currently assingned to a member
+     * Counts all quests that currently assigned to a member
      * @param memberIds ids of those member for whom to search quests
      * @returns map of member ids to number of quests assigned to them
      */
@@ -39,7 +39,6 @@ export interface IQuestData {
     place: string | null
     memberIds: string[]
     acceptedIds: string[]
-    finishedIds: string[]
 }
 
 export interface IQuest extends IQuestData {
@@ -49,7 +48,6 @@ export interface IQuest extends IQuestData {
     propose: (time: number, place: string, memberId: string) => string[]
     decline: (memberId: string) => void
     addAssignee: (memberId: string) => void
-    finish: (memberId: string) => void
 }
 export type SavedQuest = IQuestData & Storable
 
@@ -61,7 +59,6 @@ export class Quest implements IQuest {
     public place: string | null
     public memberIds: string[]
     public acceptedIds: string[]
-    public finishedIds: string[]
 
     constructor(params: Partial<SavedQuest> = {}) {
         this.id = params.id || null
@@ -71,7 +68,6 @@ export class Quest implements IQuest {
         this.place = params.place || null
         this.memberIds = params.memberIds || []
         this.acceptedIds = params.acceptedIds || []
-        this.finishedIds = params.finishedIds || []
     }
 
     propose = (time: number, place: string, memberId: string) => {
@@ -117,14 +113,6 @@ export class Quest implements IQuest {
     }
     addAssignee = (memberId: string) => {
         this.memberIds = [...this.memberIds, memberId]
-    }
-
-    finish = (memberId: string) => {
-        this.checkAssigned(memberId)
-        this.finishedIds.push(memberId)
-        if (this.memberIds.every((id) => this.finishedIds.includes(id))) {
-            this.status = QuestStatus.done
-        }
     }
 
     private checkAssigned(memberId: string) {

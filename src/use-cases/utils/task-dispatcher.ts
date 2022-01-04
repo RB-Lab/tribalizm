@@ -1,15 +1,12 @@
-import { QuestType } from '../entities/quest'
 import { Tribalizm } from '../tribalism'
 import { ILogger } from './logger'
 import {
-    Scheduler,
-    isHowWasQuestTask,
     isIntroductionTask,
+    isStormFinalize,
     isStormNotify,
     isStormStart,
     isStormToVoting,
-    isStormFinalize,
-    isHowWasGatheringTask,
+    Scheduler,
 } from './scheduler'
 
 export class TaskDispatcher {
@@ -26,16 +23,6 @@ export class TaskDispatcher {
         const tasks = await this.scheduler.getTasks()
         this.logger.trace('Dispatch tasks', { tasks: tasks.map((t) => t.type) })
         for (let task of tasks) {
-            if (isHowWasQuestTask(task)) {
-                if (task.payload.questType === QuestType.initiation) {
-                    await this.tribalism.initiation.howWasIt(task)
-                } else {
-                    await this.tribalism.questFinale.howWasIt(task)
-                }
-            }
-            if (isHowWasGatheringTask(task)) {
-                await this.tribalism.gatheringFinale.notifyMembers(task)
-            }
             if (isIntroductionTask(task)) {
                 await this.tribalism.introductionQuests.notifyOldMember(task)
             }

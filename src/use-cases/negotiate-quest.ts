@@ -10,7 +10,6 @@ import { ContextUser } from './utils/context-user'
 import { getRootIdea, NoIdeaError } from './utils/get-root-idea'
 import { getBestFreeMember } from './utils/members-utils'
 import { Message } from './utils/message'
-import { HowWasQuestTask } from './utils/scheduler'
 
 export class QuestNegotiation extends ContextUser {
     proposeChange = async (req: QuestChangeRequest) => {
@@ -20,12 +19,6 @@ export class QuestNegotiation extends ContextUser {
         const tribe = await this.getTribe(member.tribeId)
         const targetMembers = quest.propose(req.time, req.place, member.id)
         await this.stores.questStore.save(quest)
-        const elderPatch =
-            tribe.shamanId === member.id
-                ? { elder: 'shaman' as 'shaman' }
-                : tribe.chiefId === member.id
-                ? { elder: 'chief' as 'chief' }
-                : {}
         for (let targetMemberId of targetMembers) {
             const targetMember = await this.getMember(targetMemberId)
             this.notify<QuestChangeMessage>({
@@ -43,7 +36,6 @@ export class QuestNegotiation extends ContextUser {
                     proposingMemberId: member.id,
                     proposingMemberName: user.name,
                     tribe: tribe.name,
-                    ...elderPatch,
                 },
             })
         }
@@ -91,13 +83,6 @@ export class QuestNegotiation extends ContextUser {
                         },
                     })
                 }
-            })
-            const after = quest.type === QuestType.coordination ? 5 : 2
-            this.scheduler.schedule<HowWasQuestTask>({
-                type: 'how-was-quest',
-                done: false,
-                time: quest.time + after * 3_600_000,
-                payload: { questId: quest.id, questType: quest.type },
             })
         }
     }
@@ -153,7 +138,6 @@ export class QuestNegotiation extends ContextUser {
 
         const nextMember = getBestFreeMember(
             members,
-            first.charisma > first.wisdom ? 'wisdom' : 'charisma',
             activeQuests,
             [first.id, member.id]
         )

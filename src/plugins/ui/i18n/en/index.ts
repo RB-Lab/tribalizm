@@ -22,23 +22,17 @@ const en: BaseTranslation = {
             onBrainstorm: "What's brainstorm?",
             onQuests: "What's quest?",
             onAstral: "Whats's Astral",
-            onShaman: "Who's shaman?",
-            onChief: "Who's chief?",
             next: "What's next?",
         },
         apply:
             'To join a tribe you like you must send an application. ' +
-            "Tribe's chief and shaman will consider it and invite you to have a conversation with them. " +
+            'Other tribe members will consider it and invite you to have a conversation with them. ' +
             'If they decide that you align with the tribe spirit well, they will let you join.' +
             "If you didn't find tribe you'd like, try to search in Astral",
         onAstral:
             'Astral is the place for "virtual" tribes. You can still meet likely-minded people ' +
             "via video chats in case your city doesn't have enough of them. As soon as there's enough people in your" +
             'tribe is incarnated in real world.',
-        onChief:
-            "Chief is the most charismatic person in the tribe. Their duties is to maintain tribe's integrity.",
-        onShaman:
-            "Shaman is the most wise person in the tribe. Their duties is to assist tribe's chief.",
         inTribe: `Now, when you're in tribe you can participate in brainstorm and tribe's quests`,
         onBrainstorm:
             'In a brainstorm you will suggest activities for the tribe and vote for activities you like' +
@@ -54,9 +48,9 @@ const en: BaseTranslation = {
         searchIn: 'Tribes in {city}: ',
         searchInAstral: 'Tribes in Astral',
         applyText:
-            'Please, write tribe\'s chief and shaman about yourself and why do you want to join "{tribe}" tribe?',
+            'Please, write about yourself and why do you want to join "{tribe}" tribe?',
         applicationSent:
-            '📨 Your application has been sent. Tribe chief will propose a meeting soon.',
+            '📨 Your application has been sent. One of tribe member will propose a meeting soon.',
         applicationSentShort: '☑️ Ok!',
         cantFindCity: "🤔 Can't find your city, please type it's name.",
         unknownCity: '🤔 Cannot find such a city',
@@ -74,17 +68,13 @@ const en: BaseTranslation = {
         loadMore: 'Next',
         tribeListEnd: "That's all.",
     },
-    elders: {
-        chief: 'chief',
-        shaman: 'shaman',
-    },
     initiation: {
         declinePrompt:
             'Please describe in a few words why did you decline an application.',
         declineOk: 'Ok, application has been declined',
         approvedOk: "Ok, you've approved the application",
         questNotification:
-            '{name:string}, {elder:string} of the {tribe:string} proposes to meet: \n {proposal:string}',
+            '{name:string} of the {tribe:string} proposes to meet: \n {proposal:string}',
         questNotificationForElder:
             'Candidate for {tribe:string} tribe {name:string} proposes to meet: \n {proposal:string}',
         feedbackRequest:
@@ -176,8 +166,6 @@ const en: BaseTranslation = {
             'Your application to the tribe "{tribe}" has been declined',
     },
     help: {
-        charisma: 'How good a person is as a leader',
-        wisdom: "How good a person grasps tribe's main topic",
         unknown: "Can't find this topic",
         whatIsTribalizm: 'What is Tribalizm Bot?',
         whatIsTribalizmText:
@@ -190,17 +178,6 @@ const en: BaseTranslation = {
             'of activities (from simple, lik "meet in pub or park" or "discuss new Dawkins paper" ' +
             'to more viable ones like "get lobbied new charging station"). Most popular ideas are ' +
             'to be implemented for which tribe members get the quests.',
-    },
-    rateMember: {
-        elderCharismaPrompt:
-            "You've just meet {tribe:string} {elder:string}, how charismatic they are?",
-        charismaPrompt:
-            "You've just meet {name: string}, how charismatic they are?",
-        wisdomPrompt: 'How wise they are?',
-        help: 'ℹ️',
-        charisma: { '0': '😩', '1': '😕', '2': '🤔', '3': '🤩', '4': '🔥' },
-        wisdom: { '0': '🤪', '1': '🤥', '2': '🤔', '3': '🥸', '4': '🦉' },
-        done: 'Got it! Your scores will be applied soon',
     },
     brainstorm: {
         timeToStorm: "⛈ It's Time To STORM!!!",
@@ -237,22 +214,15 @@ const en: BaseTranslation = {
         VoteRangeError: 'This vote is out of available range.',
         SelfVotingError: '🚫 Nope. You cannot rate yourself',
         ApplicationTransitionError: '🤬  ApplicationTransitionError? 🤨',
-        NoChiefTribeError: '🤨 Hmm... this tribe has no chief.',
         EntityNotFound: '🤨 404. Not found. What did you try to find?',
         NotYourTribe: '🚫 Nope. You are not from this tribe (any more?).',
         NoIdeaError: '🤬 NoIdeaError? 🤨',
-        AlreadyHaveChief: '🤨 Hmm... this tribe already has a chief.',
-        ElderMismatchError: '🤬 ElderMismatchError? 🤨',
         WrongQuestError: '🤬 WrongQuestError? 🤨',
-        NoChiefSetError: '🤨 Hmm... this tribe has no chief.',
-        NoShamanSetError: '🤨 Hmm... this tribe has no shaman.',
         WrongPhaseError: '🚫 Sorry, you cannot change application process now.',
         VotingNotStartedError: '🚫 Voting is not started yet',
         ExternalMemberVoteError:
             '🚫 Nope. You are not from this tribe (any more?).',
         NotEnoughMembers: '🤬 NotEnoughMembers? 🤨',
-        NotAChiefError:
-            '🚫 Sorry, you cannot start a brainstorm, only tribe chief can',
         FinalizeBeforeVotingError:
             '🤬 System error! Cannot finalize storm before voting',
         StormNotStarted:

@@ -1,4 +1,3 @@
-import { TribeType } from './entities/tribe'
 import { ContextUser } from './utils/context-user'
 
 export interface TribeInfo {

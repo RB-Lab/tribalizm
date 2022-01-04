@@ -1,4 +1,4 @@
-import { Storable, Store } from './store'
+import { Storable, Store } from '../utils/store'
 
 export interface GatheringStore extends Store<IGathering> {}
 
@@ -13,12 +13,10 @@ export interface IGatheringData {
     type: GatheringType
     accepted: string[]
     declined: string[]
-    done: string[]
 }
 export interface IGathering extends IGatheringData {
     accept: (memberId: string) => void
     decline: (memberId: string) => void
-    imDone: (memberId: string) => void
 }
 type NeededParams = Pick<
     IGatheringData,
@@ -35,7 +33,6 @@ export class Gathering implements IGathering {
     type: GatheringType
     accepted: string[]
     declined: string[]
-    done: string[]
     constructor(params: NeededParams & Partial<IGatheringData & Storable>) {
         this.id = params.id || null
         this.description = params.description
@@ -46,7 +43,6 @@ export class Gathering implements IGathering {
         this.type = params.type
         this.accepted = params.accepted || []
         this.declined = params.declined || []
-        this.done = params.done || []
     }
 
     accept = (memberId: string) => {
@@ -56,14 +52,6 @@ export class Gathering implements IGathering {
     decline = (memberId: string) => {
         this.accepted = this.accepted.filter((id) => id !== memberId)
         this.declined.push(memberId)
-    }
-    imDone = (memberId: string) => {
-        if (!this.accepted.includes(memberId)) {
-            throw new NotParticipated(
-                `Member ${memberId} was not participaded in "${this.description}"`
-            )
-        }
-        this.done.push(memberId)
     }
 }
 

@@ -1,8 +1,6 @@
 import inquirer from 'inquirer'
 import { Context } from '../../../use-cases/utils/context'
 import { TelegramUserStore } from '../telegram/users-adapter'
-import { addMember } from './prompts/add-member'
-import { addTribe } from './prompts/add-tribe'
 import { listMembers } from './prompts/list-members'
 import { listTgUsers } from './prompts/list-tg-users'
 import { listTribes } from './prompts/list-tribes'
@@ -13,8 +11,6 @@ export async function runAdmin(context: Context, tgUsers: TelegramUserStore) {
         listTribes = 'List tribes',
         listTgUsers = 'List telegram users',
         listMembers = 'List tribes members',
-        addMember = 'Add tribe member',
-        addTribe = 'Add tribe',
         loadCities = 'Load cities',
         exit = 'Exit',
     }
@@ -35,10 +31,6 @@ export async function runAdmin(context: Context, tgUsers: TelegramUserStore) {
                 return listTgUsers(tgUsers, mainMenu)
             case MainMenu.listMembers:
                 return listMembers(context, mainMenu)
-            case MainMenu.addMember:
-                return addMember(context, mainMenu)
-            case MainMenu.addTribe:
-                return addTribe(context, mainMenu)
             case MainMenu.loadCities:
                 return loadCities(context, mainMenu)
             case MainMenu.exit:

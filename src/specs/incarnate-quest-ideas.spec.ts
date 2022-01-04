@@ -1,20 +1,17 @@
-import { Context } from '../use-cases/utils/context'
 import { Brainstorm, QuestIdea } from '../use-cases/entities/brainstorm'
-import { Member } from '../use-cases/entities/member'
 import {
     CoordinationQuest,
     Quest,
     QuestStatus,
     QuestType,
 } from '../use-cases/entities/quest'
-import { Tribe } from '../use-cases/entities/tribe'
 import {
     IdeaIncarnationMessage,
     IdeasIncarnation,
 } from '../use-cases/incarnate-ideas'
-import { createContext, makeMessageSpy } from './test-context'
 import { StormFinalize } from '../use-cases/utils/scheduler'
-import { Storable } from '../use-cases/entities/store'
+import { Storable } from '../use-cases/utils/store'
+import { createContext, makeMessageSpy } from './test-context'
 
 describe('When brainstorm is over', () => {
     describe('Ideas to quests incarnation', () => {

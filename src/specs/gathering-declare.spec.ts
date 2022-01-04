@@ -1,14 +1,12 @@
 import { IGathering } from '../use-cases/entities/gathering'
-import { CoordinationQuest, Quest } from '../use-cases/entities/quest'
+import { CoordinationQuest } from '../use-cases/entities/quest'
 import {
     GatheringDeclare,
     GatheringMessage,
 } from '../use-cases/gathering-declare'
-import { EntityNotFound } from '../use-cases/utils/not-found-error'
 import { SpawnQuest } from '../use-cases/spawn-quest'
+import { EntityNotFound } from '../use-cases/utils/not-found-error'
 import { createContext } from './test-context'
-import { HowWasGatheringTask } from '../use-cases/utils/scheduler'
-import { QuestFinishedError } from '../use-cases/utils/errors'
 
 describe('Gathering declaration', () => {
     it('notifies all tribe members', async () => {
@@ -46,25 +44,6 @@ describe('Gathering declaration', () => {
             jasmine.arrayWithExactContents(upvoters.map((m) => m.userId))
         )
     })
-    it('allocates "how was it" task next morning', async () => {
-        const world = await setUp()
-        await world.gathering.declare({
-            ...world.defaultDeclare,
-            type: 'upvoters',
-        })
-        const gathering = await world.gatheringStore._last()
-        const task = (await world.taskStore._last()) as HowWasGatheringTask
-        expect(task).toBeTruthy()
-        expect(task!.type).toEqual('how-was-gathering')
-        expect(task?.done).toBe(false)
-        expect(task!.payload.gatheringId).toEqual(gathering!.id)
-        const taskDate = new Date(task!.time)
-        const gatheringDateNextDay = new Date(
-            world.defaultDeclare.time + 24 * 3_600_000
-        )
-        expect(taskDate.getDate()).toEqual(gatheringDateNextDay.getDate())
-        expect(taskDate.getHours()).toEqual(10)
-    })
     it('creates gathering', async () => {
         const world = await setUp()
         const gatheringsBefore = await world.gatheringStore.findSimple({})
@@ -91,19 +70,6 @@ describe('Gathering declaration', () => {
                 parentQuestId: 'non-existing',
             })
         ).toBeRejectedWithError(EntityNotFound)
-    })
-
-    it('FAILs on a finished quest', async () => {
-        const world = await setUp()
-        world.quest2.memberIds.forEach(world.quest2.finish)
-        await world.questStore.save(world.quest2)
-
-        await expectAsync(
-            world.gathering.declare({
-                ...world.defaultDeclare,
-                type: 'all',
-            })
-        ).toBeRejectedWithError(QuestFinishedError)
     })
 })
 

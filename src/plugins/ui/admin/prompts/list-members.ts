@@ -6,11 +6,8 @@ export async function listMembers(context: Context, back: () => Promise<void>) {
     const fields: Array<keyof IMemberData> = [
         'id',
         'tribeId',
-        'charisma',
         'isCandidate',
         'userId',
-        'votes',
-        'wisdom',
     ]
     const answers = await inquirer.prompt<{ fields: Array<keyof IMemberData> }>(
         [

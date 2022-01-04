@@ -1,7 +1,6 @@
 import { Markup } from 'telegraf'
 import { Maybe, notEmpty } from '../../../../ts-utils'
 import { NewIdeaMessage } from '../../../../use-cases/add-idea'
-import { TimeToStormMessage } from '../../../../use-cases/admin'
 import {
     BrainstormDeclarationMessage,
     BrainstormNoticeMessage,
@@ -14,9 +13,6 @@ import { removeInlineKeyboard } from '../telegraf-hacks'
 import { TgContext, TribeCtx } from '../tribe-ctx'
 import { UserState } from '../users-adapter'
 import { makeCallbackDataParser } from './callback-parser'
-import tz from 'timezone-name-offsets'
-
-const startBrainstorm = makeCallbackDataParser('storm-start', ['memberId'])
 
 interface BrainstormState extends UserState {
     type: 'brainstorm'
@@ -29,61 +25,12 @@ function isBrainstormState(state: Maybe<UserState>): state is BrainstormState {
 
 const voteParser = makeCallbackDataParser('vote-idea', ['ideaId', 'vote'])
 
-const stormConfirm = makeCallbackDataParser('storm-confirm', [
-    'memberId',
-    'time',
-])
-
 export function brainstormScreen({
     bot,
     bus,
     tgUsers,
     messageStore,
 }: TgContext) {
-    bot.action(startBrainstorm.regex, async (ctx) => {
-        const texts = i18n(ctx).brainstorm
-        const { memberId } = startBrainstorm.parse(ctx.match[0])
-
-        const onDateSet = (date: Date, ctxIn: TribeCtx) => {
-            ctxIn.editMessageText(
-                texts.confirmPrompt({ date }),
-                Markup.inlineKeyboard([
-                    Markup.button.callback(
-                        texts.confirm(),
-                        stormConfirm.serialize({
-                            memberId,
-                            time: ctx.user.toServerTime(date).getTime(),
-                        })
-                    ),
-                    Markup.button.callback(
-                        texts.edit(),
-                        startBrainstorm.serialize({ memberId })
-                    ),
-                ])
-            )
-        }
-        removeInlineKeyboard(ctx)
-        await ctx.reply(
-            texts.proposeDate(),
-            ctx.getCalendar(onDateSet, ctx.from?.language_code)
-        )
-    })
-    bot.action(stormConfirm.regex, async (ctx) => {
-        const texts = i18n(ctx).brainstorm
-        const { memberId, time } = stormConfirm.parse(ctx.match[0])
-        ctx.logEvent('storm: crate', { time })
-        await ctx.tribalizm.brainstormLifecycle.declare({
-            memberId,
-            time: Number(time),
-        })
-        // remove buttons
-        await ctx.editMessageText(
-            texts.confirmPrompt({ date: new Date(Number(time)) }),
-            Markup.inlineKeyboard([])
-        )
-        await ctx.reply(texts.done())
-    })
-
     bot.on('text', async (ctx, next) => {
         const state = ctx.user.state
         if (isBrainstormState(state)) {
@@ -118,25 +65,6 @@ export function brainstormScreen({
     })
 
     // ======== Handle Notifications =========
-
-    bus.subscribe<TimeToStormMessage>('time-to-storm', async ({ payload }) => {
-        const user = await tgUsers.getTelegramUserForTribalism(
-            payload.targetUserId
-        )
-        const texts = i18n(user).brainstorm
-        await bot.telegram.sendMessage(
-            user.chatId,
-            texts.timeToStorm(),
-            Markup.inlineKeyboard([
-                Markup.button.callback(
-                    texts.toStormButton(),
-                    startBrainstorm.serialize({
-                        memberId: payload.targetMemberId,
-                    })
-                ),
-            ])
-        )
-    })
     bus.subscribe<BrainstormDeclarationMessage>(
         'new-brainstorm',
         async ({ payload }) => {

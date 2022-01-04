@@ -1,4 +1,4 @@
-import { Storable, Store } from '../../../use-cases/entities/store'
+import { Storable, Store } from '../../../use-cases/utils/store'
 import { User, UserStore } from '../../../use-cases/entities/user'
 import { ILogger } from '../../../use-cases/utils/logger'
 

@@ -1,7 +1,10 @@
 import { MultiPolygon } from '../utils/geo-json'
-import { Coordinates } from './location'
-import { Storable, Store } from './store'
+import { Storable, Store } from '../utils/store'
 
+export interface Coordinates {
+    latitude: number
+    longitude: number
+}
 export interface CityStore extends Store<ICity> {
     findByCoordinates: (coordinates: Coordinates) => Promise<StoredCity | null>
     autocomplete: (input?: string) => Promise<StoredCity[]>

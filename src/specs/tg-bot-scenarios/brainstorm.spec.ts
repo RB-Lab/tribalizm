@@ -26,7 +26,6 @@ describe('Brainstorm [integration]', () => {
 
     it('Main scenario', async () => {
         // Chief arranges brainstorm
-        await world.admin.notifyBrainstorm({ memberId: world.chief.member.id })
         const chiefBrainstormNoteUpd = await world.chief.chat()
         expect(chiefBrainstormNoteUpd.length).toBe(1)
         const brainstormButtons = getInlineKeyCallbacks(
@@ -263,23 +262,6 @@ describe('Brainstorm [integration]', () => {
         jasmine.clock().mockDate(new Date(ideaQuestHowWasItTask!.time + 1000))
         await world.context.requestTaskQueue()
 
-        // both users are asked to rate each other charisma & wisdom
-        const chiefFeedbackUpd = await world.chief.chat()
-        expect(chiefFeedbackUpd.length).toBe(1)
-        const chiefFdbChButtons = getInlineKeyCallbacks(chiefFeedbackUpd[0])
-        expect(chiefFdbChButtons.length).toBe(6)
-        const chiefFdbWiUpd = await world.chief.chatLast(
-            chiefFdbChButtons[5],
-            true
-        )
-        const votesBefore = world.user3.member.votes.length
-        const chiefFdbWiBtns = getInlineKeyCallbacks(chiefFdbWiUpd)
-        expect(chiefFdbWiBtns.length).toBe(6)
-        await world.chief.chatLast(chiefFdbWiBtns[3])
-        const userAfter = await world.context.stores.memberStore.getById(
-            world.user3.member.id
-        )
-        expect(userAfter!.votes.length).toBe(votesBefore + 1)
 
         const u3FeedbackUpd = await world.user3.chat()
         const u3FdbChButtons = getInlineKeyCallbacks(u3FeedbackUpd[0])
@@ -365,35 +347,6 @@ describe('Brainstorm [integration]', () => {
         const uToAgreeFdbWiBtns = getInlineKeyCallbacks(uToAgreeFdbWisdomUpd)
         await userToAgree.chatLast(uToAgreeFdbWiBtns[3])
 
-        // Fast forward after gathering
-        jasmine.clock().mockDate(new Date(gatheringHowWasItTask.time + 1000))
-        await world.context.requestTaskQueue()
-        for (let user of world.users) {
-            if (user === world.user3) continue
-            const gathHowWasItUpds = await user.chat()
-            expect(gathHowWasItUpds.length).toBe(1)
-            const voteBtns = getInlineKeyCallbacks(gathHowWasItUpds[0])
-            await user.chat(voteBtns[world.users.indexOf(user)])
-        }
-
-        const quests = await world.context.stores.questStore.findSimple({
-            type: QuestType.coordination,
-        })
-        const coordinators = quests.reduce<string[]>(
-            (r, q) => [...r, ...q.memberIds],
-            []
-        )
-        for (let user of world.users) {
-            if (coordinators.includes(user.member.id)) {
-                const member = await world.context.stores.memberStore.getById(
-                    user.member.id
-                )
-                const votes = member!.votes.filter(
-                    (v) => v.type === 'gathering-vote'
-                )
-                expect(votes.length).toBeGreaterThan(0)
-            }
-        }
     })
 })
 async function setup() {
@@ -420,13 +373,11 @@ async function setup() {
         tribe.id,
         city
     )
-    await context.addVotes(chief.member, 5, 3)
     const shaman = await addTribeMember(
         makeClient('Dart Food', 'Tribe Shaman'),
         tribe.id,
         city
     )
-    await context.addVotes(shaman.member, 3, 5)
     const user1 = await addTribeMember(
         makeClient('Foyer 1', 'User 1'),
         tribe.id,

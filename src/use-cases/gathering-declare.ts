@@ -2,7 +2,6 @@ import { ContextUser } from './utils/context-user'
 import { Gathering, GatheringType } from './entities/gathering'
 import { getRootIdea } from './utils/get-root-idea'
 import { Message } from './utils/message'
-import { HowWasGatheringTask } from './utils/scheduler'
 import { QuestStatus } from './entities/quest'
 import { QuestFinishedError } from './utils/errors'
 import { IMember } from './entities/member'
@@ -52,16 +51,6 @@ export class GatheringDeclare extends ContextUser {
                     targetUserId: targetMember.userId,
                 },
             })
-        })
-        const taskDate = new Date(gathering.time + 24 * 3_600_000)
-        taskDate.setHours(10)
-        this.scheduler.schedule<HowWasGatheringTask>({
-            type: 'how-was-gathering',
-            done: false,
-            time: taskDate.getTime(),
-            payload: {
-                gatheringId: gathering.id,
-            },
         })
     }
 

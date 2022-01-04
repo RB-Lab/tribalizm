@@ -114,18 +114,11 @@ export class SpawnQuest extends ContextUser {
             memberIds
         )
         const exclude = members.length < 4 ? [] : origMemberIds
-        const first = getBestFreeMember(
-            members,
-            'charisma',
-            activeQuests,
-            exclude
-        )
-        const second = getBestFreeMember(
-            members,
-            first.charisma > first.wisdom ? 'wisdom' : 'charisma',
-            activeQuests,
-            [...exclude, first.id]
-        )
+        const first = getBestFreeMember(members, activeQuests, exclude)
+        const second = getBestFreeMember(members, activeQuests, [
+            ...exclude,
+            first.id,
+        ])
         return [first, second]
     }
 }

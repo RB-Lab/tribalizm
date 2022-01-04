@@ -15,7 +15,6 @@ import { initiationScreen } from './screens/initiation'
 import { introQuestsScreen } from './screens/intro-quests'
 import { listTribesScreen } from './screens/list-tribes'
 import { questNegotiationScreen } from './screens/quest-negotiation'
-import { rateMemberScreen } from './screens/rate-member'
 import { startScreen } from './screens/start'
 import { TribeCtx } from './tribe-ctx'
 import { TelegramUsersAdapter } from './users-adapter'
@@ -154,7 +153,6 @@ export async function makeBot(config: BotConfig) {
     createTribeScreen(tgContext)
     initiationScreen(tgContext)
     questNegotiationScreen(tgContext)
-    rateMemberScreen(tgContext)
     introQuestsScreen(tgContext)
     brainstormScreen(tgContext)
     coordinationScreen(tgContext)

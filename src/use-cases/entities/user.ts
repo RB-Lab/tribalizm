@@ -1,4 +1,4 @@
-import { Storable, Store } from './store'
+import { Storable, Store } from '../utils/store'
 
 export interface UserStore extends Store<IUser> {}
 

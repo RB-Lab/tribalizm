@@ -129,27 +129,6 @@ describe('Get into tribe [integration]', () => {
         jasmine.clock().mockDate(new Date(howWasInitTask!.time + 1000))
         await world.context.requestTaskQueue()
 
-        // new user is asked to rate chief's charisma & wisdom
-        const nuChiefRateUpd = await world.newUser.chat()
-        expect(nuChiefRateUpd.length).toBe(1)
-        const rateChiefCharismaButtons = getInlineKeyCallbacks(
-            nuChiefRateUpd[0]
-        )
-        expect(rateChiefCharismaButtons.length).toBe(6)
-        const rateChiefWisdomUpd = await world.newUser.chatLast(
-            rateChiefCharismaButtons[5],
-            true
-        )
-        const votesBefore = world.chief.member.votes.length
-
-        const rateChiefWisdomButtons = getInlineKeyCallbacks(rateChiefWisdomUpd)
-        expect(rateChiefWisdomButtons.length).toBe(6)
-        await world.newUser.chatLast(rateChiefWisdomButtons[3])
-        const chiefAfter = await world.context.stores.memberStore.getById(
-            world.chief.member.id
-        )
-        expect(chiefAfter!.votes.length).toBe(votesBefore + 1)
-
         // chief is asked if they accept member
         const chiefFeedbackUpd = await world.chief.chat()
         expect(chiefFeedbackUpd.length).toBe(1)
@@ -208,28 +187,6 @@ describe('Get into tribe [integration]', () => {
         const howWasInitTask2 = await world.context.stores.taskStore._last()
         jasmine.clock().mockDate(new Date(howWasInitTask2!.time + 1000))
         await world.context.requestTaskQueue()
-
-        // new user is asked to rate shaman's charisma & wisdom
-        const nuShamanRateUpd = await world.newUser.chat()
-        expect(nuShamanRateUpd.length).toBe(1)
-        const rateShamanCharismaButtons = getInlineKeyCallbacks(
-            nuShamanRateUpd[0]
-        )
-        expect(rateShamanCharismaButtons.length).toBe(6)
-        const rateShamanWisdomUpd = await world.newUser.chatLast(
-            rateShamanCharismaButtons[5],
-            true
-        )
-        const shVotesBefore = world.shaman.member.votes.length
-        const rateShamanWisdomButtons =
-            getInlineKeyCallbacks(rateShamanWisdomUpd)
-        expect(rateShamanWisdomButtons.length).toBe(6)
-        await world.newUser.chatLast(rateShamanWisdomButtons[3])
-
-        const shamanAfter = await world.context.stores.memberStore.getById(
-            world.shaman.member.id
-        )
-        expect(shamanAfter!.votes.length).toBe(shVotesBefore + 1)
 
         // shaman is asked if they accept member
         const shamanFeedbackUpd = await world.shaman.chat()
@@ -292,43 +249,6 @@ describe('Get into tribe [integration]', () => {
         const introRateTask = await world.context.stores.taskStore._last()
         jasmine.clock().mockDate(new Date(introRateTask!.time + 1000))
         await world.context.requestTaskQueue()
-
-        // newbie is asked to rate oldie's charisma & wisdom
-        const oldRateUpd = await world.newUser.chat()
-        expect(oldRateUpd.length).toBe(1)
-        const rateOldieCharismaButtons = getInlineKeyCallbacks(oldRateUpd[0])
-        expect(rateOldieCharismaButtons.length).toBe(6)
-        const rateOldieWisdomUpd = await world.newUser.chatLast(
-            rateOldieCharismaButtons[5],
-            true
-        )
-        const rateOldieWisdomButtons = getInlineKeyCallbacks(rateOldieWisdomUpd)
-        expect(rateOldieWisdomButtons.length).toBe(6)
-        await world.newUser.chatLast(rateOldieWisdomButtons[3])
-        const oldieMember = await world.context.stores.memberStore.getById(
-            world.oldie1.member.id
-        )
-        expect(oldieMember?.votes.length).toBe(1)
-
-        // oldie is asked to rate newbie's charisma & wisdom
-        const newbieRateUpd = await world.oldie1.chat()
-        expect(newbieRateUpd.length).toBe(1)
-        const rateNewbieCharismaButtons = getInlineKeyCallbacks(
-            newbieRateUpd[0]
-        )
-        expect(rateNewbieCharismaButtons.length).toBe(6)
-        const rateNewbieWisdomUpd = await world.oldie1.chatLast(
-            rateNewbieCharismaButtons[5],
-            true
-        )
-        const rateNewbieWisdomButtons =
-            getInlineKeyCallbacks(rateNewbieWisdomUpd)
-        expect(rateNewbieWisdomButtons.length).toBe(6)
-        await world.oldie1.chatLast(rateNewbieWisdomButtons[3])
-        const newbieMember = await world.context.stores.memberStore.getById(
-            newUserMember.id
-        )
-        expect(newbieMember?.votes.length).toBe(1)
 
         // now oldie 2 is notified on intro quest
 
@@ -487,7 +407,6 @@ describe('Get into tribe [integration]', () => {
         const wisdomButtons = getInlineKeyCallbacks(wisdomUpd)
         await world.newUser.chatLast(wisdomButtons[3])
 
-        world.tribes[1].shamanId = null
         await world.context.stores.tribeStore.save(world.tribes[1])
         // chief accepts member
         const chiefFeedbackUpd = await world.chief.chat()
@@ -545,13 +464,11 @@ async function setup() {
         tribes[1].id,
         city
     )
-    await context.addVotes(chief.member, 5, 3)
     const shaman = await addTribeMember(
         makeClient('Barlog', 'Tribe Shaman'),
         tribes[1].id,
         city
     )
-    await context.addVotes(shaman.member, 3, 5)
     const oldie1 = await addTribeMember(
         makeClient('Oldie Bar', 'Old User 1'),
         tribes[1].id,

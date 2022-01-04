@@ -1,6 +1,6 @@
 import { Application } from './entities/application'
 import { Member } from './entities/member'
-import { InitiationQuest, Quest, QuestType } from './entities/quest'
+import { InitiationQuest, QuestType } from './entities/quest'
 import { ContextUser } from './utils/context-user'
 import { Message } from './utils/message'
 
@@ -14,10 +14,7 @@ export class TribeApplication extends ContextUser {
     applyToTribe = async (req: ApplicationRequest) => {
         const user = await this.getUser(req.userId)
         const tribe = await this.getTribe(req.tribeId)
-        if (!tribe.chiefId) {
-            throw new NoChiefTribeError(`Tribe ${req.tribeId} has no chief`)
-        }
-        const chief = await this.getMember(tribe.chiefId)
+        const member = await this.getMember('TODO')
         // creates a new _candidate_ member of the tribe
         const newMember = await this.stores.memberStore.save(
             new Member({ userId: user.id, tribeId: tribe.id })
@@ -27,27 +24,24 @@ export class TribeApplication extends ContextUser {
                 memberId: newMember.id,
                 tribeId: req.tribeId,
                 coverLetter: req.coverLetter,
-                chiefId: tribe.chiefId,
-                shamanId: tribe.shamanId,
             })
         )
 
         const quest = await this.stores.questStore.save(
             new InitiationQuest({
                 type: QuestType.initiation,
-                memberIds: [tribe.chiefId, app.memberId],
+                memberIds: [member.id, app.memberId],
                 applicationId: app.id,
             })
         )
         this.notify<ApplicationMessage>({
             type: 'application-message',
             payload: {
-                targetUserId: chief.userId,
+                targetUserId: member.userId,
                 tribeName: tribe.name,
                 questId: quest.id,
                 coverLetter: app.coverLetter,
                 userName: user.name,
-                elder: 'chief',
             },
         })
     }
@@ -65,7 +59,6 @@ export interface ApplicationMessage extends Message {
         targetUserId: string
         tribeName: string
         questId: string
-        elder: 'chief' | 'shaman'
         userName: string
         coverLetter: string
     }

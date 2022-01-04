@@ -1,11 +1,11 @@
 import { mapify } from '../ts-utils'
 import { SavedQuestIdea } from './entities/brainstorm'
 import { CoordinationQuest } from './entities/quest'
-import { Storable } from './entities/store'
 import { ContextUser } from './utils/context-user'
 import { getBestFreeMember, minQuests } from './utils/members-utils'
 import { Message } from './utils/message'
 import { StormFinalize } from './utils/scheduler'
+import { Storable } from './utils/store'
 
 export class IdeasIncarnation extends ContextUser {
     incarnateIdeas = async (task: StormFinalize & Storable) => {
@@ -59,10 +59,10 @@ export class IdeasIncarnation extends ContextUser {
 
     private incarnate = async (idea: SavedQuestIdea) => {
         const oneWeekAhead = Date.now() + 7 * 24 * 3_600_000
-        const upvoterIds = idea.votes
+        const upVoterIds = idea.votes
             .filter((v) => v.vote === 'up')
             .map((v) => v.memberId)
-        const memberIds = [...upvoterIds, idea.memberId]
+        const memberIds = [...upVoterIds, idea.memberId]
         const members = await this.stores.memberStore.findSimple({
             id: memberIds,
         })
@@ -79,14 +79,9 @@ export class IdeasIncarnation extends ContextUser {
         )
         let first = starter
         if ((activeQuests[starter.id] || 0) > minQuests(activeQuests)) {
-            first = getBestFreeMember(members, 'charisma', activeQuests, [])
+            first = getBestFreeMember(members, activeQuests, [])
         }
-        const second = getBestFreeMember(
-            members,
-            first.charisma > first.wisdom ? 'wisdom' : 'charisma',
-            activeQuests,
-            [first.id]
-        )
+        const second = getBestFreeMember(members, activeQuests, [first.id])
 
         return new CoordinationQuest({
             parentQuestId: null,

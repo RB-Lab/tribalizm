@@ -8,10 +8,7 @@ export async function listTribes(context: Context, back: () => Promise<void>) {
         'name',
         'description',
         'cityId',
-        'chiefId',
-        'shamanId',
         'logo',
-        'vocabulary',
     ]
     const answers = await inquirer.prompt<{ fields: Array<keyof ITribeData> }>([
         {

@@ -105,9 +105,6 @@ async function run() {
         new User({ name: 'Eliser U' }),
         new User({ name: 'R.B.', cityId: city.id }),
     ])
-    admin.addTribeMember({ tribeId: tribes[0].id, userId: users[0].id })
-    admin.addTribeMember({ tribeId: tribes[2].id, userId: users[2].id })
-    admin.addTribeMember({ tribeId: tribes[1].id, userId: users[3].id })
     telegramUsersAdapter.user.userId = users[3].id
 
     context.tribalizm.tribesShow.getTribeInfo = (req) =>
