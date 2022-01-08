@@ -1,9 +1,9 @@
 import { SavedMember } from '../entities/member'
-import { IQuestData, NotYourQuest } from '../entities/quest'
+import { IQuestData, isInitiationQuest, NotYourQuest } from '../entities/quest'
 import { Context, Stores } from './context'
 import { Message } from './message'
-import { EntityNotFound } from './not-found-error'
 import { Scheduler } from './scheduler'
+import { EntityNotFound, WrongQuestTypeError } from './errors'
 
 export class StoreUser {
     protected stores: Stores
@@ -18,6 +18,20 @@ export class StoreUser {
         }
         return quest
     }
+
+    protected async getInitiationQuest(questId: string) {
+        const quest = await this.stores.questStore.getById(questId)
+        if (!quest) {
+            throw new EntityNotFound(`Quest ${questId} not found`)
+        }
+        if (!isInitiationQuest(quest)) {
+            throw new WrongQuestTypeError(
+                `Quest ${quest.id} is not initiation quest (${quest.type})`
+            )
+        }
+        return quest
+    }
+
     protected async getIdea(ideaId: string) {
         const idea = await this.stores.ideaStore.getById(ideaId)
         if (!idea) {

@@ -13,37 +13,13 @@ import { UserState } from '../users-adapter'
 import { makeCallbackDataParser } from './callback-parser'
 import { negotiate } from './quest-negotiation'
 
-interface DeclineState extends UserState {
-    type: 'decline-state'
-    questId: string
-}
-function isDeclineState(state: Maybe<UserState>): state is DeclineState {
-    return notEmpty(state) && state.type === 'decline-state'
-}
-
-const declineApplication = makeCallbackDataParser('decline-application', [
-    'questId',
-])
-
 const acceptParser = makeCallbackDataParser('application-accept', ['questId'])
 const appDeclineParser = makeCallbackDataParser('application-decline', [
     'questId',
 ])
 
-export function initiationScreen({ bot, bus, tgUsers }: TgContext) {
-    // this is from the get-go, @see notifications/ApplicationMessage
-    bot.action(declineApplication.regex, async (ctx) => {
-        const data = declineApplication.parse(ctx.match.input)
-        await ctx.user.setState<DeclineState>({
-            type: 'decline-state',
-            questId: data.questId,
-        })
-        const texts = i18n(ctx).initiation
-        await removeInlineKeyboard(ctx)
-        await ctx.reply(texts.declinePrompt())
-    })
-
-    bot.action(acceptParser.regex, async (ctx) => {
+export function initiationScreen(context: TgContext) {
+    context.bot.action(acceptParser.regex, async (ctx) => {
         const data = acceptParser.parse(ctx.match.input)
         ctx.logEvent('app accepted', { questId: data.questId })
 
@@ -54,7 +30,7 @@ export function initiationScreen({ bot, bus, tgUsers }: TgContext) {
         await removeInlineKeyboard(ctx)
         await ctx.reply(i18n(ctx).initiation.approvedOk())
     })
-    bot.action(appDeclineParser.regex, async (ctx) => {
+    context.bot.action(appDeclineParser.regex, async (ctx) => {
         const data = appDeclineParser.parse(ctx.match.input)
         ctx.logEvent('app declined', { questId: data.questId })
 
@@ -66,32 +42,16 @@ export function initiationScreen({ bot, bus, tgUsers }: TgContext) {
         await ctx.reply(i18n(ctx).initiation.declineOk())
     })
 
-    bot.on('text', async (ctx, next) => {
-        const state = ctx.user.state
-        if (isDeclineState(state)) {
-            await ctx.user.setState(null)
-            ctx.logEvent('app declined straight away', {
-                questId: state.questId,
-                reason: ctx.message.text,
-            })
-            const texts = i18n(ctx).initiation
-            await ctx.reply(texts.declineOk())
-            await ctx.tribalizm.initiation.decline({
-                questId: state.questId,
-                userId: ctx.user.userId,
-            })
-        } else {
-            return next()
-        }
-    })
-
     // ================= Handle Notifications
 
-    bus.subscribe<ApplicationMessage>(
+    context.bus.subscribe<ApplicationMessage>(
         'application-message',
         async ({ payload }) => {
-            const elder = await tgUsers.getTelegramUserForTribalism(
+            const elder = await context.tgUsers.getTelegramUserForTribalism(
                 payload.targetUserId
+            )
+            const app = await context.viewModels.application.getApplicationInfo(
+                payload.questId
             )
 
             const texts = i18n(elder).tribeApplication
@@ -103,44 +63,43 @@ export function initiationScreen({ bot, bus, tgUsers }: TgContext) {
                         questId: payload.questId,
                     })
                 ),
-                Markup.button.callback(
-                    texts.decline(),
-                    declineApplication.serialize({
-                        questId: payload.questId,
-                    })
-                ),
+                // TODO add "skip" button (see use-cases/initiation as well)
             ])
 
-            await bot.telegram.sendMessage(
+            await context.bot.telegram.sendMessage(
                 elder.chatId,
                 `<b>${texts.title({
-                    tribe: payload.tribeName,
+                    tribe: app.tribe,
                 })}</b>\n\n${texts.applicant({
-                    username: `<i>${payload.userName}</i>`,
-                })}\n${texts.coverLetter()}\n${payload.coverLetter}`,
+                    username: `<i>${app.applicantName}</i>`,
+                })}\n${texts.coverLetter()}\n${app.coverLetter}`,
                 { parse_mode: 'HTML', reply_markup: keyboard.reply_markup }
             )
         }
     )
-    bus.subscribe<ApplicationDeclinedMessage>(
+    context.bus.subscribe<ApplicationDeclinedMessage>(
         'application-declined',
         async ({ payload }) => {
-            const user = await tgUsers.getTelegramUserForTribalism(
+            const user = await context.tgUsers.getTelegramUserForTribalism(
                 payload.targetUserId
             )
             const texts = i18n(user).tribeApplication
 
-            await bot.telegram.sendMessage(
+            await context.bot.telegram.sendMessage(
                 user.chatId,
                 texts.applicationDeclined({ tribe: payload.tribeName })
             )
         }
     )
-    bus.subscribe<RequestApplicationFeedbackMessage>(
+
+    context.bus.subscribe<RequestApplicationFeedbackMessage>(
         'request-application-feedback',
         async ({ payload }) => {
-            const user = await tgUsers.getTelegramUserForTribalism(
+            const user = await context.tgUsers.getTelegramUserForTribalism(
                 payload.targetUserId
+            )
+            const app = await context.viewModels.application.getApplicationInfo(
+                payload.questId
             )
             const texts = i18n(user).initiation
 
@@ -160,23 +119,23 @@ export function initiationScreen({ bot, bus, tgUsers }: TgContext) {
             ])
 
             const text = texts.feedbackRequest({
-                name: payload.applicantName,
-                tribe: payload.tribe,
+                name: app.applicantName,
+                tribe: app.tribe,
             })
 
-            await bot.telegram.sendMessage(user.chatId, text, kb)
+            await context.bot.telegram.sendMessage(user.chatId, text, kb)
         }
     )
 
-    bus.subscribe<ApplicationApprovedMessage>(
+    context.bus.subscribe<ApplicationApprovedMessage>(
         'application-approved',
         async ({ payload }) => {
-            const user = await tgUsers.getTelegramUserForTribalism(
+            const user = await context.tgUsers.getTelegramUserForTribalism(
                 payload.targetUserId
             )
             const texts = i18n(user).initiation
 
-            await bot.telegram.sendMessage(
+            await context.bot.telegram.sendMessage(
                 user.chatId,
                 texts.applicationApproved({ tribe: payload.tribe })
             )

@@ -1,6 +1,6 @@
 import { NotYourTribe } from './utils/not-your-tribe'
 import { ContextUser } from './utils/context-user'
-import { EntityNotFound } from './utils/not-found-error'
+import { EntityNotFound } from './utils/errors'
 
 export class GatheringAcknowledge extends ContextUser {
     accept = async (req: GatheringAcknowledgeRequest) => {

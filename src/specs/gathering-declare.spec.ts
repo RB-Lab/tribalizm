@@ -5,7 +5,7 @@ import {
     GatheringMessage,
 } from '../use-cases/gathering-declare'
 import { SpawnQuest } from '../use-cases/spawn-quest'
-import { EntityNotFound } from '../use-cases/utils/not-found-error'
+import { EntityNotFound } from '../use-cases/utils/errors'
 import { createContext } from './test-context'
 
 describe('Gathering declaration', () => {

@@ -19,7 +19,7 @@ export function mapify<T extends { id: string }>(arr: T[]) {
     return arr.reduce<Record<string, T>>((r, i) => ({ ...r, [i.id]: i }), {})
 }
 
-export const noop = () => {}
+export const noop = (...a: any[]) => {}
 
 export function objectHasProp<X extends {}, Y extends PropertyKey>(
     obj: X,
@@ -46,4 +46,17 @@ export function base64Encode(str: string) {
 
 export function base64Decode(str: string) {
     return Buffer.from(str, 'base64').toString('utf-8')
+}
+
+/**
+ * Creates an array of numbers from `start` to `end` inclusive.
+ * If only on argument is given returns an array of that length starting from 0
+ */
+export function range(start: number, end?: number) {
+    if (end === undefined) {
+        end = start - 1
+        start = 0
+    }
+
+    return Array.from({ length: end - start + 1 }).map((_, i) => i + start)
 }

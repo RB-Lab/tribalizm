@@ -1,13 +1,6 @@
-import {
-    ApplicationMessage,
-    NoChiefTribeError,
-    TribeApplication,
-} from '../use-cases/apply-tribe'
-import {
-    ApplicationPhase,
-    IApplication,
-} from '../use-cases/entities/application'
-import { SavedMember } from '../use-cases/entities/member'
+import { ApplicationMessage, TribeApplication } from '../use-cases/apply-tribe'
+import { IApplication } from '../use-cases/entities/application'
+import { Member, SavedMember } from '../use-cases/entities/member'
 import {
     InitiationQuest,
     QuestStatus,
@@ -33,10 +26,7 @@ describe('Stranger application', () => {
                 type: 'application-message',
                 payload: {
                     targetUserId: jasmine.any(String),
-                    tribeName: world.tribe.name,
-                    coverLetter: world.defReq.coverLetter,
                     questId: jasmine.any(String),
-                    userName: world.user.name,
                 },
             })
         )
@@ -49,10 +39,63 @@ describe('Stranger application', () => {
         expect(savedApp).toEqual(
             jasmine.objectContaining<IApplication>({
                 coverLetter: world.defReq.coverLetter,
-                phase: ApplicationPhase.initial,
+                status: 'in-progress',
+                approvedIds: [],
+                // values checked below
+                memberId: jasmine.any(String),
+                currentElderId: jasmine.any(String),
+                elderIds: jasmine.any(Array),
             })
         )
     })
+
+    it('allocates three members for initiation', async () => {
+        const world = await setUp()
+
+        await world.tribeApplication.applyToTribe(world.defReq)
+        const app = await world.applicationStore._last()
+
+        const oldies = world.members.map((m) => m.id)
+        expect(3).toBeLessThan(oldies.length)
+        expect(app.elderIds.length).toBe(3)
+        app.elderIds.forEach((id) => {
+            expect(oldies.includes(id)).toBe(true)
+        })
+    })
+    it('allocates all tribe members if it is less than 3', async () => {
+        const world = await setUp()
+        const tribe = await world.tribeStore.save(
+            new Tribe({
+                name: 'Bar tribe',
+            })
+        )
+        const users = await world.userStore.saveBulk([
+            new User({ name: 'user-1' }),
+            new User({ name: 'user-2' }),
+        ])
+        const memberTemplate = { tribeId: tribe.id, isCandidate: false }
+        const members = await world.memberStore.saveBulk([
+            new Member({ ...memberTemplate, userId: users[0].id }),
+            new Member({ ...memberTemplate, userId: users[1].id }),
+        ])
+        await world.tribeApplication.applyToTribe({
+            ...world.defReq,
+            tribeId: tribe.id,
+        })
+        const app = await world.applicationStore._last()
+
+        const oldies = members.map((m) => m.id)
+        expect(app.elderIds).toEqual(jasmine.arrayWithExactContents(oldies))
+    })
+
+    it('makes one of the oldies current', async () => {
+        const world = await setUp()
+
+        await world.tribeApplication.applyToTribe(world.defReq)
+        const app = await world.applicationStore._last()
+        expect(app.elderIds.includes(app.currentElderId)).toBe(true)
+    })
+
     it('creates an initiation quest', async () => {
         const world = await setUp()
 
@@ -71,19 +114,6 @@ describe('Stranger application', () => {
         expect(quest.memberIds.length).toBe(2)
     })
 
-    it('FAILs if tribe have no chief', async () => {
-        const world = await setUp()
-        const tribe = await world.tribeStore.save(
-            new Tribe({ name: 'tribe', cityId: 'city-42' })
-        )
-        await expectAsync(
-            world.tribeApplication.applyToTribe({
-                ...world.defReq,
-                tribeId: tribe.id,
-            })
-        ).toBeRejectedWithError(NoChiefTribeError)
-    })
-    // TODO 🤔 make a common test on not found errors?
     it('creates a new member candidate', async () => {
         const world = await setUp()
 
@@ -107,10 +137,10 @@ describe('Stranger application', () => {
 
 async function setUp() {
     const context = await createContext()
-    const { tribe } = await context.testing.makeTribe()
+    const { tribe, members } = await context.testing.makeTribe()
 
     const user = await context.stores.userStore.save(
-        new User({ name: 'Userus Tribe' })
+        new User({ name: 'Newbie' })
     )
     const defReq = {
         userId: user.id,
@@ -122,6 +152,7 @@ async function setUp() {
     return {
         tribe,
         user,
+        members,
         defReq,
         ...context.stores,
         ...context.async,

@@ -1,25 +1,13 @@
-import { ApplicationMessage, TribeApplication } from '../use-cases/apply-tribe'
-import {
-    Application,
-    ApplicationPhase,
-} from '../use-cases/entities/application'
-import {
-    InitiationQuest,
-    IQuest,
-    QuestStatus,
-    QuestType,
-} from '../use-cases/entities/quest'
+import { TribeApplication } from '../use-cases/apply-tribe'
 import { User } from '../use-cases/entities/user'
 import {
-    ApplicationApprovedMessage,
     ApplicationDeclinedMessage,
     Initiation,
     InitiationRequest,
-    WrongPhaseError,
 } from '../use-cases/initiation'
 import { createContext, makeMessageSpy } from './test-context'
 
-describe('Initiation quests:', () => {
+fdescribe('Initiation quests:', () => {
     describe('Decline', () => {
         it('finalizes declined application', async () => {
             const world = await setUp()
@@ -29,7 +17,6 @@ describe('Initiation quests:', () => {
             )
 
             const member = await world.memberStore.getById(world.newMember.id)
-            expect(app!.phase).toEqual(ApplicationPhase.finished)
             expect(app!.status).toEqual('declined')
             expect(member!.isCandidate)
                 .withContext('member.isCandidate')

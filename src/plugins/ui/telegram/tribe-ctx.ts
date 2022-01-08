@@ -21,6 +21,7 @@ export interface TribeCtx extends Scenes.SceneContext {
 
 export interface TgContext {
     bot: Telegraf<TribeCtx>
+    viewModels: ViewModels
     bus: NotificationBus
     tgUsers: TelegramUsersAdapter
     logger: ILogger

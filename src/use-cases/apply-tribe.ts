@@ -1,6 +1,6 @@
 import { Application } from './entities/application'
-import { Member } from './entities/member'
-import { InitiationQuest, QuestType } from './entities/quest'
+import { Member, SavedMember } from './entities/member'
+import { InitiationQuest } from './entities/quest'
 import { ContextUser } from './utils/context-user'
 import { Message } from './utils/message'
 
@@ -14,7 +14,9 @@ export class TribeApplication extends ContextUser {
     applyToTribe = async (req: ApplicationRequest) => {
         const user = await this.getUser(req.userId)
         const tribe = await this.getTribe(req.tribeId)
-        const member = await this.getMember('TODO')
+        const elders = await this.getRandomMembers(req.tribeId)
+
+        const currentElder = elders[0]
         // creates a new _candidate_ member of the tribe
         const newMember = await this.stores.memberStore.save(
             new Member({ userId: user.id, tribeId: tribe.id })
@@ -24,42 +26,49 @@ export class TribeApplication extends ContextUser {
                 memberId: newMember.id,
                 tribeId: req.tribeId,
                 coverLetter: req.coverLetter,
+                elderIds: elders.map((e) => e.id),
+                currentElderId: currentElder.id,
             })
         )
 
         const quest = await this.stores.questStore.save(
             new InitiationQuest({
-                type: QuestType.initiation,
-                memberIds: [member.id, app.memberId],
+                memberIds: [currentElder.id, app.memberId],
                 applicationId: app.id,
             })
         )
+
         this.notify<ApplicationMessage>({
             type: 'application-message',
             payload: {
-                targetUserId: member.userId,
-                tribeName: tribe.name,
+                targetUserId: currentElder.userId,
                 questId: quest.id,
-                coverLetter: app.coverLetter,
-                userName: user.name,
             },
         })
     }
-}
-
-export class NoChiefTribeError extends Error {
-    constructor(msg: string) {
-        super(msg)
+    private async getRandomMembers(tribeId: string) {
+        const maxMembers = 3
+        const allTribeMembers = await this.stores.memberStore.findSimple({
+            tribeId,
+        })
+        const neededMembers = Math.min(maxMembers, allTribeMembers.length)
+        const members = new Set<SavedMember>()
+        while (members.size < neededMembers) {
+            members.add(
+                allTribeMembers[
+                    Math.floor(Math.random() * allTribeMembers.length)
+                ]
+            )
+        }
+        return Array.from(members)
     }
 }
 
+// TODO move to some common place
 export interface ApplicationMessage extends Message {
     type: 'application-message'
     payload: {
         targetUserId: string
-        tribeName: string
         questId: string
-        userName: string
-        coverLetter: string
     }
 }

@@ -1,10 +1,5 @@
-import {
-    CoordinationQuest,
-    isCoordinationQuest,
-    QuestStore,
-    QuestType,
-} from '../entities/quest'
-import { EntityNotFound } from './not-found-error'
+import { isCoordinationQuest, QuestStore } from '../entities/quest'
+import { EntityNotFound } from './errors'
 
 export async function getRootIdea(questStore: QuestStore, questId: string) {
     let rootQuest = await getQuest(questStore, questId)
@@ -25,7 +20,7 @@ async function getQuest(questStore: QuestStore, questId: string) {
         throw new EntityNotFound(`Quest ${questId} not found.`)
     }
     if (!isCoordinationQuest(quest)) {
-        throw new Error(`Noat a coordination qeust ${quest.id} (${quest.id})`)
+        throw new Error(`Not a coordination quest ${quest.id} (${quest.id})`)
     }
     return quest
 }

@@ -187,7 +187,6 @@ export class StoreTelegramUsersAdapter implements TelegramUsersAdapter {
         const users = await this.tgUserStore.findSimple({
             userId: tribalismUserId,
         })
-
         if (!users.length) {
             throw new Error(`User ${tribalismUserId} does not use telegram`)
         }

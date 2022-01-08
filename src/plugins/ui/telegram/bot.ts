@@ -142,6 +142,7 @@ export async function makeBot(config: BotConfig) {
 
     const tgContext = {
         bot,
+        viewModels: config.viewModels,
         bus: config.notificationBus,
         tgUsers: config.telegramUsersAdapter,
         logger: config.logger,

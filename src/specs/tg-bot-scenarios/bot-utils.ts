@@ -178,9 +178,10 @@ export async function createTelegramContext(
             next()
         }
     }
+    const tgUsersStore = new TgUserStore()
     const telegramUsersAdapter = new StoreTelegramUsersAdapter(
         context.stores.userStore,
-        new TgUserStore(),
+        tgUsersStore,
         context.logger
     )
     const bot = await makeBot({
@@ -223,10 +224,11 @@ export async function createTelegramContext(
     ) {
         await client.chat('/start')
         const user = await context.stores.userStore._last()
+
         if (city) {
             const tgUser =
                 await telegramUsersAdapter.getTelegramUserForTribalism(user.id)
-            tgUser.locate(city.id, city.timeZone)
+            await tgUser.locate(city.id, city.timeZone)
         }
         const member = await context.stores.memberStore.save(
             new Member({

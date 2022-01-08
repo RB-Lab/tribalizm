@@ -46,7 +46,6 @@ describe('Introduction quests', () => {
         })
         expect(tasks.length).toBe(0)
     })
-    // FLICK??
     it('marks an introduction task done', async () => {
         const world = await setUp()
         const newMember = await world.getApproval()
@@ -165,9 +164,8 @@ async function setUp(size?: number) {
             place: 'The Foo Bar',
             time: 1_700_100_500_000,
         }
-        await initiation.startInitiation(initReq)
         // TODO spin the full initiation
-        
+
         return (
             await context.stores.memberStore.findSimple({ userId: user.id })
         )[0]
@@ -192,7 +190,7 @@ async function setUp(size?: number) {
                 await context.stores.memberStore.findSimple({})
             )
             await introQuests.notifyOldMember(task)
-            // TODO new task allocated after the former one?? 
+            // TODO new task allocated after the former one??
             const newTask = await getNewItroTask()
             if (newTask) {
                 task = newTask

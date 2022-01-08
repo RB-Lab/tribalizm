@@ -1,6 +1,8 @@
 import {
     IndeclinableError,
     isCoordinationQuest,
+    isInitiationQuest,
+    isIntroductionQuest,
     QuestIncompleteError,
     QuestStatus,
     QuestType,
@@ -10,6 +12,7 @@ import { ContextUser } from './utils/context-user'
 import { getRootIdea, NoIdeaError } from './utils/get-root-idea'
 import { getBestFreeMember } from './utils/members-utils'
 import { Message } from './utils/message'
+import { InitiationFeedbackTask, IntroductionTask } from './utils/scheduler'
 
 export class QuestNegotiation extends ContextUser {
     proposeChange = async (req: QuestChangeRequest) => {
@@ -84,6 +87,41 @@ export class QuestNegotiation extends ContextUser {
                     })
                 }
             })
+            if (isInitiationQuest(quest)) {
+                this.scheduler.schedule<InitiationFeedbackTask>({
+                    type: 'initiation-feedback-task',
+                    done: false,
+                    time: quest.time + 2 * 3_600_000,
+                    payload: { questId: quest.id },
+                })
+            } else if (isIntroductionQuest(quest)) {
+                const allMembers = await this.stores.memberStore.findSimple({
+                    tribeId: member.tribeId,
+                })
+                const allIntroQuests =
+                    await this.stores.questStore.getAllIntroQuests(
+                        quest.newMemberId
+                    )
+                const nextOldMember = allMembers
+                    .sort(() => Math.random() - 0.5)
+                    .find(
+                        (m) =>
+                            !allIntroQuests.some((q) =>
+                                q.memberIds.includes(m.id)
+                            )
+                    )
+                if (nextOldMember) {
+                    this.scheduler.schedule<IntroductionTask>({
+                        type: 'introduction-quest',
+                        done: false,
+                        time: Date.now() + 48 * 3_600_000,
+                        payload: {
+                            newMemberId: member.id,
+                            oldMemberId: nextOldMember.id,
+                        },
+                    })
+                }
+            }
         }
     }
 
@@ -136,11 +174,10 @@ export class QuestNegotiation extends ContextUser {
             throw new Error('Cannot find other members among upvoters')
         }
 
-        const nextMember = getBestFreeMember(
-            members,
-            activeQuests,
-            [first.id, member.id]
-        )
+        const nextMember = getBestFreeMember(members, activeQuests, [
+            first.id,
+            member.id,
+        ])
         quest.addAssignee(nextMember.id)
         await this.stores.questStore.save(quest)
         const membersView = await this.getMembersViews(members)

@@ -7,7 +7,7 @@ import {
     SelfVotingIdeaError,
 } from '../use-cases/entities/brainstorm'
 import { Member } from '../use-cases/entities/member'
-import { EntityNotFound } from '../use-cases/utils/not-found-error'
+import { EntityNotFound } from '../use-cases/utils/errors'
 import { StormToVoting } from '../use-cases/utils/scheduler'
 import { Storable } from '../use-cases/utils/store'
 import {

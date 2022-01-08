@@ -1,6 +1,7 @@
 import { Tribalizm } from '../tribalism'
 import { ILogger } from './logger'
 import {
+    isInitiationFeedbackTask,
     isIntroductionTask,
     isStormFinalize,
     isStormNotify,
@@ -23,6 +24,9 @@ export class TaskDispatcher {
         const tasks = await this.scheduler.getTasks()
         this.logger.trace('Dispatch tasks', { tasks: tasks.map((t) => t.type) })
         for (let task of tasks) {
+            if (isInitiationFeedbackTask(task)) {
+                await this.tribalism.initiation.notifyElder(task)
+            }
             if (isIntroductionTask(task)) {
                 await this.tribalism.introductionQuests.notifyOldMember(task)
             }

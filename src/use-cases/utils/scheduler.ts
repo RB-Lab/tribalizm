@@ -1,4 +1,4 @@
-import { EntityNotFound } from './not-found-error'
+import { EntityNotFound } from './errors'
 import { Storable, Store } from './store'
 
 export interface TaskStore extends Store<ITask> {
@@ -40,8 +40,6 @@ export class Scheduler {
 }
 
 export interface StormNotify extends ITask {
-    time: number
-    done: boolean
     type: 'notify-brainstorm'
     payload: {
         brainstormId: string
@@ -56,8 +54,6 @@ export function isStormNotify(task: ITask): task is StormNotify {
 }
 
 export interface StormStart extends ITask {
-    time: number
-    done: boolean
     type: 'start-brainstorm'
     payload: {
         brainstormId: string
@@ -71,8 +67,6 @@ export function isStormStart(task: ITask): task is StormStart {
     )
 }
 export interface StormToVoting extends ITask {
-    time: number
-    done: boolean
     type: 'brainstorm-to-voting'
     payload: {
         brainstormId: string
@@ -86,8 +80,6 @@ export function isStormToVoting(task: ITask): task is StormToVoting {
     )
 }
 export interface StormFinalize extends ITask {
-    time: number
-    done: boolean
     type: 'brainstorm-to-finalize'
     payload: {
         brainstormId: string
@@ -102,8 +94,6 @@ export function isStormFinalize(task: ITask): task is StormFinalize {
 }
 
 export interface IntroductionTask extends ITask {
-    time: number
-    done: boolean
     type: 'introduction-quest'
     payload: {
         newMemberId: string
@@ -117,4 +107,18 @@ export function isIntroductionTask(task: ITask): task is IntroductionTask {
         'newMemberId' in task.payload &&
         'oldMemberId' in task.payload
     )
+}
+
+export interface InitiationFeedbackTask extends ITask {
+    type: 'initiation-feedback-task'
+    payload: {
+        questId: string
+    }
+}
+
+// TODO make all tasks a discriminating union so that type guards are not needed
+export function isInitiationFeedbackTask(
+    task: ITask
+): task is InitiationFeedbackTask {
+    return task.type === 'initiation-feedback-task'
 }
