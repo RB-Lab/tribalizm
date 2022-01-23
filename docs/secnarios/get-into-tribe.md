@@ -28,7 +28,7 @@
     -   ← "I want to BARRR!"
     -   → Application has been sent
 -   _Bar Tribe Old member 1_
-    -   → New application! (cover letter) `Accept`, `Decline`
+    -   → New application! (cover letter) `Accept`
     -   ← Accept
     -   → Enter date `...calendar...`
     -   ← 12/05/2022
@@ -69,7 +69,7 @@
     -   ← Yes
     -   → Ok, your resolution accounted
 -   _Bar Tribe Old member 2_
-    -   → New application! (cover letter) `Accept`, `Decline`
+    -   → New application! (cover letter) `Accept`
     -   ← Accept
     -   → Enter date `...calendar...`
     -   ← 16/05/2022

@@ -30,7 +30,7 @@ describe('Brainstorm lifecycle', () => {
         const onDeclare =
             world.spyOnMessage<BrainstormDeclarationMessage>('new-brainstorm')
         await world.stormCycle.declare(world.defReq)
-        expect(onDeclare).toHaveBeenCalledTimes(world.members.length - 2)
+        expect(onDeclare).toHaveBeenCalledTimes(world.members.length)
         expect(onDeclare).toHaveBeenCalledWith(
             jasmine.objectContaining<BrainstormDeclarationMessage>({
                 type: 'new-brainstorm',
@@ -45,20 +45,21 @@ describe('Brainstorm lifecycle', () => {
         const notified = onDeclare.calls
             .allArgs()
             .map((args) => args[0].payload.targetMemberId)
-        const all = world.members
-            .filter((m) => !m.isCandidate)
-            .map((m) => m.id)
+        const all = world.members.filter((m) => !m.isCandidate).map((m) => m.id)
         expect(notified).toEqual(all)
     })
     it('skips candidate', async () => {
         const world = await setUp()
+        const candidate = world.members[world.members.length - 1]
+        candidate.isCandidate = true
+        await world.memberStore.save(candidate)
         const onDeclare =
             world.spyOnMessage<BrainstormDeclarationMessage>('new-brainstorm')
         await world.stormCycle.declare(world.defReq)
         const notified = onDeclare.calls
             .allArgs()
             .map((args) => args[0].payload.targetMemberId)
-        expect(notified).not.toContain(world.candidate)
+        expect(notified).not.toContain(candidate.id)
     })
     it('creates a brainstorm', async () => {
         const world = await setUp()
@@ -73,7 +74,7 @@ describe('Brainstorm lifecycle', () => {
             })
         )
     })
-    it('alocates two tasks to notify about storm', async () => {
+    it('allocates two tasks to notify about storm', async () => {
         const world = await setUp()
         await world.stormCycle.declare(world.defReq)
         const tasks = await world.taskStore.findSimple({
@@ -102,8 +103,7 @@ describe('Brainstorm lifecycle', () => {
             })
         )
     })
-    // FLICK
-    it('alocates a task to start brainstorm', async () => {
+    it('allocates a task to start brainstorm', async () => {
         const world = await setUp()
         await world.stormCycle.declare(world.defReq)
         const tasks = await world.taskStore.findSimple({
@@ -122,7 +122,7 @@ describe('Brainstorm lifecycle', () => {
             })
         )
     })
-    it('notifies members that sotorm is near!', async () => {
+    it('notifies members that storm is near!', async () => {
         const world = await setUp()
         const onNotify =
             world.spyOnMessage<BrainstormNoticeMessage>('brainstorm-notice')
@@ -141,7 +141,7 @@ describe('Brainstorm lifecycle', () => {
         if (isStormNotify(task)) {
             await world.stormCycle.notifyMembers(task)
         }
-        expect(onNotify).toHaveBeenCalledTimes(world.members.length - 1)
+        expect(onNotify).toHaveBeenCalledTimes(world.members.length)
         expect(onNotify).toHaveBeenCalledWith(
             jasmine.objectContaining<BrainstormNoticeMessage>({
                 type: 'brainstorm-notice',
@@ -162,7 +162,7 @@ describe('Brainstorm lifecycle', () => {
             world.spyOnMessage<BrainstormStartedMessage>('brainstorm-started')
         const { brainstorm, task } = await world.startStorm()
 
-        expect(onStart).toHaveBeenCalledTimes(world.members.length - 1)
+        expect(onStart).toHaveBeenCalledTimes(world.members.length)
         expect(onStart).toHaveBeenCalledWith(
             jasmine.objectContaining<BrainstormStartedMessage>({
                 type: 'brainstorm-started',
@@ -191,7 +191,7 @@ describe('Brainstorm lifecycle', () => {
         expect(task.done).withContext('task before').toBe(false)
         expect(taskAfter!.done).withContext('task after').toBe(true)
     })
-    it('allocates a task for strom transition', async () => {
+    it('allocates a task for storm transition', async () => {
         const world = await setUp()
         const { brainstorm } = await world.startStorm()
         const tasks = await world.taskStore.findSimple({
@@ -209,7 +209,7 @@ describe('Brainstorm lifecycle', () => {
         expect(tasks[0].time).toBeGreaterThan(Date.now() + 10 * 60_000 - 1000)
         expect(tasks[0].time).toBeLessThan(Date.now() + 10 * 60_000 + 1000)
     })
-    it('transitions strom to voting', async () => {
+    it('transitions storm to voting', async () => {
         const world = await setUp()
         const { brainstorm } = await world.stormToVoting()
         const storm = await world.brainstormStore.getById(brainstorm.id)
@@ -227,7 +227,7 @@ describe('Brainstorm lifecycle', () => {
         const onVoting =
             world.spyOnMessage<VotingStartedMessage>('voting-started')
         const { brainstorm } = await world.stormToVoting()
-        expect(onVoting).toHaveBeenCalledTimes(world.members.length - 1)
+        expect(onVoting).toHaveBeenCalledTimes(world.members.length)
         expect(onVoting).toHaveBeenCalledWith(
             jasmine.objectContaining<VotingStartedMessage>({
                 type: 'voting-started',
@@ -239,7 +239,7 @@ describe('Brainstorm lifecycle', () => {
             })
         )
     })
-    it('Alocates a taks for storm to end', async () => {
+    it('Allocates a task for storm to end', async () => {
         const world = await setUp()
         const { brainstorm } = await world.stormToVoting()
         const tasks = await world.taskStore.findSimple({
@@ -280,7 +280,7 @@ describe('Brainstorm lifecycle', () => {
         if (isStormFinalize(task)) {
             await world.stormCycle.finalize(task)
         }
-        expect(onEnded).toHaveBeenCalledTimes(world.members.length - 1)
+        expect(onEnded).toHaveBeenCalledTimes(world.members.length)
         expect(onEnded).toHaveBeenCalledWith(
             jasmine.objectContaining<StormEndedMessage>({
                 type: 'brainstorm-ended',
@@ -293,7 +293,7 @@ describe('Brainstorm lifecycle', () => {
         )
     })
 
-    it('FAILs to finalize a strom not in voting phase', async () => {
+    it('FAILs to finalize a storm not in voting phase', async () => {
         const world = await setUp()
         const { brainstorm } = await world.startStorm()
         return expectAsync(
@@ -310,11 +310,8 @@ describe('Brainstorm lifecycle', () => {
 async function setUp() {
     const context = await createContext()
     const { members, tribe } = await context.testing.makeTribe()
-    const candidate = members[members.length - 1]
-    candidate.isCandidate = true
-    await context.stores.memberStore.save(candidate)
     await context.stores.tribeStore.save(tribe)
-    const stromCycle = new BrainstormLifecycle(context)
+    const stormCycle = new BrainstormLifecycle(context)
     const time = Date.now() + 5 * 24 * 3600000
     const defReq = {
         tribeId: tribe.id,
@@ -332,7 +329,7 @@ async function setUp() {
             payload: { brainstormId: brainstorm.id },
         })
         if (isStormStart(task)) {
-            await stromCycle.startStorm(task)
+            await stormCycle.startStorm(task)
         }
         return { task, brainstorm }
     }
@@ -344,14 +341,13 @@ async function setUp() {
             })
         )[0]
         if (isStormToVoting(task)) {
-            await stromCycle.toVoting(task)
+            await stormCycle.toVoting(task)
         }
         return { task, brainstorm }
     }
     return {
         ...context.stores,
-        candidate,
-        stormCycle: stromCycle,
+        stormCycle,
         tribe,
         members,
         defReq,

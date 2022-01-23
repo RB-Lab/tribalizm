@@ -11,11 +11,12 @@ export interface QuestStore extends Store<IQuest> {
     ) => Promise<{ [id: string]: number }>
     // TODO: add pagination
     /**
-     * get all introduction quests for a particular tribe member (so you can decide with whom they
-     * didn't met yet)
+     * get all introduction and initiation quests for a particular tribe member (so you can decide
+     * with whom they didn't met yet)
      */
     getAllIntroQuests: (memberId: string) => Promise<Array<IQuest & Storable>>
 }
+
 export enum QuestType {
     coordination = 'coordination',
     initiation = 'initiation',

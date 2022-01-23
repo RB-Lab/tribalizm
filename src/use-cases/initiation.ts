@@ -1,11 +1,17 @@
 import { ApplicationMessage } from './apply-tribe'
-import { InitiationQuest } from './entities/quest'
+import { InitiationQuest, QuestType } from './entities/quest'
 import { ContextUser } from './utils/context-user'
 import { Message } from './utils/message'
 import { InitiationFeedbackTask, IntroductionTask } from './utils/scheduler'
 import { Storable } from './utils/store'
 
+/**
+ * Handles feedback of initiation quests: approve, decline and request feedback notifications
+ */
 export class Initiation extends ContextUser {
+    /**
+     * Notifies elder that feedback for application is needed
+     */
     notifyElder = async (task: InitiationFeedbackTask & Storable) => {
         const quest = await this.getInitiationQuest(task.payload.questId)
         const app = await this.getApplication(quest.applicationId)
@@ -19,16 +25,17 @@ export class Initiation extends ContextUser {
             },
         })
     }
-    // TODO add "skip": swap random member in that case
+    /**
+     * Declines application, notifies the candidate that app has been declined
+     */
     decline = async (req: DeclineRequest) => {
         const quest = await this.getInitiationQuest(req.questId)
         const app = await this.getApplication(quest.applicationId)
+        const elder = await this.getTribeMemberByUserId(app.tribeId, req.userId)
         const newMember = await this.getMember(app.memberId)
         const tribe = await this.getTribe(app.tribeId)
-        const elder = await this.getTribeMemberByUserId(app.tribeId, req.userId)
         app.decline(elder.id)
         await this.stores.applicationStore.save(app)
-        await this.stores.questStore.save(quest)
         this.notify<ApplicationDeclinedMessage>({
             type: 'application-declined',
             payload: {
@@ -38,11 +45,17 @@ export class Initiation extends ContextUser {
             },
         })
     }
+
+    /**
+     * Approves application:
+     *  - creates next initiation quest & notifies next oldie
+     *  - when application is finished & approved – notifies the candidate & schedules intro
+     */
     async approve(req: ApplicationChangeRequest) {
         const quest = await this.getInitiationQuest(req.questId)
         const app = await this.getApplication(quest.applicationId)
-        const newMember = await this.getMember(app.memberId)
         const elder = await this.getTribeMemberByUserId(app.tribeId, req.userId)
+        const newMember = await this.getMember(app.memberId)
         app.approve(elder.id)
         await this.stores.applicationStore.save(app)
         if (app.status == 'approved') {
@@ -57,14 +70,17 @@ export class Initiation extends ContextUser {
                     targetMemberId: newMember.id,
                 },
             })
+            const allInitQuests =
+                await this.stores.questStore.getAllIntroQuests(newMember.id)
+            const allParticipants = [
+                ...new Set(allInitQuests.flatMap((q) => q.memberIds)),
+            ]
+
             const members = (
                 await this.stores.memberStore.findSimple({
                     tribeId: app.tribeId,
                 })
-            ).filter(
-                // TODO must filter out those who participated in initiation
-                (m) => m.id !== newMember.id
-            )
+            ).filter((m) => !allParticipants.includes(m.id))
             if (members.length < 1) {
                 return
             }

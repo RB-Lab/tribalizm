@@ -91,6 +91,12 @@ export class InMemoryStore<T> implements Store<T> {
 }
 
 function check(query: any, doc: any): boolean {
+    if (typeof query !== 'object') {
+        if (Array.isArray(doc)) {
+            return doc.includes(query)
+        }
+        return query === doc
+    }
     return Object.keys(query).every((key) => {
         const queryParam = query[key]
         if (Array.isArray(queryParam)) {
