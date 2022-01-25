@@ -29,11 +29,11 @@ async function getDb() {
 
 async function main() {
     const logger = new Logger()
-    const metricsRgistry = new promClient.Registry()
-    metricsRgistry.setDefaultLabels({
-        app: 'tribalzm-bot',
+    const metricsRegistry = new promClient.Registry()
+    metricsRegistry.setDefaultLabels({
+        app: 'tribalizm-bot',
     })
-    promClient.collectDefaultMetrics({ register: metricsRgistry })
+    promClient.collectDefaultMetrics({ register: metricsRegistry })
     try {
         const { db, client } = await getDb()
 
@@ -44,7 +44,7 @@ async function main() {
             help: 'Caught errors, that happens when notifications were handled',
             labelNames: ['error'],
         })
-        metricsRgistry.registerMetric(busErrorCounter)
+        metricsRegistry.registerMetric(busErrorCounter)
         const notificationBus = new TestNotificationBus(logger, (err) => {
             busErrorCounter.inc({ error: String(err) })
         })
@@ -63,7 +63,7 @@ async function main() {
             help: 'Caught errors, reported by bot',
             labelNames: ['error'],
         })
-        metricsRgistry.registerMetric(botErrorCounter)
+        metricsRegistry.registerMetric(botErrorCounter)
         function countErrors(error: unknown) {
             botErrorCounter.inc({ error: String(error) })
         }
@@ -98,7 +98,7 @@ async function main() {
             labelNames: ['type'],
             buckets: [0.1, 0.3, 0.5, 0.7, 1, 3, 5, 7, 10],
         })
-        metricsRgistry.registerMetric(httpRequestDurationMicroseconds)
+        metricsRegistry.registerMetric(httpRequestDurationMicroseconds)
 
         app.post('/tg-hook', async (req, res, next) => {
             const end = httpRequestDurationMicroseconds.startTimer()
@@ -128,7 +128,7 @@ async function main() {
             labelNames: ['tasks'],
             buckets: [0.1, 0.3, 0.5, 0.7, 1, 3, 5, 7, 10],
         })
-        metricsRgistry.registerMetric(queueCheckDurationMicroseconds)
+        metricsRegistry.registerMetric(queueCheckDurationMicroseconds)
 
         app.get('/check-queue', async (req, res) => {
             const end = queueCheckDurationMicroseconds.startTimer()
@@ -137,8 +137,8 @@ async function main() {
             res.send('ok')
         })
         app.get('/metrics', async (req, res) => {
-            res.setHeader('Content-Type', metricsRgistry.contentType)
-            res.end(await metricsRgistry.metrics())
+            res.setHeader('Content-Type', metricsRegistry.contentType)
+            res.end(await metricsRegistry.metrics())
         })
 
         const globalErrorCounter = new promClient.Counter({
@@ -146,7 +146,7 @@ async function main() {
             help: 'Caught errors, reported by express',
             labelNames: ['error'],
         })
-        metricsRgistry.registerMetric(globalErrorCounter)
+        metricsRegistry.registerMetric(globalErrorCounter)
 
         const globalErrorHandler: ErrorRequestHandler = (
             error,

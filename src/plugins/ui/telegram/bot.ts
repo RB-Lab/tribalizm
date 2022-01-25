@@ -67,6 +67,7 @@ export async function makeBot(config: BotConfig) {
         config.logger.error(err)
         config.metrics.countErrors(err)
         const texts = i18n(ctx).errors
+        ctx.answerCbQuery()
         if (typeof err == 'object' && err?.constructor?.name) {
             const text = (texts as any)[err.constructor.name]()
             // this means there's no translation for this

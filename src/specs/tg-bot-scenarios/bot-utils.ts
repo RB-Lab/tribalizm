@@ -1,5 +1,8 @@
+import express, { ErrorRequestHandler } from 'express'
 import TelegramServer from 'telegram-test-api'
+import http from 'http'
 import Transport from 'winston-transport'
+import { adminApi } from '../../plugins/api/admin'
 import { InMemoryStore } from '../../plugins/stores/in-memory-store/in-memory-store'
 import { makeBot } from '../../plugins/ui/telegram/bot'
 import { TelegramMessageInMemoryStore } from '../../plugins/ui/telegram/message-store'
@@ -169,6 +172,12 @@ export async function createTelegramContext(
 ) {
     const token = '-test-bot-token'
     const server = new TelegramServer({ port: 9001 })
+
+    const api = express()
+    api.use(express.json())
+
+    const apiRoutes = adminApi(context.tribalizm, context.viewModels, api)
+
     await server.start()
 
     const messageStore = new TelegramMessageInMemoryStore()
@@ -240,5 +249,40 @@ export async function createTelegramContext(
         return { ...client, user, member }
     }
 
-    return { server, bot, makeClient, addTribeMember }
+    async function callAdminApi(route: keyof typeof apiRoutes, data: object) {
+        return new Promise((resolve, reject) => {
+            const body = JSON.stringify(data)
+            const req = http.request(
+                {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Content-Length': body.length,
+                    },
+                    path: apiRoutes[route],
+                    hostname: 'localhost',
+                    port: 5674,
+                },
+                (res) => {
+                    let d = ''
+                    res.on('data', (chunk) => (d += chunk))
+                    res.on('end', () => {
+                        resolve(d)
+                    })
+                    res.on('error', reject)
+                }
+            )
+
+            req.on('error', (err) => {
+                console.log('error', err)
+                reject(err)
+            })
+
+            req.write(body)
+            req.end()
+        })
+    }
+    const apiServer = api.listen(5674)
+
+    return { server, bot, makeClient, addTribeMember, callAdminApi }
 }

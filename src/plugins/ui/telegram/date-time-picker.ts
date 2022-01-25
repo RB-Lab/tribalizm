@@ -80,6 +80,7 @@ export class DateTimePicker {
         this.locale = locale
         const texts = i18n({ locale }).calendar
 
+        this.calendar.setMinDate(new Date())
         this.calendar.setMonthNames(texts.months().split(','))
         this.calendar.setWeekDayNames(texts.weekdays().split(','))
         this.calendar.setStartWeekDay(Number(texts.startWeekDay()))

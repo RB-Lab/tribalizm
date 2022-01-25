@@ -3,112 +3,46 @@
 ## World
 
 -   City Novosibirsk
+-   Admin
 -   Tribes:
     -   Foo Tribe,
 -   Users:
-    -   Chief (C: 10, W: 5)
-    -   Shaman (C: 5, W: 10)
-    -   Member 1 (C: 3, W: 5)
-    -   Member 2 (C: 7, W: 5)
-    -   Member 3 (C: 5, W: 7)
+    -   Member 1
+    -   Member 2
+    -   Member 3
+    -   Member 4
+    -   Member 5
 
 ## Main scenario
 
--   _Chief_
-    -   → It's time to gather a brainstorm! 🌩 Propose a date `...calendar...`
-    -   ← 12/05/2022
-    -   → Enter hours `9...21`
-    -   ← 21
-    -   → Enter minutes `00, 15, 30, 45`
-    -   ← 45
-    -   → Ok, start brainstorm 12/05/2022, 21:45? `Yes`, `Change`
-    -   ← Yes
--   _Shaman_
-    -   → A brainstorm declared 12/05/2022 at 21:45! 🌩
--   _Member 1_
-    -   → A brainstorm declared 12/05/2022 at 21:45! 🌩
--   _Member 2_
-    -   → A brainstorm declared 12/05/2022 at 21:45! 🌩
--   _Member 3_
+-   Admin: declares storm on 12/05/2022 at 21:45!
+-   _[all members]_
     -   → A brainstorm declared 12/05/2022 at 21:45! 🌩
 -   --------- DATE 15 min before storm -------------
--   _Chief_
-    -   → Brainstorm starts in 15 minutes! 🌩
--   _Shaman_
-    -   → Brainstorm starts in 15 minutes! 🌩
--   _Member 1_
-    -   → Brainstorm starts in 15 minutes! 🌩
--   _Member 2_
-    -   → Brainstorm starts in 15 minutes! 🌩
--   _Member 3_
+-   _[all members]_
     -   → Brainstorm starts in 15 minutes! 🌩
 -   --------- DATE storm _start_ ------------
--   _Chief_
-    -   → Brainstorm started! Propose your ideas! 💥
--   _Shaman_
-    -   → Brainstorm started! Propose your ideas! 💥
--   _Member 1_
-    -   → Brainstorm started! Propose your ideas! 💥
--   _Member 2_
-    -   → Brainstorm started! Propose your ideas! 💥
--   _Member 3_
+-   _[all members]_
     -   → Brainstorm started! Propose your ideas! 💥
 -   _Member 2_
     -   ← Let's go FOOOO!!
--   _Chief_
-    -   → Let's go FOOOO!!
--   _Shaman_
-    -   → Let's go FOOOO!!
--   _Member 1_
-    -   → Let's go FOOOO!!
--   _Member 3_
+-   _[all members, except member 2]_
     -   → Let's go FOOOO!!
 -   _Member 3_
     -   ← Let's go Arr!!
--   _Chief_
-    -   → Let's go Arr!!
--   _Shaman_
-    -   → Let's go Arr!!
--   _Member 1_
-    -   → Let's go Arr!!
--   _Member 2_
-    -   → Let's go Arr!!
+-   _[all members, except member 3]_
 -   --------- DATE storm _voting_ ------------
--   _Chief_
+-   _[all members]_
     -   → Brainstorm is over, it's time to vote for ideas!
     -   → Let's go FOOO!! ⇒ Let's go FOO!! 👍👎
     -   → Let's go Arr!! ⇒ Let's go Arr!! 👍👎
--   _Shaman_
-    -   → Brainstorm is over, it's time to vote for ideas!
-    -   → Let's go FOOO!! ⇒ Let's go FOO!! 👍👎
-    -   → Let's go Arr!! ⇒ Let's go Arr!! 👍👎
--   _Member 1_
-    -   → Brainstorm is over, it's time to vote for ideas!
-    -   → Let's go FOOO!! ⇒ Let's go FOO!! 👍👎
-    -   → Let's go Arr!! ⇒ Let's go Arr!! 👍👎
--   _Member 2_
-    -   → Brainstorm is over, it's time to vote for ideas!
-    -   → Let's go FOOO!! ⇒ Let's go FOO!! 👍👎
-    -   → Let's go Arr!! ⇒ Let's go Arr!! 👍👎
--   _Member 3_
-    -   → Brainstorm is over, it's time to vote for ideas!
-    -   → Let's go FOOO!! ⇒ Let's go FOO!! 👍👎
-    -   → Let's go Arr!! ⇒ Let's go Arr!! 👍👎
--   _EVERYBODY_
+-   _[all members]_
     -   → Let's go Arr!! 👍
 -   --------- DATE storm _end_ ------------
--   _Chief_
-    -   → Storm ended! Most popular ideas are to be incarnated.
--   _Chief_
-    -   → Storm ended! Most popular ideas are to be incarnated.
--   _Member 1_
-    -   → Storm ended! Most popular ideas are to be incarnated.
--   _Member 2_
+-   _[all members]_
     -   → Storm ended! Most popular ideas are to be incarnated.
 -   _Member 3_
-    -   → Storm ended! Most popular ideas are to be incarnated.
--   _Member 3_
-    -   → You're going to coordinate execution of your idea "Let's go FOOO!!" with Chief. Propose a
+    -   → You're going to coordinate execution of your idea "Let's go Arr!!" with Member X. Propose a
         date to meet with them `...calendar...`
     -   ← 14/05/2022
     -   → Enter hours `9...21`
@@ -119,9 +53,9 @@
     -   ← "Barr Bar"
     -   → Ok, you proposed 14/05/2022, 12:45, in Barr Bar `Yes`, `Change`
     -   ← Yes
-    -   → Ok, Chief has been informed
--   _Chief_
-    -   → You're going to coordinate execution of your idea "Let's go FOOO!!" with Member 2. They
+    -   → Ok, Member X has been informed
+-   _Member X_
+    -   → You're going to coordinate execution of your idea "Let's go Arr!!" with Member 2. They
         proposed to meet 14/05/2022, 12:45, in Barr Bar `Agree`, `Change`, `Decline`
     -   ← Change
     -   → Enter date `...calendar...`
@@ -134,23 +68,22 @@
     -   ← "Barr Bar"
     -   → Ok, you proposed 14/05/2022, 20:00, in Barr Bar `Yes`, `Change`
     -   ← Yes
-    -   → Ok, Member 2 has been informed
+    -   → Ok, Member 3 has been informed
 -   _Member 3_
     -   → Chief proposed to meet 14/05/2022, 20:00, in Barr Bar `Agree`, `Change`
     -   ← Agree
     -   → Ok, Chief has been informed
     -   → When discuss with Chief, you can: `Spawn`, `Gather upvoters`, `Gather tribe`, `Re-Quest`
--   _Shman_
-    -   → Member 2 agreed on your proposal, you're meeting 14/05/2022, 20:00, in Barr Bar.
+-   _Member X_
+    -   → Member 3 agreed on your proposal, you're meeting 14/05/2022, 20:00, in Barr Bar.
 -   _Member 3_
     -   ← Spawn
     -   → Describe the quest, please
-    -   ← "Buy FOOO grenades"
+    -   ← "Buy Arr grenades"
     -   → Ok, quest assigned
 -   --------- DATE _some time after_ ------------
--   [... C/W casting ...]
--   _Member 2_
-    -   → New quest assigned to you and Chief! "Buy FOOO grenades". Propose a date to meet with them
+-   _Member Y_
+    -   → New quest assigned to you and Member Z! "Buy Arr grenades". Propose a date to meet with them
         `...calendar...`, `Decline`
     -   ← 18/05/2022
     -   → Enter hours `9...21`
@@ -161,22 +94,22 @@
     -   ← "Barr Bar"
     -   → Ok, you proposed 18/05/2022, 20:45, in Barr Bar `Yes`, `Change`
     -   ← Yes
-    -   → Ok, Chief has been informed
--   _Chief_
-    -   → New quest assigned to you and Member 3! "Buy FOOO grenades". Propose a date to meet with
+    -   → Ok, Member Z has been informed
+-   _Member Z_
+    -   → New quest assigned to you and Member 3! "Buy Arr grenades". Propose a date to meet with
         them `...calendar...`, `Decline`
-    -   → You're going to coordinate execution of your idea "Let's go FOOO!!" with Member 2. They
+    -   → You're going to coordinate execution of your idea "Let's go Arr!!" with Member 2. They
         proposed to meet 18/05/2022, 12:45, in Barr Bar `Agree`, `Change`, `Decline`
     -   ← Agree
-    -   → Ok, Member 3 has been informed
+    -   → Ok, Member Y has been informed
     -   → When discuss with Shaman, you can: `Spawn`, `Gather upvoters`, `Gather tribe`, `Re-Quest`
--   _Member 3_
+-   _Member Y_
     -   → Member 2 agreed on your proposal, you're meeting 14/05/2022, 20:00, in Barr Bar.
     -   → When discuss with Member 2, you can: `Spawn`, `Gather upvoters`, `Gather tribe`, `Re-Quest`
--   _Chief_
+-   _Member Y_
     -   ← Gather upvoters
     -   → Describe the reason for gathering
-    -   ← Let's go FOOO!!
+    -   ← Let's go Arr!!
     -   → When you want to gater? `...calendar...`
     -   ← 18/05/2022
     -   → Enter hours `9...21`
@@ -187,38 +120,10 @@
     -   ← "Barr Bar"
     -   → Ok, you proposed 18/05/2022, 20:45, in Barr Bar `Yes`, `Change`
     -   ← Yes
-    -   🚀 → Ok, I proclame gathering to upvoters
--   _Shaman_
-    -   → New gathering for "Let's go FOOO!!" 18/05/2022, 20:45, in Barr Bar `Accnowledge`, `Decline`
+    -   🚀 → Ok, I proclaim gathering to upvoters
+-   _[all members]_
+    -   → New gathering for "Let's go Arr!!" 18/05/2022, 20:45, in Barr Bar `Acknowledge`, `Decline`
     -   ← Acknowledge
--   _Member 1_
-    -   → New gathering for "Let's go FOOO!!" 18/05/2022, 20:45, in Barr Bar `Accnowledge`, `Decline`
-    -   ← Acknowledge
--   _Member 2_
-    -   → New gathering for "Let's go FOOO!!" 18/05/2022, 20:45, in Barr Bar `Accnowledge`, `Decline`
-    -   ← Decline
--   _Member 3_
-    -   → New gathering for "Let's go FOOO!!" 18/05/2022, 20:45, in Barr Bar `Accnowledge`, `Decline`
-    -   ← Acknowledge
--   --------- DATE _some time after_ ------------
--   [... C/W casting, chief, member3 ...]
--   --------- DATE _some time gatherin_ ------------
--   _Chief_
-    -   → How was the gathering? 😩😒😐😌🥰
-    -   ← 😌
-    -   → Ok. Saved
--   _Shaman_
-    -   → How was the gathering? 😩😒😐😌🥰
-    -   ← 😒
-    -   → Ok. Saved
--   _Member 1_
-    -   → How was the gathering? 😩😒😐😌🥰
-    -   ← 🥰
-    -   → Ok. Saved
--   _Member 3_
-    -   → How was the gathering? 😩😒😐😌🥰
-    -   ← 😌
-    -   → Ok. Saved
 
 ## Variations
 
