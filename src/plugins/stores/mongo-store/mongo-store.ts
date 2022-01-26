@@ -160,7 +160,7 @@ function toId(doc: Storable) {
     }
 }
 
-function objectify<T extends {}>(doc: T) {
+export function objectify<T extends {}>(doc: T) {
     if (objectHasProp(doc, 'id')) {
         if (typeof doc.id === 'string') {
             const { id, ...rest } = doc
@@ -179,7 +179,7 @@ function objectify<T extends {}>(doc: T) {
     return doc
 }
 
-function toQuery(doc: any): FilterQuery<any> {
+export function toQuery(doc: any): FilterQuery<any> {
     return Object.entries(doc).reduce((res, [key, value]) => {
         if (key === '_id') return { ...res, [key]: value }
         if (Array.isArray(value)) {

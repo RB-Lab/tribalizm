@@ -21,6 +21,7 @@ export class InMemoryCityStore
         )
         return res.map(this._instantiate)
     }
+    findSimpleCities = this.findSimple
     prune = async () => {
         this._store = []
     }

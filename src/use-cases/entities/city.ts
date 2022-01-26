@@ -1,5 +1,5 @@
 import { MultiPolygon } from '../utils/geo-json'
-import { Storable, Store } from '../utils/store'
+import { Query, Storable, Store } from '../utils/store'
 
 export interface Coordinates {
     latitude: number
@@ -7,18 +7,27 @@ export interface Coordinates {
 }
 export interface CityStore extends Store<ICity> {
     findByCoordinates: (coordinates: Coordinates) => Promise<StoredCity | null>
-    autocomplete: (input?: string) => Promise<StoredCity[]>
+    autocomplete: (input?: string) => Promise<StoredSimpleCity[]>
+    /** the same as `findSimple` but without city geometry */
+    findSimpleCities: <K extends keyof StoredSimpleCity>(
+        query: Query<StoredSimpleCity, K>
+    ) => Promise<StoredSimpleCity[]>
     prune: () => Promise<void>
 }
 
-export interface ICity {
+export interface SimpleCity {
     id: string | null
     name: string
-    geometry: MultiPolygon
     timeZone: string
 }
 
+export interface ICity extends SimpleCity {
+    geometry: MultiPolygon
+}
+
 export type StoredCity = ICity & Storable
+export type StoredSimpleCity = SimpleCity & Storable
+
 export class City implements ICity {
     public id: string | null
     public name: string

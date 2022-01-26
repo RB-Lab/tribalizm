@@ -10,10 +10,15 @@ import { Scheduler } from './use-cases/utils/scheduler'
 import { TaskDispatcher } from './use-cases/utils/task-dispatcher'
 import promClient from 'prom-client'
 import { makeViewModels } from './view-models/view-models'
+import { adminApi } from './plugins/api/admin'
 
 async function getDb() {
-    const { DB_USER, DB_HOST, DB_PASS } = process.env
-    const url = `mongodb://${DB_USER}:${DB_PASS}@${[DB_HOST]}:27017`
+    const { DB_USER, DB_HOST, DB_PASS, DB_PORT } = process.env
+    const url = `mongodb://${DB_USER}:${DB_PASS}@${[DB_HOST]}:${
+        DB_PORT || 27017
+    }`
+    console.log(url)
+
     const client = new MongoClient(url, { useUnifiedTopology: true })
     try {
         await client.connect()
@@ -83,6 +88,8 @@ async function main() {
 
         const app = express()
         app.use(express.json())
+
+        adminApi(tribalizm, viewModels, tgUsersAdapter, app)
 
         /** this one used to check server is running */
         // TODO replace with something form here:
@@ -176,8 +183,10 @@ async function main() {
         process.once('SIGINT', stop)
         process.once('SIGTERM', stop)
         async function stop() {
+            logger.trace('stopping server')
             server.close()
             await client.close()
+            logger.trace('server stopped')
         }
     } catch (e) {
         logger.error(e)

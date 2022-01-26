@@ -132,6 +132,7 @@ export interface TelegramUsersAdapter {
     ) => Promise<TelegramUser>
     getUserByChatId: (chatId: string | number) => Promise<TelegramUser | null>
     getTelegramUserForTribalism: (userId: string) => Promise<TelegramUser>
+    listTelegramUsers: (limit?: number, after?: string) => Promise<TgUserInfo[]>
 }
 
 export class StoreTelegramUsersAdapter implements TelegramUsersAdapter {
@@ -193,4 +194,20 @@ export class StoreTelegramUsersAdapter implements TelegramUsersAdapter {
 
         return new TelegramUser(this.tgUserStore, this.logger, users[0])
     }
+
+    async listTelegramUsers(limit = 30, after?: string) {
+        // TODO add pagination
+        const users = await this.tgUserStore.findSimple({})
+        return users.map((u) => ({
+            tgUserName: u.username,
+            userId: u.userId,
+            locale: u.locale,
+        }))
+    }
+}
+
+interface TgUserInfo {
+    tgUserName?: string
+    userId: string
+    locale?: string
 }

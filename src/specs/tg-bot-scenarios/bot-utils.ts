@@ -173,11 +173,6 @@ export async function createTelegramContext(
     const token = '-test-bot-token'
     const server = new TelegramServer({ port: 9001 })
 
-    const api = express()
-    api.use(express.json())
-
-    const apiRoutes = adminApi(context.tribalizm, context.viewModels, api)
-
     await server.start()
 
     const messageStore = new TelegramMessageInMemoryStore()
@@ -192,6 +187,15 @@ export async function createTelegramContext(
         context.stores.userStore,
         tgUsersStore,
         context.logger
+    )
+    const api = express()
+    api.use(express.json())
+
+    const apiRoutes = adminApi(
+        context.tribalizm,
+        context.viewModels,
+        telegramUsersAdapter,
+        api
     )
     const bot = await makeBot({
         notificationBus: context.async.notificationBus,
