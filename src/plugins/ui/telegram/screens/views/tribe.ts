@@ -20,7 +20,7 @@ interface TribeViewProps {
     showHelp?: boolean
 }
 
-// TODO for first time user show "what is tribalizm button"
+// TODO [now] for first time user show "what is tribalizm button"
 export function tribeView(ctx: TribeCtx, props: TribeViewProps) {
     const texts = i18n(ctx).tribesList
 

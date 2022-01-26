@@ -198,7 +198,6 @@ const en: BaseTranslation = {
     },
 
     errors: {
-        // TODO fill other errors texts!!
         UpdateFinishedBrainstormError: '🚫 This brainstorm is already over.',
         SelfVotingIdeaError: '🚫 You cannot vote for your own idea.',
         DoubleVotingError: 'Cannot vote twice.',

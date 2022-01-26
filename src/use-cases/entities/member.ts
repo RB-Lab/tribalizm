@@ -11,7 +11,6 @@ export interface IMemberData {
     tribeId: string
     isCandidate: boolean
 }
-// TODO MIGRATE: drop votes, charisma, wisdom
 
 export interface IMember extends IMemberData {}
 export type SavedMember = IMember & Storable

@@ -24,8 +24,7 @@ export function getBestFreeMember(
             `Cannot assign quest: not enough members (${members.length})`
         )
     }
-    // TODO randomize
-    return freeMembersFiltered[0]
+    return freeMembersFiltered.sort(() => Math.random() - 0.5)[0]
 }
 /**
  * Get minimal assigned quests count (e.g. 0 if there is a free member, 1 if at least one quest

@@ -10,8 +10,6 @@ export interface ITribeData {
     cityId: string | null
 }
 
-// TODO MIGRATE: drop shamanId, chiefId, vocabulary
-
 export interface ITribe extends ITribeData {}
 
 export type RequiredParams = Pick<ITribe, 'name'>

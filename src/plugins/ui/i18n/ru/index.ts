@@ -1,6 +1,5 @@
 import type { Translation } from '../i18n-types'
 
-// TODO don't forget to enable this:
 const ru: Translation = {
     unhandledText: '🗿 Духи слышат тебя...',
     buttons: {
@@ -201,7 +200,6 @@ const ru: Translation = {
     },
 
     errors: {
-        // TODO fill other errors texts!!
         UpdateFinishedBrainstormError: '🚫 Мозгоштурм уже окончен.',
         SelfVotingIdeaError: '🚫 Вы не можете голосовать за свою идею.',
         DoubleVotingError: 'Нельзя оценивать что-то дважды.',

@@ -20,11 +20,7 @@ export interface IApplicationData {
     elderIds: string[]
     approvedIds: string[]
 }
-// TODO MIGRATE: drop chiefId, shamanId, phase
-//               replace status => phase != finished : in-progress
-//               add elders: [tribe.chief, tribe.shaman]
-//               add currentElder: phase => tribe.chief | tribe.shaman
-//               add approvedIds: phase => [?tribe.chief, ?tribe.shaman]
+
 export interface IApplication extends IApplicationData {
     approve: (elderId: string) => void
     decline: (elderId: string) => void

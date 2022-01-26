@@ -244,7 +244,6 @@ describe('Brainstorm [integration]', () => {
         await userToPropose.chatLast('Tarantulae Inn')
         await userToPropose.chat('confirm-proposal', true)
         // TODO note that here userToAccept still have button to start negotiation
-        // TODO also users are now picked in line, should be random
         const spawnedProposeUpd = await userToAgree.chatLast()
         const spawnedProposeBtns = getInlineKeyCallbacks(spawnedProposeUpd)
         await userToAgree.chat(spawnedProposeBtns[0])

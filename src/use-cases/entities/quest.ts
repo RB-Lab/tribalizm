@@ -9,7 +9,6 @@ export interface QuestStore extends Store<IQuest> {
     getActiveQuestsCount: (
         memberIds: string[]
     ) => Promise<{ [id: string]: number }>
-    // TODO: add pagination
     /**
      * get all introduction and initiation quests for a particular tribe member (so you can decide
      * with whom they didn't met yet)
